@@ -1,0 +1,31 @@
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+ <constant name="struts.devMode" value="false" />
+
+ <package name="tutorial" extends="struts-default">
+
+  <action name="performSearch" class="uk.ac.ebi.orchem.web.SearchAction">
+   <result name="searchDone">/searchResult.jsp</result>
+   <result name="input">/search.jsp</result>
+  </action>
+
+  <action name="pageResults" class="uk.ac.ebi.orchem.web.PageAction">
+   <result name="pagingDone">/searchResult.jsp</result>
+  </action>
+
+  <action name="lookupMolfile" class="uk.ac.ebi.orchem.web.LookupMolfileAction">
+   <result name="lookupDone">/search.jsp</result>
+  </action>
+
+  <action name="enterSearchCriteria">
+   <result>/search.jsp</result>
+  </action>
+
+  <action name="*">
+   <result>/{1}.jsp</result>
+  </action>
+ </package>
+</struts>

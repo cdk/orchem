@@ -1,0 +1,174 @@
+<HTML>
+
+
+<head>
+   <title>
+     OrChem
+   </title>
+   <link rel="stylesheet" href="orchem.css" type="text/css">
+
+</head>
+
+<BODY>
+<H1>OrChem</H1>
+
+<TABLE WIDTH="70%" BORDER="0" cellspacing="10" cellpadding="10">
+	<TR>
+		<TD style="font-size:9pt">
+       <H3>Introduction</H3>
+       This document describes OrChem, an Oracle product for chemistry based on the <A href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</A>,
+       an open source Java library for Chemoinformatics and Bioinformatics. OrChem is freely available from <a href="https://sourceforge.net/projects/orchem/">sourceforge</a>.
+       <BR><BR>
+       Oracle Data cartridges extend the capabilities of the Oracle server. For chemistry databases various commercial
+       cartridges exist that facilitate searching and analyzing chemical data. OrChem also provides this functionality
+       but is not a cartridge: it does not need Oracle's extensibility architecture
+       because Java (and therefore the CDK) can run inside a regular Oracle instance.
+
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+       <H3>Requirements </H3>
+
+       <UL>
+       	<LI>Oracle 11g database / Oracle 10g database (to do - verify)</LI>
+       	<LI>Compound table with an MDL Molfile column </LI>
+       	<LI>CDK jar file (stripped?) (link) </LI>
+       	<LI>Apache collections jar file (link)</LI>
+       	<LI>Space requirements (calculate, TODO put details below) </LI>
+       	<LI>Oracle database user (loadjava privs) </LI>
+       </UL>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<H3>Architecture </H3>
+
+		   <IMG src="orchem_flow.gif">
+         <BR>
+			The previous illustration shows the OrChem set up. On the left
+			is your table with chemical compounds. That table must have a primary key column,
+			an MDL Molfile Clob and a possibly a formula.
+			The id and MDL column are mandatory for OrChem to work, but the formula is optional. So if your table does not hold formulas,
+			you can make a view that provides an empty formula  and use this as the
+			base table.
+			<BR><BR>
+			To give an example, say you have a compound table like this:
+			<BR><BR>
+<PRE>
+      Table "COMPOUNDS"
+      column               type
+      -------------------- --------------
+      CID                  NUMBER(20)
+      IUPAC_NAME           VARCHAR2(4000)
+      OPENEYE_ISO_SMILES   VARCHAR2(4000)
+      OPENEYE_MF           VARCHAR2(4000)
+      MDL                  CLOB
+      ...more columns
+</PRE>
+
+
+    <BR>
+    During OrChem <A href="#install">installation</A> first of all the table ORCHEM_PARAMETERS will be populated.
+    This table stores the name of the compound table and the columns OrChem needs.
+    In the example of the COMPOUNDS table above, the content of ORCHEM_PARAMETERS would be as follows.
+
+
+<PRE>
+     select * from orchem_parameters
+
+     COMP_TAB_NAME COMP_TAB_PK_COL  COMP_TAB_MOLFILE_COL  COMP_TAB_FORMULA_COL
+     ------------- ---------------  --------------------  --------------------
+     COMPOUNDS     CID              MDL                   OPENEYE_MF
+</PRE>
+
+		   <BR><BR>
+			With the correct details in ORCHEM_PARAMETERS the OrChem procedures can function properly.
+			<BR><BR>
+			Before OrChem can be used to search the compound table, the Java stored procedure to populate the "search tables" needs to run.
+			<BR>
+			&nbsp;&nbsp;PL/SQL package "ORCHEM", PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2);<BR>
+			<BR>
+
+			The amount of time it takes for this procedure to complete depends on the size of the compound table.
+			The start_id and end_id can be set to NULL to load all
+			compounds in one thread, or you can slice the amount of work up into sets from start_id to end_id and run the load in parallel jobs
+			(advisable for > 500,000 compounds. <A href="#load">See more</A> on loading
+			the search tables further on).
+		   <BR>
+			The loader reads the content of the compound table, and for each MDL Molfile creates a CDK molecule. This molecule is
+			fingerprinted and the results are stored in two tables:
+
+		    <UL>
+		    	<LI><span style="font-style:italic;">ORCHEM_FINGPRINT_SIMSEARCH</SPAN> is a cached table to facilitate similarity searching.
+		    		It has a raw column with a 1024-bit CDK Fingerprint for each compound. It also has a column
+		    		that indicates how many of the 1024 bits are set to one.
+		    		<BR>
+		    		OrChem uses a similarity search algorithm that makes relatively large row scans on this table.
+		    		The similarity table is therefore kept small and cached for performances.
+		    		<BR>
+		    		&nbsp;
+		    	</LI>
+		      <LI><span style="font-style:italic;">ORCHEM_FINGPRINT_SUBSEARCH</SPAN> is the table for substructure searching.
+		      	It has a 512 bit CDK fingerprint shred into 512 columns, each representing one bit. The table also
+		      	 contains counts for certain atoms and bonds.
+		      	 <BR>
+		    	    The substructure search requires a query fingerprint to be a subset of any candidate's fingerprint.
+				    This is done by a pre-filter query using the columns bit1 .. bit512. The atom and bond counts
+				    in ORCHEM_FINGPRINT_SUBSEARCH are also used to skip compounds that can not be candidates.
+				    Filtered candidates are scanned by a graph isomorphism class, checking if the query is a
+				    true substructure of the candidate.
+
+		    	 </LI>
+		    </UL>
+			 <BR><BR>
+			 The search programs are Java stored procedures, named SimilaritySearch and SubstructureSearch.java. These are wrapped in packaged procedures in package ORCHEM.
+			 The searches can be invoked from the command line like uh a-so (TODO)
+		</TD>
+	</TR>
+
+
+	<TR>
+		<TD>
+       <H3><A name="install">Installation</H3>
+
+		</TD>
+	</TR>
+
+	<TR>
+		<TD>
+       <H3><A name="load"></A>In detail: loading the search tables</H3>
+
+		</TD>
+	</TR>
+
+	<TR>
+		<TD>
+       <H3>In detail: substructure searching </H3>
+
+		</TD>
+	</TR>
+
+	<TR>
+		<TD>
+       <H3>In detail: similarity searching </H3>
+
+	   </TD>
+	</TR>
+
+
+	<TR>
+		<TD>
+       <H3>Future work </H3>
+
+	   </TD>
+	</TR>
+
+ </TABLE>
+
+
+
+</BODY>
+
+
+</HTML>

@@ -1,0 +1,21 @@
+
+    CREATE or REPLACE TYPE orchem_compound AS OBJECT
+    EXTERNAL name 'uk.ac.ebi.orchem.bean.OrChemCompound' LANGUAGE JAVA USING SQLData
+     (
+     id varchar2(80)
+     external name 'java.lang.String',
+     formula varchar2(4000)
+     external name 'java.lang.String',
+     mol_file clob
+     external name 'java.lang.String',
+     score float
+     external name 'float',
+     constructor function orchem_compound
+     return self as result
+     )
+    /
+    
+    CREATE or REPLACE TYPE ORCHEM_COMPOUND_LIST is TABLE OF orchem_compound
+    /
+    
+    

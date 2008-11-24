@@ -1,0 +1,600 @@
+body {
+    font-size:8pt;
+    font-family:verdana;
+    color:#000000;
+}
+
+
+
+A:link, A:active, A:hover, A:visited {
+  color      : blue;
+  font-family: Verdana, Helvetica, sans-serif;
+
+}
+
+
+tr {
+	font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+}
+
+th.tableCellHeader {
+   color: #000000;
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: bold;
+   text-align: left
+}
+
+tr.tableRowHeader {
+   color: #000000;
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;	
+	font-size: 10pt;
+   font-weight: bold;
+   text-align: left;
+}
+
+tr.tableRowEven {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   color:black;
+   font-size:14pt;
+   background-color: #EFE4CF; 
+   
+}
+
+
+tr.tableRowOdd { 
+   background-color: #D2D8E2; 
+   color: black;
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   
+}
+
+font.emblRedBold {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: bold;
+   color: #e33e3e;
+   font-style: normal
+}
+
+font.emblBlue {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: bold;
+   color: #006666;
+   font-style: normal
+}
+
+font.ebi_green {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: normal;
+   color: #006666;
+   font-style: normal
+}
+
+font.ebi_blue_normal {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: normal;
+   color: #003063;
+   font-style: normal
+}
+
+font.dark_grey {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: normal;
+   color: #777777;
+   font-style: normal
+}
+
+font.search_12 {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 12pt;
+   color: #000000;
+   font-style: normal
+}
+
+font.search_10 {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   color: #000000;
+   font-style: normal
+}
+
+font.size_8 {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 8pt;
+   color: #000000;
+   font-style: normal
+}
+
+
+font.black_normal {
+   font-size: 10pt;
+   color: #000000;
+}
+
+font.ok {
+   font-size: 10pt;
+   color: #777777;
+   font-style: normal;
+}
+
+font.checked {
+   font-size: 10pt;
+   color: #003063;
+   font-style: normal
+}
+
+/*************************************
+/*************************************** SPAN ****************************/
+/** Advanced Search plus and minus boxes */
+span.plusMinusHeader {
+	border: 1px solid #A7B8C1;
+	background-color: #FFFFFF;
+	color: #217A7A;
+	width: 1em;
+	height: 1em;
+	vertical-align: top;
+	display: inline-block;
+	float: right;
+	margin-right: 7px;
+	text-indent: 0px;
+	font-size: 1.2em;
+	font-weight: bold;
+	line-height: 1.0em;
+	text-align: center;
+	/*padding: 0;*/
+	/*cursor: pointer;*/
+}
+span.pagebanner {
+   text-align: left;
+}
+
+span.pagelinks {
+   text-align: right;
+}
+
+
+/**************************************** TABLES ****************************/
+
+table.lists {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: bold;
+   border-color: #EEEEEE;
+   border-style: outset;
+   border-width: thin;
+   color: #EEEEEE;
+   background-color: #EEEEEE;
+   font-style: normal;
+   width: 100%;
+}
+
+table.listsInner {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: normal;
+   border-color: #CCCCCC;
+   border-style: dotted;
+   border-width: 2px;
+   background-color: #EEEEEE;
+   font-style: normal;
+   width: 100%;
+}
+
+table.listsInner2 {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: bold;
+   border-color: #FFFFFF;
+   border-style: none;
+   border-width: thin;
+   background-color: #EEEEEE;
+   color: #EEEEEE;
+   font-style: normal;
+   width: 100%;
+}
+
+
+
+table.imageOff {
+   color: #000000;
+   border-color: #71828A;
+   background-color: #EEEEEE;
+   font-weight: bold;
+   border-top-color: #71828A;
+   border-left-color: #71828A;
+   border-right-color: #71828A;
+   border-bottom-color: #71828A;
+   height: 20px;
+   width: 50px;
+   font-size: 9pt;
+   border-style: outset;
+   border-width: thin;
+   text-align: center;
+}
+
+table.imageOn {
+   color: #FFFFFF;
+   border-color: #EEEEEE;
+   background-color: #AFBACE;
+   font-weight: bold;
+   border-top-color: #EEEEEE;
+   border-left-color: #EEEEEE;
+   border-right-color: #EEEEEE;
+   border-bottom-color: #EEEEEE;
+   height: 20px;
+   width: 50px;
+   font-size: 9pt;
+   border-style: outset;
+   border-width: thin;
+   text-align: center;
+}
+
+
+table.structureImage {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   vertical-align: top;
+   background-color: #FFFFFF;
+   font-style: normal;
+   width: 200px;
+}
+
+th.compoundDataHeaderBlack {
+   font-size: 10pt;
+   font-weight: bold;
+   text-align: left;
+   color: #FFFFFF;
+   border-color: #000000;
+   border-style: outset;
+   border-width: thin;
+   background-color: #000000;
+   font-style: normal;
+	font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+}
+
+/********************** Periodic Table ************************/
+table.periodicTableElements {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   border: 0;
+   font-style: normal;
+   padding: 1em;
+}
+
+table.periodicTableBlocks {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 12pt;
+   border: 0;
+   font-style: normal;
+}
+
+td.periodicGreen {
+   border-color: #CCFFCC;
+   background-color: #CCFFCC;
+}
+
+td.periodicBlue {
+   border-color: #99CCFF;
+   background-color: #99CCFF;
+}
+
+td.periodicOrange {
+   border-color: #FFCC99;
+   background-color: #FFCC99;
+}
+
+td.periodicPurple {
+   border-color: #CCCCFF;
+   background-color: #CCCCFF;
+}
+
+table.chebiTableContent {
+   padding:0;
+   width:100%;
+	font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+}
+
+td.chebiDataHeader {
+   background-color:#deebeb;
+   font-weight:normal;
+   color: #006666;
+}
+
+td.chebiDataContent{
+	font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+	border-bottom: 1px solid #EEEEEE;
+}
+/** Sub headers */
+td.chebiDataSubHeader {
+   background-color:#EEEEEE;
+   font-weight:normal;
+   color: #006666;
+}
+
+
+span.greenHeader {
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 11pt;
+   font-weight: bold;
+   color: #336666;
+   font-style: normal;
+}
+
+table.compoundsCsv {
+   font-family: serif;
+   font-size: 10pt;
+   border: 0;
+   font-style: normal;
+   padding: 1em;
+}
+
+th.settingsLightBlue {
+   border-color: #F0F7F5;
+   background-color: #F0F7F5;
+   color: #1F1F5C;
+   font-weight: bold;
+   font-size: 10pt;
+   text-align: left;
+}
+
+font.settingsLightBlue {
+   color: #1F1F5C;
+   font-weight: normal;
+}
+
+/*font.listLightBlue {*/
+   /*color: #333333;*/
+   /*font-weight: 600;*/
+   /*font-style: normal;*/
+   /*letter-spacing: 0.5px;*/
+   /*text-transform: none;*/
+   /*text-decoration: none;*/
+/*}*/
+
+
+
+
+ul {
+   text-align: left;
+}
+
+tr.emblGreen{
+  background-color:#207A7A;
+  color:#ffffff;
+   padding:5px;
+}
+
+tr.rowLightGreen {
+   background-color: #eef5f5;
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: normal;
+   text-align: left;
+   color: #000000;
+   border-color: #eef5f5;
+   border-width: thin;
+   font-style: normal;
+   padding:2px;
+}
+
+tr.rowWhite {
+   background-color: #ffffff;
+   font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+   font-size: 10pt;
+   font-weight: normal;
+   text-align: left;
+   color: #000000;
+   border-color: #ffffff;
+   border-width: thin;
+   font-style: normal;
+   padding:2px;
+}
+
+table.grey {
+   border-width:thin;
+   background-color:#EEEEEE;
+   border-color:#EEEEEE;
+	font-family: Arial Unicode MS, Lucida Sans Unicode, Arial, Helvetica, sans-serif;
+}
+
+div.greenErrorBar {
+   padding: 5px;
+   background-color:#F0F7F5;
+}
+
+div.tocHeader {
+   width:163px;
+   float:right;
+}
+div.tocTotal {
+   margin-left:2em;
+   margin-top:1.2em;
+   margin-bottom:0;
+   float:right;
+   width:200px;
+   font-size:80%;
+   clear:both;
+}
+div.tocContent {
+   width:190px;
+   float:right;
+}
+div.tocItemLevel1 {
+   padding-left:4px;
+   padding-bottom:3px;
+   padding-right:3px;
+   padding-top:3px;
+   text-align:left;
+}
+div.tocItemLevel2 {
+   padding-left:10px;
+   padding-bottom:3px;
+   padding-right:3px;
+   padding-top:3px;
+   text-align:left;
+}
+div.tocItemLevel3 {
+   padding-left:16px;
+   padding-bottom:3px;
+   padding-right:3px;
+   padding-top:3px;
+   text-align:left;
+}
+div.hrLine {
+   border-bottom: 1px solid #d9dadc;
+   margin: 25px 0px 5px 0px;
+}
+
+div.tocTotalLong {
+   float:right;
+   width:300px;
+   font-size:80%;
+   clear:both;
+}
+
+div.tocHeaderLong {
+   width:263px;
+   float:right;
+	padding-left: 5px;
+	position:relative;
+	padding-right:30px;
+	padding-top:5px;
+	padding-bottom:3px;
+	margin-left:2px;
+	margin-bottom:0px;
+	border: 1px solid #bfbfbf;
+	border-collapse:collapse;
+	height:auto;
+	font-weight:bold;
+	font-size: 8pt;
+	color:#1f1f1f;
+	background-color: #edf5ea;
+	text-align: left;
+	background: url(../../images/ebi/head_blue2.gif) top right no-repeat;
+
+}
+div.tocTotalLong {
+   margin-left:2em;
+   margin-top:1.2em;
+   margin-bottom:0;
+   float:right;
+   width:300px;
+   font-size:80%;
+   clear:both;
+}
+div.tocContentLong {
+   width:290px;
+   float:right;
+   background: url(http://www.ebi.ac.uk/inc/images/head_blue3b.gif) top right repeat;
+}
+img.flag{
+   width:17px;
+   height:10px;
+}
+
+/**************************** CSS TABS ****************************/
+
+
+/* rounded */
+
+#nav {
+        margin: 0;
+        padding: 0 0 20px 10px;
+        border-bottom: 1px solid #bfbfbf;
+}
+
+#nav li {
+        margin: 0;
+        padding: 0;
+        display: inline;
+        list-style-type: none;
+}
+
+#nav a:link, #nav a:visited {
+        float: left;
+        font-size: 10px;
+        line-height: 14px;
+        font-weight: bold;
+        padding: 0 12px 6px 12px;
+        text-decoration: none;
+        color: #708491;
+}
+
+#nav a:link.active, #nav a:visited.active, #nav a:hover {
+        color: #006666;
+        background: url(../../images/rounded.gif) no-repeat bottom center;
+}
+
+.tabStyle{
+    font-size:12px;
+    cursor:pointer;
+    width:120px;
+    height:30px;
+    border:1px solid #999999;
+    border-left:1px solid #999999;
+    border-right:1px solid #999999;
+    border-bottom:1px solid #999999;
+    background: url(http://www.ebi.ac.uk/inc/images/head_bot_blue3b.gif) top right no-repeat;
+    background-color:#edf6f5;
+}
+.tabStyleView{
+    font-size:13px;
+    cursor:pointer;
+    width:120px;
+    height:30px;
+    border:1px solid #999999;
+    border-bottom:0px;
+    border-left:1px solid #999999;
+    border-right:1px solid #999999;
+    background: url(http://www.ebi.ac.uk/inc/images/head_bot_blue3b.gif) top right no-repeat;
+    background-color:white;
+}
+.tabStyleBlank {
+   border:0px;
+   border-bottom:1px solid #999999;
+   width:1px;
+}
+
+
+/********************* images ****************************/
+img.externalLink {
+    border: 0;
+    height: 7px;
+    width: 7px;
+}
+img.adapted {
+   border: 0;
+   height: 14px;
+   width: 14px;
+}
+
+/******************** structure results ************************/
+td.structurePager {
+	background-color: #FFFFFF;
+	color: black;
+	text-align:right;
+	float:right;
+	font-weight: normal;
+	width: 100%;
+}
+table.gridLayout {
+	width:100%;
+	border: 1px solid #adadaf;
+	border-collapse:collapse;
+}
+td.gridLayout {
+	border: 1px solid #adadaf;
+	border-collapse:collapse;
+}
+tr.centerStructureResult, ul.centerStructureResult {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 10em;
+}
+

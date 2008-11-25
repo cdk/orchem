@@ -104,9 +104,9 @@ public class SubgraphIsomorphism {
             n1 = nodePair.getQueryNode();
             n2 = nodePair.getTargetNode();
 
-            //char[] chars = new char[(state.recursionDepth*5)];
-            //Arrays.fill(chars, ' ');
-            //System.out.println(String.valueOf(chars)+n1+","+n2);            
+            char[] chars = new char[(state.recursionDepth*5)];
+            Arrays.fill(chars, ' ');
+            //System.out.println(String.valueOf(chars)+n1+","+n2+"   "+state.getQueryMolecule().getAtom(n2).getSymbol()+","+state.getQueryMolecule().getAtom(n1).getSymbol());            
 
             if (state.isFeasiblePair(n1, n2)) {
                 State cloneState = (State) state.clone();

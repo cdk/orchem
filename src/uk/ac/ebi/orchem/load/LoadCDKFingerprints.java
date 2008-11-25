@@ -43,140 +43,137 @@ public class LoadCDKFingerprints {
     public static void load(String startId, String endId ) throws Exception {
 
         //try {
-            int DEF_ROW_PREFETCH=100;
-            int COMMIT_POINT=25;     // kept low due to big size of prepared statements
-            final int FP_1024=1024;  // used for the similarity search table
-            final int FP_512=512;    // used for the substructure search table
 
-//TODO correct
-            //OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
-            OracleConnection conn = (OracleConnection)new PubChemConnection().getDbConnection();
-    
-            conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
-            conn.setAutoCommit(false);
-            int commitCount=0;
-    
-            /* Two fingerprinters will be used. 1024 bits for the similarity search table, 512
-             * for the substructure search table*/
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
-            IFingerprinter fingerPrinter1024 = new ExtendedFingerprinter(FP_1024);
-            BitSet fp1024;
-            IFingerprinter fingerPrinter512 = new ExtendedFingerprinter(FP_512);
-            BitSet fp512;
-    
-            /* Prepare the (flexible) query on the base compound table in the schema */
-            String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
-            String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
-            String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
-            String compoundQuery = 
-            " select " + compoundTablePkColumn       +
-            "      , " + compoundTableMolfileColumn  +
-            " from   " + compoundTableName;
-            if (startId!=null && endId!=null)  {
-                compoundQuery+= "  where "+compoundTablePkColumn+" between "+startId+" and "+endId;    
-            }
- 
- //TODO remove line (fix only)
- compoundQuery+=" and cid not in (select id from orchem_fingprint_simsearch) ";
- 
-    
-            /* Statement for inserts into the orchem similarity search table */
-            PreparedStatement psInsertSimiFp = conn.prepareStatement(
-            "insert into orchem_fingprint_simsearch (id, bit_count,fp) values (?,?,?)"
-            );
-    
-            /* Statement for inserts into the substructure search table */
-            PreparedStatement psInsertSubstrFp = conn.prepareStatement(
-            "insert into orchem_fingprint_subsearch values " +
-            "(" +
-            //id
-            "?," +
-            //512 bits
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
-            //Atom and bond counts
-            "?,?,?,?,?, ?,?,?,?,?, ?,?,? "+
-            ")" 
-            );
-    
-            Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            ResultSet res = stmtQueryCompounds.executeQuery(compoundQuery);
-            Clob molFileClob = null;
-    
-            /* Start the main loop over the base compound table */        
-            while (res.next()) {
-                try {
-                    /* Get molecule and fingerprints */
-                    molFileClob = res.getClob(compoundTableMolfileColumn);
-                    int clobLen = new Long(molFileClob.length()).intValue();
-                    String molfile = (molFileClob.getSubString(1, clobLen));
-                    Molecule molecule = Utils.getMolecule(mdlReader, molfile);
-                    fp1024 = fingerPrinter1024.getFingerprint(molecule);
-                    fp512 = fingerPrinter512.getFingerprint(molecule);
-                    byte[] bytes = Utils.toByteArray(fp1024, FP_1024);
-    
-    
-                    /* Prepare statement for Similarity search helper table */
-                    psInsertSimiFp.setString(1, res.getString(compoundTablePkColumn));
-                    psInsertSimiFp.setInt(2, fp1024.cardinality());
-                    psInsertSimiFp.setBytes(3, bytes);
-    
-    
-                    /* Prepare statement for Substructure search helper table */
-                    int idx=1;
-                    psInsertSubstrFp.setString(idx,res.getString(compoundTablePkColumn));
-    
-                    for (int i = 0; i < fp512.size(); i++) {
-                        idx=i+2;
-                        if (fp512.get(i))
-                            psInsertSubstrFp.setString(idx,"1");
-                        else
-                            psInsertSubstrFp.setString(idx,null);
-                    }
-                    Map atomAndBondCounts = Utils.atomAndBondCount(molecule);
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.AROM_BOND_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.S_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.O_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.N_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.F_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.CL_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.BR_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.I_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.C_COUNT));
-                    psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.P_COUNT));
-    
-                    psInsertSimiFp.addBatch();
-                    psInsertSubstrFp.addBatch();
-                    commitCount++;
-    
-                    if (commitCount >= COMMIT_POINT) {
-                        psInsertSimiFp.executeBatch();
-                        psInsertSubstrFp.executeBatch();
-                        conn.commit();
-                        commitCount = 0;
-                    }
-    
-                } catch (Exception e) {
-                    System.err.println("Loop warning for " + compoundTablePkColumn + ": "+res.getString(compoundTablePkColumn)+ e.getMessage());
+        int DEF_ROW_PREFETCH=100;
+        int COMMIT_POINT=25;     // kept low due to big size of prepared statements
+        final int FP_1024=1024;  // used for the similarity search table
+        final int FP_512=512;    // used for the substructure search table
+
+        OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
+        //OracleConnection conn = (OracleConnection)new PubChemConnection().getDbConnection();
+
+        conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
+        conn.setAutoCommit(false);
+        int commitCount=0;
+
+        /* Two fingerprinters will be used. 1024 bits for the similarity search table, 512
+         * for the substructure search table*/
+        MDLV2000Reader mdlReader = new MDLV2000Reader();
+        IFingerprinter fingerPrinter1024 = new ExtendedFingerprinter(FP_1024);
+        BitSet fp1024;
+        IFingerprinter fingerPrinter512 = new ExtendedFingerprinter(FP_512);
+        BitSet fp512;
+
+        /* Prepare the (flexible) query on the base compound table in the schema */
+        String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
+        String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
+        String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
+        String compoundQuery = 
+        " select " + compoundTablePkColumn       +
+        "      , " + compoundTableMolfileColumn  +
+        " from   " + compoundTableName;
+        if (startId!=null && endId!=null)  {
+            compoundQuery+= "  where "+compoundTablePkColumn+" between "+startId+" and "+endId;    
+        }
+
+        /* Statement for inserts into the orchem similarity search table */
+        PreparedStatement psInsertSimiFp = conn.prepareStatement(
+        "insert into orchem_fingprint_simsearch (id, bit_count,fp) values (?,?,?)"
+        );
+
+        /* Statement for inserts into the substructure search table */
+        PreparedStatement psInsertSubstrFp = conn.prepareStatement(
+        "insert into orchem_fingprint_subsearch values " +
+        "(" +
+        //id
+        "?," +
+        //512 bits
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
+        //Atom and bond counts
+        "?,?,?,?,?, ?,?,?,?,?, ?,?,? "+
+        ")" 
+        );
+
+        Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        ResultSet res = stmtQueryCompounds.executeQuery(compoundQuery);
+        Clob molFileClob = null;
+
+        /* Start the main loop over the base compound table */        
+        while (res.next()) {
+            try {
+                /* Get molecule and fingerprints */
+                molFileClob = res.getClob(compoundTableMolfileColumn);
+                int clobLen = new Long(molFileClob.length()).intValue();
+                String molfile = (molFileClob.getSubString(1, clobLen));
+                Molecule molecule = Utils.getMolecule(mdlReader, molfile);
+                fp1024 = fingerPrinter1024.getFingerprint(molecule);
+                fp512 = fingerPrinter512.getFingerprint(molecule);
+                byte[] bytes = Utils.toByteArray(fp1024, FP_1024);
+
+
+                /* Prepare statement for Similarity search helper table */
+                psInsertSimiFp.setString(1, res.getString(compoundTablePkColumn));
+                psInsertSimiFp.setInt(2, fp1024.cardinality());
+                psInsertSimiFp.setBytes(3, bytes);
+
+
+                /* Prepare statement for Substructure search helper table */
+                int idx=1;
+                psInsertSubstrFp.setString(idx,res.getString(compoundTablePkColumn));
+
+                for (int i = 0; i < fp512.size(); i++) {
+                    idx=i+2;
+                    if (fp512.get(i))
+                        psInsertSubstrFp.setString(idx,"1");
+                    else
+                        psInsertSubstrFp.setString(idx,null);
                 }
+                Map atomAndBondCounts = Utils.atomAndBondCount(molecule);
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.AROM_BOND_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.S_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.O_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.N_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.F_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.CL_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.BR_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.I_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.C_COUNT));
+                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.P_COUNT));
+
+                psInsertSimiFp.addBatch();
+                psInsertSubstrFp.addBatch();
+                commitCount++;
+
+                if (commitCount >= COMMIT_POINT) {
+                    psInsertSimiFp.executeBatch();
+                    psInsertSubstrFp.executeBatch();
+                    conn.commit();
+                    commitCount = 0;
+                }
+
+            } catch (Exception e) {
+                System.err.println("Loop warning for " + compoundTablePkColumn + ": "+res.getString(compoundTablePkColumn)+ e.getMessage());
             }
-            psInsertSimiFp.executeBatch();
-            psInsertSubstrFp.executeBatch();
-    
-            conn.commit();
-            psInsertSimiFp.close();
-            res.close();
-            stmtQueryCompounds.close();
-            conn.close();
+        }
+        psInsertSimiFp.executeBatch();
+        psInsertSubstrFp.executeBatch();
+
+        conn.commit();
+        psInsertSimiFp.close();
+        res.close();
+        stmtQueryCompounds.close();
+        conn.close();
+
         //}
         //catch (Exception e) {
         //    System.err.println("ERROR:" + e.getMessage()+"\n"+Utils.getErrorString(e));
@@ -197,11 +194,14 @@ public class LoadCDKFingerprints {
         load( null,null );
     }
 
-//TODO remove
+
+
+    /* 
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
         l.load(args[0],args[1]);
     }
+    */
     
 
 }

@@ -4,8 +4,8 @@ AS
    FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_oct( p_dec IN NUMBER ) RETURN VARCHAR2;
    PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2);
-   FUNCTION similarity_search (molfile clob, cutoff float, topn NUMBER) RETURN orchem_compound_list;
-   FUNCTION substructure_search (molfile clob, topn NUMBER) RETURN orchem_compound_list;
+   FUNCTION similarity_search (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   FUNCTION substructure_search (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
 END;
 /
 
@@ -73,15 +73,15 @@ AS
    IS LANGUAGE JAVA
    NAME 'uk.ac.ebi.orchem.load.LoadCDKFingerprints.load (java.lang.String, java.lang.String)';
    /*    */
-   FUNCTION similarity_search (molfile clob, cutoff float, topn NUMBER) 
+   FUNCTION similarity_search (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2)
    RETURN orchem_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SimilaritySearch.search (java.sql.Clob, java.lang.Float, java.lang.Integer) return oracle.sql.ARRAY';
+   'uk.ac.ebi.orchem.search.SimilaritySearch.search (java.sql.Clob, java.lang.Float, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
    /*    */
-   FUNCTION substructure_search (molfile clob, topn NUMBER) 
+   FUNCTION substructure_search (molfile clob, topn NUMBER, debug_YN VARCHAR2) 
    RETURN ORCHEM_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearch.search (java.sql.Clob, java.lang.Integer) return oracle.sql.ARRAY';
+   'uk.ac.ebi.orchem.search.SubstructureSearch.search (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
 END;
 /
 

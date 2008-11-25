@@ -12,13 +12,9 @@ import uk.ac.ebi.orchem.Constants;
 public class PageAction extends SessionAwareAction { 
 
     public String execute() throws Exception {
-        System.out.println("start PageAction");
         WebSearchResults wsr = (WebSearchResults)getSession().get(Constants.SESSION_WEB_SEARCH_RESULTS);
-        System.out.println(wsr);
         wsr.setPageNum(page);
-        System.out.println(page);
         getSession().put(Constants.SESSION_WEB_SEARCH_RESULTS, wsr);
-        System.out.println("stored");
         return "pagingDone";
     }
     
@@ -26,13 +22,10 @@ public class PageAction extends SessionAwareAction {
     private int page;
 
     public void setPage(int _p) {
-        System.out.println("page setter from "+page+" to "+_p);
         this.page = _p;
     }
 
     public int getPage() {
-
-        System.out.println("page getter "+page);
         return page;
     }
 

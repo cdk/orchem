@@ -348,7 +348,7 @@
       </list>
    </hash>
    <hash n="oracle.jdevimpl.config.JProjectPaths">
-      <url n="outputDirectory" path="classes/"/>
+      <url n="outputDirectory" path="public_html/WEB-INF/classes/"/>
    </hash>
    <hash n="oracle.jdevimpl.webapp.jsp.libraries.model.ProjectTagLibraries">
       <hash n="libraries">

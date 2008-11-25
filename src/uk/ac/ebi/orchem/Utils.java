@@ -26,6 +26,7 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  */
 public class Utils {
 
+
     /**
      * Returns a CDK Molecule when given a valid structure (MDL)
      * @param mdlReader

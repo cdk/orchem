@@ -60,10 +60,11 @@ public class SimilaritySearch {
      * @param queryFp fingerprint of the query molecule
      * @param _cutOff tanimoto score below which to stop searching
      * @param _topN top N results after which to stop searching
+     * @param debugYN
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      * @throws Exception
      */
-    public static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN) throws Exception { 
+    public static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN) throws Exception { 
 
         /*
          * 
@@ -127,7 +128,11 @@ public class SimilaritySearch {
          28: return hits
          */
 
-        //System.out.println(new java.util.Date()+"  Started");
+        boolean debugging=false;
+        if (debugYN.toLowerCase().equals("y")) 
+            debugging=true;
+
+        debug("started",debugging);
 
        /**********************************************************************
         * Similarity search algorithm section                                *
@@ -184,7 +189,7 @@ public class SimilaritySearch {
                 /* Algorithm step 9..11
                    Here we can break out because the tanimoto score is becoming to low */
                 if (bound < cutOff) {
-                    //System.out.println(new java.util.Date()+"  Bound < cutOff, done");
+                    debug("bound < cutOff, done",debugging);
                     done = true;
                 }
                 //
@@ -228,7 +233,7 @@ public class SimilaritySearch {
                      */
                     if (heap.size() >= topN && ((SimHeapElement)(heap.get())).getTanimotoCoeff().floatValue() > bound) {
                         done = true;
-                        //System.out.println(new java.util.Date()+ "  topN reached, done");
+                        debug("topN reached, done",debugging);
 
                     } else {
                         // calculate new currBucket
@@ -248,7 +253,7 @@ public class SimilaritySearch {
                     }
                 }
             }
-            //System.out.println(new java.util.Date()+"  Searched bit_count buckets: "+loopCount);
+            debug("searched bit_count buckets: "+loopCount,debugging);
     
 
            /********************************************************************
@@ -293,7 +298,7 @@ public class SimilaritySearch {
                 output[i] = (OrChemCompound) (compounds.get(i));
             }
             ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor("ORCHEM_COMPOUND_LIST", conn);
-            //System.out.println(new java.util.Date()+"  Ended");
+            debug("ended",debugging);
             return new ARRAY(arrayDescriptor, conn, output);
         }
         catch (Exception ex ) {
@@ -312,39 +317,54 @@ public class SimilaritySearch {
     }
 
     /**
-     * Overload for {@link #search(BitSet , Float , Integer) search}
+     * Overload for {@link #search(BitSet , Float , Integer,String) search}
      * @param molfileClob
      * @param cutOff
      * @param topN
+     * @param debugYN
      * @return
      * @throws Exception
      */
 
-    public static oracle.sql.ARRAY  search(Clob molfileClob, Float cutOff, Integer topN) throws Exception {
+    public static oracle.sql.ARRAY  search(Clob molfileClob, Float cutOff, Integer topN,String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         int clobLen = new Long(molfileClob.length()).intValue();
         String molfile = (molfileClob.getSubString(1, clobLen));
         Molecule molecule = Utils.getMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter1024().getFingerprint(molecule);
-        return search(fp, cutOff, topN);
+        return search(fp, cutOff, topN, debugYN);
     }
 
 
     /**
-     * Overload for {@link #search(BitSet , Float , Integer) search}
+     * Overload for {@link #search(BitSet , Float , Integer,String) search}
      * @param molfile
      * @param cutOff
      * @param topN
+     * @param debugYN
      * @return
      * @throws Exception
      */
-    public static oracle.sql.ARRAY  search(String molfile, Float cutOff, Integer topN) throws Exception {
+    public static oracle.sql.ARRAY  search(String molfile, Float cutOff, Integer topN, String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         Molecule molecule = Utils.getMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter1024().getFingerprint(molecule);
-        return search(fp, cutOff, topN);
+        return search(fp, cutOff, topN, debugYN);
     }
 
+
+    /**
+     * Print debug massage to system output. To see this output in Oracle SQL*Plus 
+     * use 'set severout on' and 'exec dbms_java.set_output(50000)'
+     * 
+     * @param debugMessage
+     * @param debug
+     */
+    private static void debug (String debugMessage, boolean debug) {
+        if (debug)  {
+            System.out.println(new java.util.Date()+" debug: "+debugMessage);
+        }
+    }
 
 
 }

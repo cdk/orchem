@@ -36,17 +36,21 @@ public class DbSearchInvoker {
         ocs.setString(2, molfile);
         ocs.setFloat(3, tanimotoCutoff);
         ocs.setInt(4, topN);
+        ocs.setString(5, "N");
+
         return executeOCS(ocs, conn);
     }
 
 
     public List substructureSearchOracle(String molfile, Connection conn, int topN) throws SQLException, ClassNotFoundException {
 
-        String plsqlCall = "begin ?:=orchem.substructure_search(?,?); end;";
+        String plsqlCall = "begin ?:=orchem.substructure_search(?,?,?); end;";
         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
         ocs.setString(2, molfile);
         ocs.setInt(3, topN);
+        ocs.setString(4, "N");
+
         return executeOCS(ocs, conn);
     }
 

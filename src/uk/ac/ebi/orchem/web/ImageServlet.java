@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class ImageServlet extends HttpServlet {
     public ImageServlet() {
-        System.out.println("IMAGE SERVLET STARTED UP");
+        System.out.println("ImageServlet constructed ... ");
     }
 
 

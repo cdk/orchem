@@ -8,20 +8,20 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openscience.cdk.AtomContainer;
+import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.Molecule;
-import org.openscience.cdk.aromaticity.HueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.nonotify.NNMolecule;
 
 /**
  *
- * Shared application methods.
+ * Shared utilitie for OrChem.
  *
  */
 public class Utils {
@@ -29,6 +29,10 @@ public class Utils {
 
     /**
      * Returns a CDK Molecule when given a valid structure (MDL)
+     * NOTE : there was an aromaticity detector here before as well, but this
+     * significantly slows down creation of the Molecule.
+     * 
+     * 
      * @param mdlReader
      * @param structure
      * @return
@@ -39,11 +43,24 @@ public class Utils {
         mdlReader.setReader(new StringReader(structure));
         mol = new Molecule();
         mol = (Molecule)mdlReader.read(mol);
+
         Molecule mol2 = new Molecule(AtomContainerManipulator.removeHydrogens(mol));
         if (mol2 == null || mol2.getAtomCount() == 0)
             throw new RuntimeException("Error parsing molfile is null or mol atom count is zero. ");
 
-        HueckelAromaticityDetector.detectAromaticity(mol2);
+        return mol2;
+    }
+
+    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String structure) throws CDKException {
+        NNMolecule mol = null;
+        mdlReader.setReader(new StringReader(structure));
+        mol = new NNMolecule();
+        mol = (NNMolecule)mdlReader.read(mol);
+
+        NNMolecule mol2 = new NNMolecule(AtomContainerManipulator.removeHydrogens(mol));
+        if (mol2 == null || mol2.getAtomCount() == 0)
+            throw new RuntimeException("Error parsing molfile is null or mol atom count is zero. ");
+
         return mol2;
     }
 
@@ -67,7 +84,6 @@ public class Utils {
     public static final String SINGLE_BOND_COUNT = "sinbc";
     public static final String DOUBLE_BOND_COUNT = "doubc";
     public static final String TRIPLE_BOND_COUNT = "tribc";
-    public static final String AROM_BOND_COUNT = "arobc";
     public static final String S_COUNT = "sc";
     public static final String O_COUNT = "oc";
     public static final String N_COUNT = "nc";
@@ -94,7 +110,6 @@ public class Utils {
         Integer molSingleBondCount = 0;
         Integer molDoubleBondCount = 0;
         Integer molTripleBondCount = 0;
-        Integer molAromaticBondCount = 0;
         Integer molSCount = 0;
         Integer molOCount = 0;
         Integer molNCount = 0;
@@ -109,13 +124,15 @@ public class Utils {
         IAtom atom;
         for (int i = 0; i < iac.getBondCount(); i++) {
             bond = iac.getBond(i);
-            if (bond.getFlag(CDKConstants.ISAROMATIC))
-                molAromaticBondCount++;
-            else if (bond.getOrder() == 1)
+            if (bond.getOrder() ==1 ) //1.0.4
+            //if (bond.getOrder() == Bond.Order.SINGLE )  //1.1.2
+
                 molSingleBondCount++;
-            else if (bond.getOrder() == 2)
+            else if (bond.getOrder() == 2) //1.0.4
+            //else if (bond.getOrder() == Bond.Order.DOUBLE) //1.1.2
                 molDoubleBondCount++;
-            else if (bond.getOrder() == 3)
+            else if (bond.getOrder() ==3) //1.0.4
+            //else if (bond.getOrder() == Bond.Order.TRIPLE) //1.1.2
                 molTripleBondCount++;
         }
         for (int i = 0; i < iac.getAtomCount(); i++) {
@@ -144,7 +161,6 @@ public class Utils {
         result.put(SINGLE_BOND_COUNT, molSingleBondCount);
         result.put(DOUBLE_BOND_COUNT, molDoubleBondCount);
         result.put(TRIPLE_BOND_COUNT, molTripleBondCount);
-        result.put(AROM_BOND_COUNT, molAromaticBondCount);
         result.put(S_COUNT, molSCount);
         result.put(O_COUNT, molOCount);
         result.put(N_COUNT, molNCount);

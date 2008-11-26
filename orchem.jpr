@@ -97,7 +97,7 @@
             <value n="custom" v="false"/>
             <value n="javaOptions" v="-Xmx128m"/>
             <value n="name" v="Load fingerprints"/>
-            <value n="programArguments" v="4150001 10000000"/>
+            <value n="programArguments" v="3586 3586"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
             <url n="targetURL" path="src/uk/ac/ebi/orchem/load/LoadCDKFingerprints.java"/>
             <value n="VMName" v="server"/>
@@ -112,10 +112,6 @@
       <list n="exportedReferences">
          <hash>
             <value n="id" v="MarvinBeans-5.1.0.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Cdk-1.0.4.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -166,6 +162,10 @@
             <value n="id" v="JSP Runtime"/>
             <value n="isJDK" v="false"/>
          </hash>
+         <hash>
+            <value n="id" v="Cdk-1.0.4.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
       </list>
       <hash n="internalDefinitions">
          <list n="libraryDefinitions">
@@ -176,15 +176,6 @@
                <value n="deployedByDefault" v="true"/>
                <value n="description" v="MarvinBeans-5.1.0.jar"/>
                <value n="id" v="MarvinBeans-5.1.0.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/cdk-1.0.4.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Cdk-1.0.4.jar"/>
-               <value n="id" v="Cdk-1.0.4.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -286,15 +277,20 @@
                <value n="id" v="Xwork-2.0.5.jar"/>
                <value n="locked" v="true"/>
             </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/cdk-1.0.4.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Cdk-1.0.4.jar"/>
+               <value n="id" v="Cdk-1.0.4.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
          </list>
       </hash>
       <list n="libraryReferences">
          <hash>
             <value n="id" v="MarvinBeans-5.1.0.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Cdk-1.0.4.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -343,6 +339,10 @@
          </hash>
          <hash>
             <value n="id" v="JSP Runtime"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Cdk-1.0.4.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

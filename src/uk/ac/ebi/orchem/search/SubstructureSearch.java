@@ -26,14 +26,15 @@ import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
-import uk.ac.ebi.orchem.vf2.IsomorphismSort;
-import uk.ac.ebi.orchem.vf2.SubgraphIsomorphism;
+import org.openscience.cdk.isomorphism.IsomorphismSort;
+import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
+import org.openscience.cdk.isomorphism.VF2SubgraphIsomorphism;
 
 /**
  * Substructure search between a query molecule and the database molecules.<BR>
  * This class is loaded in the database and executed as a java stored procedure, hence the
  * properietary return type oracle.sql.ARRAY and such.
- * 
+ *
  * @author markr@ebi.ac.uk
  */
 
@@ -86,6 +87,7 @@ public class SubstructureSearch {
             // sort the atoms of the query molecule
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
             debug(sortedAtoms.length+" sorted atoms",debugging);
+            queryMolecule.setAtoms(sortedAtoms);
 
             QueryAtomContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
             debug("QueryAtomContainer made",debugging);
@@ -114,7 +116,6 @@ public class SubstructureSearch {
                 ", single_bond_count " + 
                 ", double_bond_count " +
                 ", triple_bond_count " + 
-                ", aromatic_bond_count " + 
                 ", s_count " + 
                 ", o_count " + 
                 ", n_count " +
@@ -153,10 +154,13 @@ public class SubstructureSearch {
 
                     if (resCompound.next()) {
 
-                        if (res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT) ||
-                            res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT) ||
-                            res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT) ||
-                            res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(Utils.AROM_BOND_COUNT) ||
+                        if (
+
+                            //TODO RESTORE  !!!!
+                            //res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT) ||
+                            //res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT) ||
+                            //res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT) ||
+
                             res.getInt("s_count") < (Integer)atomAndBondCounts.get(Utils.S_COUNT) ||
                             res.getInt("o_count") < (Integer)atomAndBondCounts.get(Utils.O_COUNT) ||
                             res.getInt("n_count") < (Integer)atomAndBondCounts.get(Utils.N_COUNT) ||
@@ -180,8 +184,7 @@ public class SubstructureSearch {
                                 /* Test of the match made is truly a substructure */
                                 now = System.currentTimeMillis();
 
-                                //SubgraphIsomorphism s = new SubgraphIsomorphism(databaseMolecule, QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule));
-                                SubgraphIsomorphism s = new SubgraphIsomorphism(databaseMolecule, qAtCom);
+                                SubgraphIsomorphism s = new SubgraphIsomorphism(new VF2SubgraphIsomorphism(databaseMolecule, qAtCom));
 
                                 if (s.matchSingle()) {
                                     OrChemCompound c = new OrChemCompound();

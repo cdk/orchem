@@ -43,6 +43,10 @@
        </TR>
     </table>
     <table width="90%">
+        <s:if test="#session.wsr.searchResults.size==0">
+            <H3> No results found ....   <a href="<s:url value="search.action"/>">search again </a>
+ </H3>
+        </s:if>    
         <s:iterator  id="res" value="%{#session.wsr.searchResults}" status="res_stat">  
            <s:if test="#res_stat.count <= session.wsr.currDisplayEndIdx ">
               <s:if test="#res_stat.count >= session.wsr.currDisplayStartIdx ">

@@ -18,7 +18,6 @@ import org.openscience.cdk.io.MDLV2000Reader;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
-import uk.ac.ebi.orchem.db.PubChemConnection;
 
 
 /**
@@ -50,7 +49,7 @@ public class LoadCDKFingerprints {
         final int FP_512=512;    // used for the substructure search table
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
-        //OracleConnection conn = (OracleConnection)new PubChemConnection().getDbConnection();
+        //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
 
         conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
         conn.setAutoCommit(false);
@@ -97,7 +96,7 @@ public class LoadCDKFingerprints {
         "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
         "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?,?, ?,?,?,?,?,   ?,?,?,?," +
         //Atom and bond counts
-        "?,?,?,?,?, ?,?,?,?,?, ?,?,? "+
+        "?,?,?,?,?, ?,?,?,?,?, ?,? "+
         ")" 
         );
 
@@ -139,7 +138,6 @@ public class LoadCDKFingerprints {
                 psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT));
                 psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT));
                 psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT));
-                psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.AROM_BOND_COUNT));
                 psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.S_COUNT));
                 psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.O_COUNT));
                 psInsertSubstrFp.setInt(++idx,(Integer)atomAndBondCounts.get(Utils.N_COUNT));
@@ -155,8 +153,8 @@ public class LoadCDKFingerprints {
                 commitCount++;
 
                 if (commitCount >= COMMIT_POINT) {
-                    psInsertSimiFp.executeBatch();
-                    psInsertSubstrFp.executeBatch();
+                    //psInsertSimiFp.executeBatch();
+                    //psInsertSubstrFp.executeBatch();
                     conn.commit();
                     commitCount = 0;
                 }
@@ -195,14 +193,13 @@ public class LoadCDKFingerprints {
     }
 
 
-
-    /* 
+    /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
         l.load(args[0],args[1]);
     }
     */
-    
+   
 
 }
 

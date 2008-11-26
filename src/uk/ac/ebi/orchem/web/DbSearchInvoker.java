@@ -30,7 +30,7 @@ public class DbSearchInvoker {
 
     public List similaritySearch(String molfile, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
                                                                                                          ClassNotFoundException {
-        String plsqlCall = "begin ?:= orchem.similarity_search(?,?,?); end;";
+        String plsqlCall = "begin ?:= orchem.similarity_search(?,?,?,?); end;";
         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
         ocs.setString(2, molfile);

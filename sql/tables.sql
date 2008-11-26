@@ -539,7 +539,6 @@
      ,single_bond_count      number(6)
      ,double_bond_count      number(6)
      ,triple_bond_count      number(6)
-     ,aromatic_bond_count    number(6)
      ,s_count                number(6)
      ,o_count                number(6)
      ,n_count                number(6)

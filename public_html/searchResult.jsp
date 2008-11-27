@@ -26,7 +26,7 @@
 
             <s:form action="pageResults" method="post" cssStyle="border:0">
                <s:hidden name="page" value="%{#session.wsr.prevPageNum}" />
-               <s:submit type="image" src="img/back.jpg" />
+               <s:submit type="image" src="img/back.gif" />
              </s:form>
         </s:if>
        </td>
@@ -34,7 +34,7 @@
         <s:if test="session.wsr.lastPage==false">
              <s:form action="pageResults" method="post" cssStyle="border:0">
                <s:hidden name="page" value="%{#session.wsr.nextPageNum}" />
-               <s:submit type="image" src="img/forward.jpg" />
+               <s:submit type="image" src="img/forward.gif" />
              </s:form>
         </s:if>
        </td>

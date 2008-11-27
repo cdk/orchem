@@ -1,0 +1,125 @@
+    
+
+Step plan to create the schema
+
+ - create tables
+ - create types
+ - populate the ORCHEM_PARAMETERS table
+ 
+ - loadjava ->  CDK, Apache commons and Orchem (wrapped as JAR)
+ - JIT
+       declare
+         i number;
+       begin
+         for r_java in (select replace(name,'/','.') name from user_java_classes ) loop
+             if r_java.name like 'org.openscience.cdk%' then
+                begin 
+                  i:=dbms_java.compile_class (r_java.name);
+                exception
+                when others then
+                  dbms_output.put_line ('Error for '||r_java.name);
+                end;
+             end if;
+         end loop;
+      end;
+
+ - create procedures
+
+ - data loading: orchem_fingprint_simsearch and orchem_fingprint_subsearch 
+ 
+ - post loader indices: 
+      - BITMAPs on compound info bits
+      - BTMAP on fingerprints
+  
+ - Stats:!!!!!!!!!!!!!!!!!!
+
+
+   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
+   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
+
+
+  If you omit stats forget about performance !!!!!!
+
+
+-------------------
+
+
+loadjava
+
+
+
+loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/NodePair.java
+loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/State.java
+loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/VF2SubgraphIsomorphism.java
+loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/SubgraphIsomorphism.java
+loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/IsomorphismSort.java
+
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/Utils.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/db/OrChemParameters.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompound.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElement.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
+
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SimilaritySearch.java
+loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SubstructureSearch.java
+
+
+
+
+-----------------
+
+Failures CDK:
+
+The following operations failed
+    source com/ozten/font/JFontChooser: creation (createFailed)
+    source com/ozten/font/JFontChooserTest: creation (createFailed)
+    source com/ozten/util/SwingUtil: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/AnonymousReference: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/BasicConvertibleClassifier: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/ConvertibleClassifier: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/ConvertibleClassifierInt: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/ForeignReference: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/ForeignReferenceClassGenerator: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/ForeignReferenceInt: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/InterfaceDatabase: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/InterfaceReference: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/MetaForeignReference: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/NamedReference: creation (createFailed)
+    source org/omegahat/Interfaces/NativeInterface/OmegaInterfaceManager: creation (createFailed)
+    source org/omegahat/R/Java/MissingMethodException: creation (createFailed)
+    source org/omegahat/R/Java/REvaluator: creation (createFailed)
+    source org/omegahat/R/Java/RException: creation (createFailed)
+    source org/omegahat/R/Java/RForeignReference: creation (createFailed)
+    source org/omegahat/R/Java/RJavaInstance: creation (createFailed)
+    source org/omegahat/R/Java/RManualFunctionActionListener: creation (createFailed)
+    source org/omegahat/R/Java/ROmegahatInterpreter: creation (createFailed)
+    source org/omegahat/R/Java/RSplash: creation (createFailed)
+exiting  : Failures occurred during processing
+
+
+
+
+---- 
+
+chebi  
+
+create or replace view vw_orchem (id,mol,formula) as
+    select c.id, s.structure,null
+    from   compounds c
+         , structures s
+        , default_structures d
+    where  c.id = s.compound_id
+    and    c.status='C'
+    and    s.status='C'
+    and    s.type='mol'
+    and    d.structure_id = s.id
+
+
+insert into orchem_parameters values ('VW_ORCHEM','ID','MOL', 'FORMULA')
+
+
+
+

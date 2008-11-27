@@ -1,4 +1,7 @@
-package uk.ac.ebi.orchem.vf2;
+package org.openscience.cdk.isomorphism;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -6,10 +9,12 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtomContainer;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
+/**
+ * Verbatim translation of C++ VF2 algprithm from VF lib.<BR>
+ * http://amalfi.dis.unina.it/graph/db/vflib-2.0/doc/vflib.html<BR>
+ *
+ */
 public class VF2SubgraphIsomorphism extends State {
 
 
@@ -32,8 +37,7 @@ public class VF2SubgraphIsomorphism extends State {
     private IQueryAtomContainer g1;
 
     int n1, n2;
-    public static Integer share_count =
-        1; // TODO is it correct to make it static? It's supposed to be shared across instances
+    public static Integer share_count =1; 
 
     protected Object clone() throws CloneNotSupportedException {
         VF2SubgraphIsomorphism ret = new VF2SubgraphIsomorphism();
@@ -70,17 +74,12 @@ public class VF2SubgraphIsomorphism extends State {
     private VF2SubgraphIsomorphism() {
     }
 
-    public VF2SubgraphIsomorphism(IAtomContainer target, IQueryAtomContainer query, boolean sortNodes) {
+    public VF2SubgraphIsomorphism(IAtomContainer target, IQueryAtomContainer query) {
         g1 = query;
         g2 = target;
 
         n1 = g1.getAtomCount();
         n2 = g2.getAtomCount(); 
-
-        if (sortNodes)
-            order = null; //sortNodesByFrequency(g1);
-        else
-            order = null;
 
         core_len = 0;
         orig_core_len = 0;
@@ -183,7 +182,7 @@ public class VF2SubgraphIsomorphism extends State {
                     termin1++;
                 if (out_1[other1] != 0)
                     termout1++;
-                if (in_1[other1] == 0 && out_1[other1] == 0) // TODO possibe bug here
+                if (in_1[other1] == 0 && out_1[other1] == 0) 
                     new1++;
             }
         }

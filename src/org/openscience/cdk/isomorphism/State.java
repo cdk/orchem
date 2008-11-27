@@ -1,4 +1,4 @@
-package uk.ac.ebi.orchem.vf2;
+package org.openscience.cdk.isomorphism;
 
 
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -7,14 +7,19 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtomContainer;
 import org.openscience.cdk.isomorphism.matchers.IQueryBond;
 
+/**
+ * Definition of an abstract class representing a state of the
+ * matching process between two IAtomContainers
+ * 
+ */
 public abstract class State {
 
+    /**
+     * int to track recursion depth, for debugging purpose
+     */
     public static int recursionDepth=0;
 
     protected abstract IAtomContainer getTargetMolecule();
-
-
-
     protected abstract IAtomContainer getQueryMolecule();
 
     /**
@@ -54,6 +59,7 @@ public abstract class State {
     }
 
     protected boolean bondMatches(IQueryAtomContainer g1, IAtomContainer g2, int i, int k, int j, int l) {
+
         IQueryBond qbond = (IQueryBond) g1.getBond(g1.getAtom(i), g1.getAtom(k));
         IBond tbond = g2.getBond(g2.getAtom(j), g2.getAtom(l));
         return qbond.matches(tbond);

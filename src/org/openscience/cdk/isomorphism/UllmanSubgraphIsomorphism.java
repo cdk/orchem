@@ -1,4 +1,4 @@
-package uk.ac.ebi.orchem.vf2;
+package org.openscience.cdk.isomorphism;
 
 
 import org.openscience.cdk.interfaces.IAtom;
@@ -9,6 +9,12 @@ import org.openscience.cdk.isomorphism.matchers.IQueryAtomContainer;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Verbatim translation of C++ Ullmann algorithm from VF lib.<BR>
+ * http://amalfi.dis.unina.it/graph/db/vflib-2.0/doc/vflib.html<BR>
+ * 
+ */
+
 public class UllmanSubgraphIsomorphism extends State {
     private int coreLen;
     private Integer[] core1;
@@ -16,17 +22,14 @@ public class UllmanSubgraphIsomorphism extends State {
 
     private IAtomContainer g2;
     private IQueryAtomContainer g1;
+
     int n1, n2;
     byte[][] M;
 
 
-    /**
-     * Only used for the clone operation.
-     */
-    private UllmanSubgraphIsomorphism() {
-    }
 
-    public UllmanSubgraphIsomorphism(IQueryAtomContainer query, IAtomContainer target) {
+    public UllmanSubgraphIsomorphism(IAtomContainer target,IQueryAtomContainer query) {
+
         this.g2 = target;
         this.g1 = query;
 
@@ -54,6 +57,12 @@ public class UllmanSubgraphIsomorphism extends State {
             }
         }
 
+    }
+
+    /**
+     * Only used for the clone operation.
+     */
+    private UllmanSubgraphIsomorphism() {
     }
 
     public IAtomContainer getTargetMolecule() {
@@ -125,7 +134,7 @@ public class UllmanSubgraphIsomorphism extends State {
                 pairList.add(new NodePair(i, core1[i]));
             }
         }
-        return pairList.toArray(new NodePair[]{});
+        return pairList.toArray(new NodePair[] {});
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -157,7 +166,7 @@ public class UllmanSubgraphIsomorphism extends State {
      *
      * @param prev_n1 The previous node from the query graph
      * @param prev_n2 The previous node from the target graph
-     * @return null if there are no more pairs to return, otherwise a {@link net.guha.apps.matching.NodePair}
+     * @return null if there are no more pairs to return, otherwise a {@link NodePair}
      *         object containing the next pair of node to be tried.
      */
     public NodePair nextPair(Integer prev_n1, Integer prev_n2) {

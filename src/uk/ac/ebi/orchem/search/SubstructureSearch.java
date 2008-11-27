@@ -203,7 +203,7 @@ public class SubstructureSearch {
                     System.out.println("CDK Error - " + res.getString("molregno") + ": " + e.getMessage());
                 }
             }
-            debug("CDK UniversalIsomorphismTester took milliseconds: " + uitTime,debugging);
+                debug("CDK Isomorphism test took milliseconds: " + uitTime,debugging);
             debug("amount of compounds through UIT: " + compTested,debugging);
 
             OrChemCompound[] output = new OrChemCompound[compounds.size()];

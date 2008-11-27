@@ -49,7 +49,7 @@ public class LoadCDKFingerprints {
         final int FP_512=512;    // used for the substructure search table
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
-        //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
+        //OracleConnection conn = (OracleConnection)new ChebiConnection().getDbConnection();
 
         conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
         conn.setAutoCommit(false);
@@ -153,8 +153,8 @@ public class LoadCDKFingerprints {
                 commitCount++;
 
                 if (commitCount >= COMMIT_POINT) {
-                    //psInsertSimiFp.executeBatch();
-                    //psInsertSubstrFp.executeBatch();
+                    psInsertSimiFp.executeBatch();
+                    psInsertSubstrFp.executeBatch();
                     conn.commit();
                     commitCount = 0;
                 }
@@ -192,11 +192,12 @@ public class LoadCDKFingerprints {
         load( null,null );
     }
 
-
     /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
         l.load(args[0],args[1]);
+        l.load(null,null);
+
     }
     */
    

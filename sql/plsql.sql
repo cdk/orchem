@@ -6,8 +6,11 @@ AS
    PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2);
    FUNCTION similarity_search (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION substructure_search (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   FUNCTION get_clob_as_char(mol IN clob) RETURN VARCHAR2;
+   PRAGMA   RESTRICT_REFERENCES (get_clob_as_char, WNDS, RNDS, WNPS, RNPS);
 END;
 /
+SHOW ERRORS
 
 CREATE OR REPLACE PACKAGE BODY orchem
 AS 
@@ -64,10 +67,22 @@ AS
    END to_bin;
    /*                 */
    FUNCTION to_oct( p_dec in NUMBER ) RETURN VARCHAR2
-   is
+   IS
    BEGIN
         RETURN to_base( p_dec, 8 );
    END to_oct;
+   FUNCTION get_clob_as_char(MOL IN clob  )
+   RETURN VARCHAR2 AS
+      ret VARCHAR2(4000);
+   BEGIN
+        BEGIN
+           ret:=mol;
+        EXCEPTION
+          WHEN OTHERS THEN
+             ret:=null;
+        END;
+        RETURN ret;
+   END;
    /*    */
    PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2)
    IS LANGUAGE JAVA
@@ -82,7 +97,9 @@ AS
    RETURN ORCHEM_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
    'uk.ac.ebi.orchem.search.SubstructureSearch.search (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
+
+
 END;
 /
-
+SHOW ERRORS
 

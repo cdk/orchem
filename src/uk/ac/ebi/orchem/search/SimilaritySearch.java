@@ -33,7 +33,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 /**
  * Similarity search between a query molecule and the database molecules.<BR>
  * This class is loaded in the database and executed as a java stored procedure, hence the
- * properietary return type oracle.sql.ARRAY and such.
+ * proprietary things like "oracle.sql.ARRAY" and defaultConnection.
  * 
  * @author markr@ebi.ac.uk, algorithm credits to S.Joshua Swamidass and Pierre Baldi
  *

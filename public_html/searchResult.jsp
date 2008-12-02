@@ -58,9 +58,12 @@
 
                         <td><s:property value="%{#res_stat.count-#session.wsr.currDisplayStartIdx+1}"/><BR>
                             <a href="lookupMolfile.action?id=<s:property value="id"/>"> <s:property value="id" /></a><BR>
-                            Score=<s:property value="score" /><BR>
-                            Formula=<s:property value="formula" />
+                            <!--a href="http://www.ebi.ac.uk/chebi/searchId.do?chebiId=<s:property value="id"/>"> Chebi <s:property value="id" /></a><BR-->
+                            <s:if test="score!=0 ">
+                               Score=<s:property value="score" /><BR>
+                            </s:if>
                             <img src="dynimages?id=<s:property value="id"/>" />
+                            
                         </td>
 
                       <s:if test="(#res_stat.count-#session.wsr.currDisplayStartIdx+1==3)||(#res_stat.count-#session.wsr.currDisplayStartIdx+1==6)||(#res_stat.count-#session.wsr.currDisplayStartIdx+1==9)"> 

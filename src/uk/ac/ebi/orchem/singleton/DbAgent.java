@@ -32,7 +32,7 @@ public class DbAgent extends Thread {
             connMgr = OracleConnectionCacheManager.getConnectionCacheManagerInstance();
             Properties properties = new Properties();
             properties.setProperty("MinLimit", "1");
-            properties.setProperty("MaxLimit", "3");
+            properties.setProperty("MaxLimit", "8");
             properties.setProperty("InitialLimit", "1");
 
 
@@ -44,18 +44,18 @@ public class DbAgent extends Thread {
 
             ods = new OracleDataSource();
 
-            //ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
-            //ods.setUser("starlite28p");
-            //ods.setPassword("star");
+            ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
+            ods.setUser("starlite28p");
+            ods.setPassword("star");
 
             //ods.setURL("jdbc:oracle:thin:@ora-clu1a-vip:1531:litpub1");
             //ods.setUser("crossref");
             //ods.setPassword("crossref");
             
             
-             ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
-             ods.setUser("chebi");
-             ods.setPassword("chebi");
+             //ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
+             //ods.setUser("chebi");
+             //ods.setPassword("chebi");
             
 
             ods.setConnectionCachingEnabled(true);

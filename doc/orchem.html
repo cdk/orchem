@@ -2,6 +2,7 @@
 
 
 <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />   
    <title>
      OrChem
    </title>
@@ -11,13 +12,13 @@
 
 <BODY>
 <H1>OrChem</H1>
-
+<H4>Author: <A HREF="mailto:markr@ebi.ac.uk">Mark Rijnbeek</A> </H4>
 <TABLE WIDTH="70%" BORDER="0" cellspacing="10" cellpadding="10">
 	<TR>
 		<TD style="font-size:9pt">
        <H3>Introduction</H3>
-       This document describes OrChem, an Oracle product for chemistry based on the <A href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</A>,
-       an open source Java library for Chemoinformatics and Bioinformatics. OrChem is freely available from <a href="https://sourceforge.net/projects/orchem/">sourceforge</a>.
+       This document describes OrChem, an Oracle chemistry plug-in based on the <A href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</A>,
+       the open source Java library for Chemoinformatics and Bioinformatics. OrChem is  <a href="https://sourceforge.net/projects/orchem/">freely available</A> from Sourceforge.
        <BR><BR>
        Oracle Data cartridges extend the capabilities of the Oracle server. For chemistry databases various commercial
        cartridges exist that facilitate searching and analyzing chemical data. OrChem also provides this functionality
@@ -42,20 +43,22 @@
 	</TR>
 	<TR>
 		<TD>
-			<H3>Architecture </H3>
+			<H3>Overview </H3>
 
 		   <IMG src="orchem_flow.gif">
          <BR>
-			The previous illustration shows the OrChem set up. On the left
-			is your table with chemical compounds. That table must have a primary key column,
+	 <BR>
+	 <BR>			
+			The illustration shows the OrChem architecture. CDK and OrChem Java classes are loaded into the Oracle instance and perform all
+			functionality. Substructure and similarity searching is done by OrChem classes using special purpose search tables loaded with chemical fingerprints.<BR><BR>
+			On the left is the user's table with chemical compounds. This table must have a single primary key column,
 			an MDL Molfile Clob and a possibly a formula.
-			The id and MDL column are mandatory for OrChem to work, but the formula is optional. So if your table does not hold formulas,
-			you can make a view that provides an empty formula  and use this as the
-			base table.
+			The id and MDL column are mandatory for OrChem to work, but the formula is optional (so if your schema does not store formulas,
+			you can make a view that provides an empty formula  and use this as the base table)
 			<BR><BR>
 			To give an example, say you have a compound table like this:
 			<BR><BR>
-<PRE>
+<pre>
       Table "COMPOUNDS"
       column               type
       -------------------- --------------
@@ -71,8 +74,7 @@
     <BR>
     During OrChem <A href="#install">installation</A> first of all the table ORCHEM_PARAMETERS will be populated.
     This table stores the name of the compound table and the columns OrChem needs.
-    In the example of the COMPOUNDS table above, the content of ORCHEM_PARAMETERS would be as follows.
-
+    In the example of the COMPOUNDS table above, the content of ORCHEM_PARAMETERS would be as below. Note that without correct details in ORCHEM_PARAMETERS, OrChem cannot function properly.
 
 <PRE>
      select * from orchem_parameters
@@ -81,22 +83,16 @@
      ------------- ---------------  --------------------  --------------------
      COMPOUNDS     CID              MDL                   OPENEYE_MF
 </PRE>
-
-		   <BR><BR>
-			With the correct details in ORCHEM_PARAMETERS the OrChem procedures can function properly.
 			<BR><BR>
-			Before OrChem can be used to search the compound table, the Java stored procedure to populate the "search tables" needs to run.
-			<BR>
-			&nbsp;&nbsp;PL/SQL package "ORCHEM", PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2);<BR>
-			<BR>
-
+			For OrChem to search the compound table, first of all a Java stored procedure needs to run to populate tables that support the search:
+<PRE>    Java stored procedure: package "ORCHEM", procedure load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2);
+</PRE>
+			The search tables store chemical fingerprints that capture the aspects of the compounds.
 			The amount of time it takes for this procedure to complete depends on the size of the compound table.
-			The start_id and end_id can be set to NULL to load all
-			compounds in one thread, or you can slice the amount of work up into sets from start_id to end_id and run the load in parallel jobs
-			(advisable for > 500,000 compounds. <A href="#load">See more</A> on loading
-			the search tables further on).
+			The start_id and end_id can be set to NULL to fingerprint all
+			compounds in one thread, or the amount of work can be sliced into sets from start_id to end_id and run in parallel threads.
 		   <BR>
-			The loader reads the content of the compound table, and for each MDL Molfile creates a CDK molecule. This molecule is
+			The procedure reads the content of the compound table, and for each MDL Molfile creates a CDK molecule. This molecule is
 			fingerprinted and the results are stored in two tables:
 
 		    <UL>
@@ -105,25 +101,62 @@
 		    		that indicates how many of the 1024 bits are set to one.
 		    		<BR>
 		    		OrChem uses a similarity search algorithm that makes relatively large row scans on this table.
-		    		The similarity table is therefore kept small and cached for performances.
+		    		The similarity table is therefore kept small and cached for better performance.
 		    		<BR>
 		    		&nbsp;
 		    	</LI>
 		      <LI><span style="font-style:italic;">ORCHEM_FINGPRINT_SUBSEARCH</SPAN> is the table for substructure searching.
 		      	It has a 512 bit CDK fingerprint shred into 512 columns, each representing one bit. The table also
-		      	 contains counts for certain atoms and bonds.
+		      	 has columns to store counted atoms and bond types.
 		      	 <BR>
 		    	    The substructure search requires a query fingerprint to be a subset of any candidate's fingerprint.
-				    This is done by a pre-filter query using the columns bit1 .. bit512. The atom and bond counts
-				    in ORCHEM_FINGPRINT_SUBSEARCH are also used to skip compounds that can not be candidates.
+				    This is done by a pre-filter query using the columns bit1 .. bit512. The atom and bond count
+				    columns are used to skip compounds that can not be candidates.
 				    Filtered candidates are scanned by a graph isomorphism class, checking if the query is a
 				    true substructure of the candidate.
 
 		    	 </LI>
 		    </UL>
 			 <BR><BR>
-			 The search programs are Java stored procedures, named SimilaritySearch and SubstructureSearch.java. These are wrapped in packaged procedures in package ORCHEM.
-			 The searches can be invoked from the command line like uh a-so (TODO)
+			 The search programs are Java stored procedures: classes SimilaritySearch and SubstructureSearch in package 'uk.ac.ebi.orchem.search'. The Java classes are wrapped as Oracle PL/SQL procedures in package ORCHEM. The searches can be invoked from the command line, for example like this
+<PRE>
+	select orchem.substructure_search (mdl, 50,'Y') 
+	from   compounds 
+	where cid = 78372
+	
+	select orchem.similarity_search(molfile, 0.8, 50,'Y') 
+	from compounds 
+	where molregno = 78371
+	
+</PRE>			 
+                         The first example feeds the molfile of the compound with id 78732 into the substructure search, resulting in a list of compounds
+			 of which 78372 is a substructure. The second example performs a similarity search to find all compounds similar to compound 78371 with a Tanimoto coëfficient score of more than 0.8 (meaning "80% similar")
+			 <BR><BR>
+			 OrChem searches always return a "ORCHEM_COMPOUND_LIST" which is a list of "ORCHEM_COMPOUND" Oracle types. An ORCHEM_COMPOUND contains the id of the compound matched, 
+			 its formula, its molfile and the Tanimoto similarity coëfficient. The latter only has meaning for similarity search results.
+			 <BR>
+			 Of course the ORCHEM_COMPOUND_LIST can be cast to appear like a standard query result if this is prefered (see the example below).
+
+<PRE>
+        ORCHEM_COMPOUND 
+		Name               Type
+		------------------ -------------------------------------------------
+		ID                 VARCHAR2(80)
+		FORMULA            VARCHAR2(4000)
+		MOL_FILE           CLOB
+		SCORE              FLOAT(126)
+
+	ORCHEM_COMPOUND_LIST
+		TABLE OF ORCHEM_COMPOUND
+		
+		
+	-- Example=> cast result objects to table:
+	
+	select * from table ( select orchem.SIMILARITY_SEARCH(...) )
+
+</PRE>			 
+			 
+			 			 
 		</TD>
 	</TR>
 
@@ -172,3 +205,9 @@
 
 
 </HTML>
+<!--
+
+TODO Visio : put  orchem.load_cdk_fingerprints() as label in java stored procedure box
+             arrows: write/read/call
+	     little dumb box 'init' to write orchem params
+	      

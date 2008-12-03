@@ -1,5 +1,6 @@
+
 body {
-  font-family: lucida console, Verdana, Helvetica, sans-serif;
+  font-family: Verdana,Lucida Console, Helvetica, sans-serif;
   background: white;
 }
 
@@ -11,12 +12,12 @@ h3,h2,h1 {
 
 td {
    font-size: 9pt;
-   border:solid 1px #FFC55E;
+   border:solid 1px #DAC0DA;
 }
 
 pre {
-  font-family: courier new, courier, lucida console, serif;
+  font-family: Courier New;
   font-size: 9pt;
-  color: gray;
-
+  color: #23052F;
+  #font-weight: bold;
 }

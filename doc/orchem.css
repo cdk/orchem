@@ -1,23 +1,56 @@
-
-body {
-  font-family: Verdana,Lucida Console, Helvetica, sans-serif;
-  background: white;
-}
-
-h3,h2,h1 {
-  font-family: Verdana, Helvetica, sans-serif;
-
+pre {
+  font-family: Courier New;
+  font-size: 8pt;
+  color: #23052F;
 }
 
 
 td {
-   font-size: 9pt;
-   border:solid 1px #DAC0DA;
+   font-size: 8pt;
+   border:solid 1px #FFC55E;
 }
 
-pre {
-  font-family: Courier New;
-  font-size: 9pt;
-  color: #23052F;
-  #font-weight: bold;
+
+body
+{
+	background: url("prweb-sidebar.png") top left fixed no-repeat;
+	font-family: sans-serif;
+	line-height: 140%;
+	font-size: 8pt;
+	margin: 0 0 1em 5%;
+}
+
+a img
+{
+	border-style: none;
+	text-decoration: none;
+	vertical-align: middle;
+}
+
+h1 { marginwidth: 80%; font-size: 160%; line-height: normal;}
+h3 { margin-top: 1em; font-size: 120%; }
+h2 { margin-top: 1em; font-size: 140%; }
+
+
+div.left
+{
+	float: left;
+	width: 25%;
+	margin-left: 1%;
+	margin-bottom: 5%;
+}
+
+div.right
+{
+	float: left;
+	width: 45%;
+	margin-left: 2%;
+	margin-bottom: 1%;
+
+}
+
+div.main
+{
+	float: left;
+	width: 100%;
 }

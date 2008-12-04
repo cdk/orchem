@@ -18,8 +18,12 @@ import oracle.sql.ArrayDescriptor;
 
 import org.apache.commons.collections.buffer.PriorityBuffer;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
+
+import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
@@ -39,6 +43,8 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  *
  */
 public class SimilaritySearch {
+
+    private static SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
 
     /**
      * Mama's little helper: array to quickly assess how many bits are set to one for an int between 0 and 255.
@@ -64,7 +70,7 @@ public class SimilaritySearch {
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      * @throws Exception
      */
-    public static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN) throws Exception { 
+    private static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN) throws Exception { 
 
         /*
          * 
@@ -317,7 +323,7 @@ public class SimilaritySearch {
     }
 
     /**
-     * Overload for {@link #search(BitSet , Float , Integer,String) search}
+     * Similarity search with molfile Clob as input arg
      * @param molfileClob
      * @param cutOff
      * @param topN
@@ -326,7 +332,7 @@ public class SimilaritySearch {
      * @throws Exception
      */
 
-    public static oracle.sql.ARRAY  search(Clob molfileClob, Float cutOff, Integer topN,String debugYN) throws Exception {
+    public static oracle.sql.ARRAY  molSearch(Clob molfileClob, Float cutOff, Integer topN,String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         int clobLen = new Long(molfileClob.length()).intValue();
         String molfile = (molfileClob.getSubString(1, clobLen));
@@ -337,7 +343,7 @@ public class SimilaritySearch {
 
 
     /**
-     * Overload for {@link #search(BitSet , Float , Integer,String) search}
+     * Similarity search with molfile String as input arg
      * @param molfile
      * @param cutOff
      * @param topN
@@ -345,24 +351,39 @@ public class SimilaritySearch {
      * @return
      * @throws Exception
      */
-    public static oracle.sql.ARRAY  search(String molfile, Float cutOff, Integer topN, String debugYN) throws Exception {
+    public static oracle.sql.ARRAY molSearch(String molfile, Float cutOff, Integer topN, String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         Molecule molecule = Utils.getMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter1024().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }
 
+    /**
+     * Similarity search by simplified molecular input line entry specification
+     *
+     * @param smiles string
+     * @param topN top N results after which to stop searching
+     * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
+     *
+     * @throws Exception
+     */
+    public static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN) throws Exception {
+        IAtomContainer molecule = sp.parseSmiles(smiles);
+        BitSet fp = FingerPrinterAgent.FP.getFingerPrinter1024().getFingerprint(molecule);
+        return search(fp, cutOff, topN, debugYN);
+    }
+
 
     /**
-     * Print debug massage to system output. To see this output in Oracle SQL*Plus 
+     * Print debug massage to system output. To see this output in Oracle SQL*Plus
      * use 'set severout on' and 'exec dbms_java.set_output(50000)'
-     * 
+     *
      * @param debugMessage
      * @param debug
      */
-    private static void debug (String debugMessage, boolean debug) {
-        if (debug)  {
-            System.out.println(new java.util.Date()+" debug: "+debugMessage);
+    private static void debug(String debugMessage, boolean debug) {
+        if (debug) {
+            System.out.println(new java.util.Date() + " debug: " + debugMessage);
         }
     }
 

@@ -172,18 +172,26 @@
 			 <BR><BR>
 			 The search programs are Java stored procedures: classes SimilaritySearch and SubstructureSearch in package 'uk.ac.ebi.orchem.search'. The Java classes are wrapped as Oracle PL/SQL procedures in package ORCHEM. The searches can be invoked from the command line, for example like this
 <PRE>
-	select orchem.substructure_search (mdl, 50,'Y') 
+        --1        
+	select orchem.substructure_search_smiles('O=S=O',50,'N') from dual
+	
+	--2
+	select orchem.substructure_search_mol (mdl, 50,'N') 
 	from   compounds 
 	where cid = 78372
 	
-	select orchem.similarity_search(molfile, 0.8, 50,'Y') 
+	--3
+	select orchem.similarity_search_mol(molfile, 0.8, 50,'N') 
 	from compounds 
 	where molregno = 78371
 	
-</PRE>			 
-                         The first example feeds the molfile of the compound with id 78732 into the substructure search, resulting in a list of compounds
-			 of which 78372 is a substructure. The second example performs a similarity search to find all compounds similar to compound 78371 with a Tanimoto coëfficient score of more than 0.8 (meaning "80% similar")
-			 <BR><BR>
+</PRE>			 The first example is a Smiles search for O=S=O, resulting in a list of compounds limited to fifty results. 
+			 The smaller this result limit is set, the quicker the query will respond. The last argument Y/N is for optional debugging: if set 
+			 to Y in combination with Dbms_java.set_output(n) and Serveroutput On, the procedure will display search details on the SQL*Plus command line.
+                         <BR>
+                         The second example feeds the molfile of the compound with id 78732 into a substructure search, resulting in a list of compounds
+			 of which 78372 is a substructure, again with a maximum of fifty results.The last example performs a similarity search to find all compounds similar to compound 78371 with a Tanimoto coëfficient score of more than 0.8 (meaning: "80% similar")
+			 <BR><BR><BR>
 			 OrChem searches always return a "ORCHEM_COMPOUND_LIST" which is a list of "ORCHEM_COMPOUND" Oracle types. An ORCHEM_COMPOUND contains the id of the compound matched, 
 			 its formula, its molfile and the Tanimoto similarity coëfficient. The latter only has meaning for similarity search results.
 			 <BR>

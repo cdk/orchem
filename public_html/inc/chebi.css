@@ -4,7 +4,12 @@ body {
     color:#000000;
 }
 
-
+pre.error {
+    font-size:7pt;
+    font-family:lucida console, courier new;
+    color:red;
+    
+}
 
 A:link, A:active, A:hover, A:visited {
   color      : blue;

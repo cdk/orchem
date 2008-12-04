@@ -8,8 +8,8 @@
  <package name="tutorial" extends="struts-default">
 
   <action name="performSearch" class="uk.ac.ebi.orchem.web.SearchAction">
-   <result name="searchDone">/searchResult.jsp</result>
-   <result name="input">/search.jsp</result>
+    <result name="searchDone">/searchResult.jsp</result>
+    <result name="error">/error.jsp</result>
   </action>
 
   <action name="pageResults" class="uk.ac.ebi.orchem.web.PageAction">
@@ -17,12 +17,17 @@
   </action>
 
   <action name="lookupMolfile" class="uk.ac.ebi.orchem.web.LookupMolfileAction">
-   <result name="lookupDone">/search.jsp</result>
+   <result name="lookupDone">/searchMol.jsp</result>
   </action>
 
-  <action name="enterSearchCriteria">
-   <result>/search.jsp</result>
+  <action name="molSearch">
+   <result>/searchMol.jsp</result>
   </action>
+
+  <action name="smilesSearch">
+   <result>/searchSmiles.jsp</result>
+  </action>
+
 
   <action name="*">
    <result>/{1}.jsp</result>

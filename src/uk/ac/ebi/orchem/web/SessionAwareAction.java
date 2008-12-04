@@ -13,6 +13,7 @@ import org.apache.struts2.interceptor.SessionAware;
 public abstract class SessionAwareAction extends ActionSupport implements SessionAware {
 
     private Map session;
+    private String exceptionMsg;
 
     public void setSession(Map session) {
         this.session = session;
@@ -21,4 +22,12 @@ public abstract class SessionAwareAction extends ActionSupport implements Sessio
         return session;
     }
 
+
+    public void setExceptionMsg(String exceptionMsg) {
+        this.exceptionMsg = exceptionMsg;
+    }
+
+    public String getExceptionMsg() {
+        return exceptionMsg;
+    }
 }

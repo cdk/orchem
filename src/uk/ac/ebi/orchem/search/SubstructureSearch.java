@@ -16,14 +16,18 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.isomorphism.IsomorphismSort;
 import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
 import org.openscience.cdk.isomorphism.VF2SubgraphIsomorphism;
 import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
 import org.openscience.cdk.isomorphism.matchers.QueryAtomContainerCreator;
+
+import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
@@ -41,21 +45,24 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  */
 
 public class SubstructureSearch {
-
     
+    private static SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+
     /**
      * Performs a substructure search for a query molecule, using a fingerprint based
      * pre-filter query to find likely candidates, and then graph isomorphism to identify
      * and verify true substructures.
      *
-     * @param mol MDL Mol file
+     * @param queryMolecule
+     * @param tEMP_HACK TODO remove ..
      * @param topN top N results after which to stop searching
      * @param debugYN set to Y to see debugging on sql prompt. 
      * 
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      * @throws Exception
      */
-    public static ARRAY search(String mol, Integer topN, String debugYN ) throws Exception {
+
+    private static ARRAY search(IAtomContainer queryMolecule, IAtomContainer tEMP_HACK, Integer topN, String debugYN ) throws Exception {
         long start= System.currentTimeMillis();
         int clobCount=0;
         int loopCount=0;
@@ -96,10 +103,10 @@ public class SubstructureSearch {
             *                                                                    *
             **********************************************************************/
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-            debug("Creating CDK query molecule",debugging);
 
-            Molecule queryMolecule = Utils.getMolecule(mdlReader, mol);
-            debug("Got query molecule",debugging);
+            //debug("Creating CDK query molecule",debugging);
+            //Molecule queryMolecule = Utils.getMolecule(mdlReader, mol);
+            //debug("Got query molecule",debugging);
             
             // sort the atoms of the query molecule
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
@@ -109,9 +116,10 @@ public class SubstructureSearch {
             QueryAtomContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
             debug("QueryAtomContainer made",debugging);
 
-            Molecule molForFP = Utils.getMolecule(mdlReader, mol); // double molecule = workaround for cdk1.0.4 TODO remove at one point
-            BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter512().getFingerprint(molForFP);
-            Map atomAndBondCounts = Utils.atomAndBondCount(molForFP);
+            //Molecule molForFP = Utils.getMolecule(mdlReader, mol); // double molecule = workaround for cdk1.0.4 TODO remove at one point
+            BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter512().getFingerprint(tEMP_HACK);
+            Map atomAndBondCounts = Utils.atomAndBondCount(tEMP_HACK);
+
 
             /* Build up the where clause for the query using the fingerprint one bits */
             String whereCondition = "";
@@ -229,7 +237,7 @@ public class SubstructureSearch {
                                 OrChemCompound c = new OrChemCompound();
                                 c.setId(resCompound.getString(compoundTablePkColumn));
                                 c.setFormula(resCompound.getString(compoundTableFormulaColumn));
-                                c.setMolFileClob(molFileClob);
+                                c.setMolFileClob(resCompound.getClob(compoundTableMolfileColumn));
                                 compounds.add(c);
                             }
                             uitTime += (System.currentTimeMillis() - timestamp);
@@ -283,19 +291,46 @@ public class SubstructureSearch {
     }
 
     /**
-     * Overload for {@link #search(String,int,String) search}to enable a Clob
-     * to be passed into the search.
+     * Substructure search by Molfile
+     * TODO remove 1.0.4 hack
      *
-     * @param molfileClob
+     * @param mol
      * @param topN top N results after which to stop searching
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      *
      * @throws Exception
      */
-    public static oracle.sql.ARRAY search(Clob molfileClob, Integer topN, String debugYN) throws Exception {
+    public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
+        MDLV2000Reader mdlReader = new MDLV2000Reader();
+        IAtomContainer queryMolecule = Utils.getMolecule(mdlReader, mol);
+        IAtomContainer HACK = Utils.getMolecule(mdlReader, mol);
+        return search(queryMolecule, HACK, topN, debugYN);
+    }
+
+    /**
+     * Overload for {@link #molSearch(String,int,String) search}to enable a Clob
+     * to be passed into the search.
+     */
+    public static oracle.sql.ARRAY molSearch(Clob molfileClob, Integer topN, String debugYN) throws Exception {
         int clobLen = new Long(molfileClob.length()).intValue();
         String molfile = (molfileClob.getSubString(1, clobLen));
-        return search(molfile, topN, debugYN);
+        return molSearch(molfile, topN, debugYN);
+    }
+
+    /**
+     * Substructure search by Smiles
+     * TODO remove 1.0.4 hack
+     *
+     * @param smiles
+     * @param topN top N results after which to stop searching
+     * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
+     *
+     * @throws Exception
+     */
+    public static oracle.sql.ARRAY smilesSearch(String smiles, Integer topN, String debugYN) throws Exception {
+        IAtomContainer queryMolecule = sp.parseSmiles(smiles);
+        IAtomContainer HACK= sp.parseSmiles(smiles);
+        return search(queryMolecule, HACK, topN, debugYN);
     }
 
     /**

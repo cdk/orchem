@@ -28,9 +28,9 @@ import uk.ac.ebi.orchem.singleton.DbAgent;
 public class DbSearchInvoker {
 
 
-    public List similaritySearch(String molfile, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
+    public List similaritySearchMol(String molfile, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
                                                                                                          ClassNotFoundException {
-        String plsqlCall = "begin ?:= orchem.similarity_search(?,?,?,?); end;";
+        String plsqlCall = "begin ?:= orchem.similarity_search_mol(?,?,?,?); end;";
         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
         ocs.setString(2, molfile);
@@ -42,12 +42,39 @@ public class DbSearchInvoker {
     }
 
 
-    public List substructureSearchOracle(String molfile, Connection conn, int topN) throws SQLException, ClassNotFoundException {
+    public List similaritySearchSmiles(String smiles, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
+                                                                                                         ClassNotFoundException {
+        String plsqlCall = "begin ?:= orchem.similarity_search_smiles(?,?,?,?); end;";
+        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
+        ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
+        ocs.setString(2, smiles);
+        ocs.setFloat(3, tanimotoCutoff);
+        ocs.setInt(4, topN);
+        ocs.setString(5, "N");
 
-        String plsqlCall = "begin ?:=orchem.substructure_search(?,?,?); end;";
+        return executeOCS(ocs, conn);
+    }
+
+
+    public List substructureSearchMol(String molfile, Connection conn, int topN) throws SQLException, ClassNotFoundException {
+
+        String plsqlCall = "begin ?:=orchem.substructure_search_mol(?,?,?); end;";
         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
         ocs.setString(2, molfile);
+        ocs.setInt(3, topN);
+        ocs.setString(4, "N");
+
+        return executeOCS(ocs, conn);
+    }
+
+
+    public List substructureSearchSmiles(String smiles, Connection conn, int topN) throws SQLException, ClassNotFoundException {
+
+        String plsqlCall = "begin ?:=orchem.substructure_search_smiles(?,?,?); end;";
+        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
+        ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
+        ocs.setString(2, smiles);
         ocs.setInt(3, topN);
         ocs.setString(4, "N");
 

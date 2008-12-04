@@ -17,20 +17,25 @@
 
 <html>
     <body>
-     <a href="<s:url value="search.action"/>">Search again.. </a>
+     <a href="<s:url value="molSearch.action"/>">Search again with Marvin applet</a>
+     <BR>
+     <a href="<s:url value="smilesSearch.action"/>">Search again with Smiles</a>
 
-     <TABLE border="0">
+     <TABLE border="0" style="border:0px; margin-top:0; margin-bottom:0">
         <TR>
-        <TD wdith="10%">
-       <s:if test="session.wsr.pageNum!=1">
-
-            <s:form action="pageResults" method="post" cssStyle="border:0">
-               <s:hidden name="page" value="%{#session.wsr.prevPageNum}" />
-               <s:submit type="image" src="img/back.gif" />
-             </s:form>
-        </s:if>
+        <TD width="10%">
+           &nbsp;
+           <s:if test="session.wsr.pageNum!=1">
+    
+                <s:form action="pageResults" method="post" cssStyle="border:0">
+                   <s:hidden name="page" value="%{#session.wsr.prevPageNum}" />
+                   <s:submit type="image" src="img/back.gif" />
+                 </s:form>
+            </s:if>
        </td>
+       <TD width="80%">&nbsp;</td>
        <TD width="10%">
+        &nbsp;
         <s:if test="session.wsr.lastPage==false">
              <s:form action="pageResults" method="post" cssStyle="border:0">
                <s:hidden name="page" value="%{#session.wsr.nextPageNum}" />
@@ -38,13 +43,14 @@
              </s:form>
         </s:if>
        </td>
-       <TD width="80%">&nbsp;</td>
 
        </TR>
     </table>
+
+
     <table width="90%">
         <s:if test="#session.wsr.searchResults.size==0">
-            <H3> No results found ....   <a href="<s:url value="search.action"/>">search again </a>
+            <H3> No results found ....   
  </H3>
         </s:if>    
         <s:iterator  id="res" value="%{#session.wsr.searchResults}" status="res_stat">  

@@ -103,23 +103,3 @@ exiting  : Failures occurred during processing
 
 
 ---- 
-
-chebi  
-
-create or replace view vw_orchem (id,mol,formula) as
-    select c.id, s.structure,null
-    from   compounds c
-         , structures s
-        , default_structures d
-    where  c.id = s.compound_id
-    and    c.status='C'
-    and    s.status='C'
-    and    s.type='mol'
-    and    d.structure_id = s.id
-
-
-insert into orchem_parameters values ('VW_ORCHEM','ID','MOL', 'FORMULA')
-
-
-
-

@@ -13,6 +13,9 @@ public class WebSearchResults {
     private String structure;
     private List searchResults;
     private String debugMessage;
+    private String smiles;
+    private String smilesOrMol;
+
     private int pageNum;
 
     private final int RESULT_PAGE_SIZE=9;
@@ -97,4 +100,19 @@ public class WebSearchResults {
             return true;
     }
 
+    public void setSmiles(String smiles) {
+        this.smiles = smiles;
+    }
+
+    public String getSmiles() {
+        return smiles;
+    }
+
+    public void setSmilesOrMol(String smileOrMol) {
+        this.smilesOrMol = smileOrMol;
+    }
+
+    public String getSmilesOrMol() {
+        return smilesOrMol;
+    }
 }

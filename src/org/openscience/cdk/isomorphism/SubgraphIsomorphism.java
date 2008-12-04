@@ -71,9 +71,14 @@ public class SubgraphIsomorphism {
             Arrays.fill(chars, ' ');
 
             //DEBUG :
-            //System.out.println(String.valueOf(chars)+n1+","+n2+"   "+
-            //state.getTargetMolecule().getAtom(n2).getSymbol()+","+
-            //state.getQueryMolecule().getAtom(n1).getSymbol());
+            System.out.println(String.valueOf(chars)+n1+","+n2+"   "+
+            state.getTargetMolecule().getAtom(n2).getSymbol()+","+
+            state.getQueryMolecule().getAtom(n1).getSymbol());
+            
+            if (n1==2 && n2==11)  {
+                    System.out.println("BREAK");
+            }
+
 
             if (state.isFeasiblePair(n1, n2)) {
                 State cloneState = (State)state.clone();
@@ -138,6 +143,7 @@ public class SubgraphIsomorphism {
         while ((nodePair = state.nextPair(n1, n2)) != null) {
             n1 = nodePair.getQueryNode();
             n2 = nodePair.getTargetNode();
+            
 
             char[] chars = new char[(state.recursionDepth * 5)];
             Arrays.fill(chars, ' ');

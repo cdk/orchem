@@ -16,6 +16,7 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.interfaces.IAtom;
@@ -66,6 +67,8 @@ public class SubstructureSearch {
         long start= System.currentTimeMillis();
         int clobCount=0;
         int loopCount=0;
+        int ignoreCount=0;
+
         int compTested = 0;
 
         /* time stamps to debug elapse time through various phases */
@@ -75,7 +78,6 @@ public class SubstructureSearch {
         long prefilterTime=0;
         long queryExTime=0;
         long clobTime=0;
-
 
         boolean debugging=false;
         if (debugYN.toLowerCase().equals("y")) 
@@ -103,10 +105,6 @@ public class SubstructureSearch {
             *                                                                    *
             **********************************************************************/
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-
-            //debug("Creating CDK query molecule",debugging);
-            //Molecule queryMolecule = Utils.getMolecule(mdlReader, mol);
-            //debug("Got query molecule",debugging);
             
             // sort the atoms of the query molecule
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
@@ -192,7 +190,6 @@ public class SubstructureSearch {
                              res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT) ||
                              res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT) ||
                              res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT) ||
-
                              res.getInt("s_count") < (Integer)atomAndBondCounts.get(Utils.S_COUNT) ||
                              res.getInt("o_count") < (Integer)atomAndBondCounts.get(Utils.O_COUNT) ||
                              res.getInt("n_count") < (Integer)atomAndBondCounts.get(Utils.N_COUNT) ||
@@ -203,6 +200,7 @@ public class SubstructureSearch {
                              res.getInt("c_count") < (Integer)atomAndBondCounts.get(Utils.C_COUNT)) {
 
                             // DO NOTHING - quick scan eliminates the candidate based on attributes
+                            ignoreCount++;
 
                         } else {
 
@@ -267,6 +265,7 @@ public class SubstructureSearch {
             debug("Amount of compounds looped             : #" + loopCount, debugging);
             debug("Amount of compounds tested isomorphism : #" + compTested, debugging);
             debug("Amount of Clobs made                   : #" + clobCount, debugging);
+            debug("Amount of candidates ignored           : #" + ignoreCount, debugging);
             debug("______________________",debugging);
             debug("End", debugging);
 
@@ -327,23 +326,37 @@ public class SubstructureSearch {
      *
      * @throws Exception
      */
-    public static oracle.sql.ARRAY smilesSearch(String smiles, Integer topN, String debugYN) throws Exception {
-        IAtomContainer queryMolecule = sp.parseSmiles(smiles);
-        IAtomContainer HACK= sp.parseSmiles(smiles);
-        return search(queryMolecule, HACK, topN, debugYN);
-    }
+     public static oracle.sql.ARRAY smilesSearch(String smiles, Integer topN, String debugYN) throws Exception {
+         IAtomContainer queryMolecule = sp.parseSmiles(smiles);
+         IAtomContainer HACK= sp.parseSmiles(smiles);
+         unsetAromaticity(queryMolecule);
+         unsetAromaticity(HACK);
+         return search(queryMolecule, HACK, topN, debugYN);
+     }
+
+     /**
+      * Print debug message to system output. To see this output in Oracle SQL*Plus
+      * use 'set severout on' and 'exec dbms_java.set_output(50000)'
+      *
+      * @param debugMessage
+      * @param debug
+      */
+     private static void debug(String debugMessage, boolean debug) {
+         if (debug) {
+             System.out.println(new java.util.Date() + " debug: " + debugMessage);
+         }
+     }
+     
 
     /**
-     * Print debug message to system output. To see this output in Oracle SQL*Plus
-     * use 'set severout on' and 'exec dbms_java.set_output(50000)'
-     *
-     * @param debugMessage
-     * @param debug
+     *  A Smiles parser sets aromaticity, but that can makes the isomorphism match 
+     *  fail: the database candidate molecules are created as non-aromatic due to 
+     *  expensive Hueckel overhead.
+     *  
+     * @param iac
      */
-    private static void debug(String debugMessage, boolean debug) {
-        if (debug) {
-            System.out.println(new java.util.Date() + " debug: " + debugMessage);
-        }
-    }
-
+     private static void unsetAromaticity (IAtomContainer iac) {
+         for (int i = 0; i < iac.getBondCount(); i++)  
+             iac.getBond(i).setFlag(CDKConstants.ISAROMATIC,false);
+     }
 }

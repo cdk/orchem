@@ -69,14 +69,19 @@
 	<TR>
 		<TD style="font-size:9pt">
        <H3>Introduction</H3>
-       This page describes OrChem, an Oracle chemistry plug-in based on the <A href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</A>,
+       This page describes <B>OrChem</B>, an Oracle chemistry plug-in based on the <A href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</A>,
        the open source Java library for Chemoinformatics and Bioinformatics. OrChem is  <a href="https://sourceforge.net/projects/orchem/">freely available</A> from Sourceforge.
        <BR><BR>
        Oracle Data cartridges extend the capabilities of the Oracle server. For chemistry databases various commercial
        cartridges exist that facilitate searching and analyzing chemical data. OrChem also provides this functionality
        but is not a cartridge: it does not need Oracle's extensibility architecture
        because Java (and therefore the CDK) can run inside a regular Oracle instance.
-
+       <BR><BR>
+	Starting with Oracle 11g release 1 (11.1) there is a just-in-time(<a href="http://en.wikipedia.org/wiki/Just-in-time_compilation">JIT</A>) compiler for Oracle
+	JVM environment. A <A href="http://download.oracle.com/docs/cd/B28359_01/java.111/b31225/chnine.htm#BABDCIBH">JIT compiler for Oracle JVM</a>	 enables much faster execution
+	because it manages the invalidation, recompilation, and storage of code without an
+	external mechanism. This new Oracle feature makes it possible to expose CDK classes as fast performing Java stored procedures, whereas with
+	earlier Oracle versions (even when using 'ncomp') performance would have been weak. In short, OrcChem is for Oracle 11G and onwards.
 		</TD>
 	</TR>
 	<TR>
@@ -84,7 +89,7 @@
        <H3>Requirements </H3>
 
        <UL>
-       	<LI>Oracle 11g database / Oracle 10g database (to do - verify)</LI>
+       	<LI>Oracle 11g database</LI>
        	<LI>Compound table with an MDL Molfile column </LI>
        	<LI>CDK jar file (stripped?) (link) </LI>
        	<LI>Apache collections jar file (link)</LI>

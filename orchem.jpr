@@ -45,6 +45,10 @@
          </list>
       </hash>
    </hash>
+   <hash n="oracle.jdeveloper.compiler.OjcConfiguration">
+      <value n="source" v="Default"/>
+      <value n="target" v="Default"/>
+   </hash>
    <hash n="oracle.jdeveloper.model.J2eeSettings">
       <hash n="webContentSet">
          <list n="url-path">
@@ -97,15 +101,25 @@
             <value n="custom" v="false"/>
             <value n="javaOptions" v="-Xmx128m"/>
             <value n="name" v="Load fingerprints"/>
-            <value n="programArguments" v="3586 3586"/>
+            <value n="programArguments" v="1 300"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
             <url n="targetURL" path="src/uk/ac/ebi/orchem/load/LoadCDKFingerprints.java"/>
+            <value n="VMName" v="server"/>
+         </hash>
+         <hash n="LoadRepair">
+            <value n="custom" v="false"/>
+            <value n="javaOptions" v="-Xmx128m"/>
+            <value n="name" v="LoadRepair"/>
+            <value n="programArguments" v="101 300"/>
+            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/temp/LoadRepair.java"/>
             <value n="VMName" v="server"/>
          </hash>
       </hash>
       <list n="runConfigurationList">
          <string v="Default"/>
          <string v="Load fingerprints"/>
+         <string v="LoadRepair"/>
       </list>
    </hash>
    <hash n="oracle.jdevimpl.config.JProjectLibraries">
@@ -163,7 +177,7 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk-1.0.4.jar"/>
+            <value n="id" v="Cdk-1.1.2.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -279,11 +293,11 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/cdk-1.0.4.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/cdk-1.1.2.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Cdk-1.0.4.jar"/>
-               <value n="id" v="Cdk-1.0.4.jar"/>
+               <value n="description" v="Cdk-1.1.2.jar"/>
+               <value n="id" v="Cdk-1.1.2.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
@@ -342,7 +356,7 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk-1.0.4.jar"/>
+            <value n="id" v="Cdk-1.1.2.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

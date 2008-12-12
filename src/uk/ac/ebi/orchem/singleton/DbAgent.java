@@ -16,12 +16,17 @@ import oracle.jdbc.pool.OracleDataSource;
 public class DbAgent extends Thread {
 
     public static final DbAgent DB_AGENT = new DbAgent();
+    
     private OracleConnectionCacheManager connMgr = null;
+
     private OracleDataSource ods = null;
     public Exception constructorException;
     public static final String CACHE_NAME = "myCache";
-
-
+    
+    private String dbName;
+    public String getDbName () {
+        return this.DB_AGENT.dbName;
+    }
 
     /** Private constructor  */
     private DbAgent() {
@@ -47,16 +52,18 @@ public class DbAgent extends Thread {
             ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
             ods.setUser("starlite28p");
             ods.setPassword("star");
+            dbName = "Starlite31";
 
             //ods.setURL("jdbc:oracle:thin:@ora-clu1a-vip:1531:litpub1");
             //ods.setUser("crossref");
             //ods.setPassword("crossref");
+            //dbName = "PubChem (snapshot 5 million)";
             
             
              //ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
              //ods.setUser("chebi");
              //ods.setPassword("chebi");
-            
+             //dbName = "Chebi";
 
             ods.setConnectionCachingEnabled(true);
             ods.setConnectionCacheName(CACHE_NAME);

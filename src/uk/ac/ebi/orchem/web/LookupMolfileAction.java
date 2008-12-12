@@ -1,26 +1,23 @@
 package uk.ac.ebi.orchem.web;
 
-import com.opensymphony.xwork2.ActionSupport;
+import uk.ac.ebi.orchem.Utils;
 
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
-import uk.ac.ebi.orchem.db.OrChemParameters;
-import uk.ac.ebi.orchem.db.StarliteConnection;
-import uk.ac.ebi.orchem.singleton.DbAgent;
 
 /**
  * Struts Action : given an "id", finds a compound in the database and returns its MDL (Molfile).
  * Part of mock web-application. Not core cartridge functionality.
- * 
+ *
  */
-public class LookupMolfileAction extends ActionSupport {
+public class LookupMolfileAction extends SessionAwareAction {
 
     public String execute() throws Exception {
-        setMolFile(new DbSearchInvoker().getMolfile(getId()));
-        return "lookupDone";
+        try {
+            setMolFile(new DbSearchInvoker().getMolfile(getId()));
+            return "lookupDone";
+        } catch (Exception ex) {
+            this.setExceptionMsg(Utils.getErrorString(ex));
+            return "error";
+        }
     }
 
     private String id;

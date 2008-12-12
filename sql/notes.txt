@@ -6,8 +6,13 @@ Step plan to create the schema
  - create types
  - populate the ORCHEM_PARAMETERS table
  
- - loadjava ->  CDK, Apache commons and Orchem (wrapped as JAR)
- - JIT
+ - loadjava ->  CDK (so far done 1.0.4)
+                Apache commons  .. why again ?
+                Orchem (can be wrapped as JAR?)
+                See new NOTES
+
+
+ - 11g -> JIT
        declare
          i number;
        begin
@@ -28,17 +33,12 @@ Step plan to create the schema
  - data loading: orchem_fingprint_simsearch and orchem_fingprint_subsearch 
  
  - post loader indices: 
-      - BITMAPs on compound info bits
-      - BTMAP on fingerprints
+      - BITMAPs (various)
   
- - Stats:!!!!!!!!!!!!!!!!!!
-
+ - Stats!
 
    exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
    exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
-
-
-  If you omit stats forget about performance !!!!!!
 
 
 -------------------
@@ -46,60 +46,98 @@ Step plan to create the schema
 
 loadjava
 
+    jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
 
+or
 
-loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/NodePair.java
-loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/State.java
-loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/VF2SubgraphIsomorphism.java
-loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/SubgraphIsomorphism.java
-loadjava -resolve -user crossref/crossref@litpub org/openscience/cdk/isomorphism/IsomorphismSort.java
-
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/Utils.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/db/OrChemParameters.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompound.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElement.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
-
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SimilaritySearch.java
-loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SubstructureSearch.java
-
-
-
-
------------------
-
-Failures CDK:
-
-The following operations failed
-    source com/ozten/font/JFontChooser: creation (createFailed)
-    source com/ozten/font/JFontChooserTest: creation (createFailed)
-    source com/ozten/util/SwingUtil: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/AnonymousReference: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/BasicConvertibleClassifier: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/ConvertibleClassifier: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/ConvertibleClassifierInt: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/ForeignReference: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/ForeignReferenceClassGenerator: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/ForeignReferenceInt: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/InterfaceDatabase: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/InterfaceReference: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/MetaForeignReference: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/NamedReference: creation (createFailed)
-    source org/omegahat/Interfaces/NativeInterface/OmegaInterfaceManager: creation (createFailed)
-    source org/omegahat/R/Java/MissingMethodException: creation (createFailed)
-    source org/omegahat/R/Java/REvaluator: creation (createFailed)
-    source org/omegahat/R/Java/RException: creation (createFailed)
-    source org/omegahat/R/Java/RForeignReference: creation (createFailed)
-    source org/omegahat/R/Java/RJavaInstance: creation (createFailed)
-    source org/omegahat/R/Java/RManualFunctionActionListener: creation (createFailed)
-    source org/omegahat/R/Java/ROmegahatInterpreter: creation (createFailed)
-    source org/omegahat/R/Java/RSplash: creation (createFailed)
-exiting  : Failures occurred during processing
+    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/NodePair.java
+    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/State.java
+    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/VF2SubgraphIsomorphism.java
+    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/SubgraphIsomorphism.java
+    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/IsomorphismSort.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/db/OrChemParameters.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompound.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
+    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
 
 
 
 
----- 
+===================
+10G :(
+===================
+Need to edit the jar files that go in to java 1.4. This can be done by retroweaver.
+See retroweaver project in sourceforge. Also the retroweaver-rt jar itself needs to be loaded in
+
+      loadjava -user starlite28p/star ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
+
+(
+ Also loaded these, but not sure if necessary
+    loadjava -user starlite28p/star /tmp/weave/orchem/vecmath.jar
+    loadjava -user starlite28p/star /tmp/weave/orchem/jgrapht-0.6.0.jar
+    loadjava -user starlite28p/star /tmp/weave/orchem/log4j.jar
+)
+
+
+Then .. it works, but is quite slow !
+Solution= Natively compile code:
+http://www.stanford.edu/dept/itss/docs/oracle/10g/java.101/b12021/perf.htm#i1005575
+
+bash-3.00$
+bash-3.00$ java -version
+java version "1.4.2_18"
+Java(TM) 2 Runtime Environment, Standard Edition (build 1.4.2_18-b06)
+Java HotSpot(TM) Client VM (build 1.4.2_18-b06, mixed mode)
+bash-3.00$ ncomp -user starlite28p/star  /tmp/weave/orchem/orchem.jar
+
+Note -> tun ncomp on cdk-1.0.4.jar FAILS because of the naming. Rename to cdk.jar 
+
+...
+
+#
+# this list is produced by query
+#   select status, class_name  from jaccelerator$status;
+#
+INVALID org/openscience/cdk/isomorphism/UniversalIsomorphismTester
+NEED_NCOMPING uk/ac/ebi/orchem/singleton/FingerPrinterAgent
+NEED_NCOMPING uk/ac/ebi/orchem/Utils
+NEED_NCOMPING org/openscience/cdk/isomorphism/IState
+NEED_NCOMPING org/openscience/cdk/isomorphism/IsomorphismSort
+NEED_NCOMPING org/openscience/cdk/isomorphism/IsomorphismSort$AtomCountComparator
+NEED_NCOMPING org/openscience/cdk/isomorphism/NodePair
+NEED_NCOMPING org/openscience/cdk/isomorphism/State
+NEED_NCOMPING org/openscience/cdk/isomorphism/SubgraphIsomorphism
+NEED_NCOMPING org/openscience/cdk/isomorphism/UllmanSubgraphIsomorphism
+NEED_NCOMPING org/openscience/cdk/isomorphism/VF2SubgraphIsomorphism
+NEED_NCOMPING uk/ac/ebi/orchem/bean/OrChemCompound
+NEED_NCOMPING uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator
+NEED_NCOMPING uk/ac/ebi/orchem/bean/SimHeapElement
+NEED_NCOMPING uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator
+NEED_NCOMPING uk/ac/ebi/orchem/search/SimilaritySearch
+NEED_NCOMPING uk/ac/ebi/orchem/search/SubstructureSearch
+NEED_NCOMPING uk/ac/ebi/orchem/search/SubstructureSearch_old
+NEED_NCOMPING uk/ac/ebi/orchem/db/OrChemParameters
+NEED_NCOMPING uk/ac/ebi/orchem/load/LoadCDKFingerprints
+NEED_NCOMPING uk/ac/ebi/orchem/singleton/
+NEED_NCOMPING uk/ac/ebi/orchem/
+NEED_NCOMPING org/openscience/cdk/isomorphism/
+NEED_NCOMPING uk/ac/ebi/orchem/bean/
+NEED_NCOMPING uk/ac/ebi/orchem/search/
+NEED_NCOMPING uk/ac/ebi/orchem/db/
+NEED_NCOMPING uk/ac/ebi/orchem/load/
+# Deployment History, produced by query:
+# select timestamp, status, dll_name  from jaccelerator$dlls order by dll_name
+2008-12-05 04:41:39 installed /libjox10_11e08058875_chebi_org_openscience_cdk_isomorphism.so
+2008-12-05 04:41:38 installed /libjox10_11e08058875_chebi_uk_ac_ebi_orchem.so
+2008-12-05 04:41:40 installed /libjox10_11e08058875_chebi_uk_ac_ebi_orchem_bean.so
+2008-12-05 04:41:40 installed /libjox10_11e08058875_chebi_uk_ac_ebi_orchem_db.so
+2008-12-05 04:41:37 installed /libjox10_11e08058875_chebi_uk_ac_ebi_orchem_load.so
+2008-12-05 04:41:40 installed /libjox10_11e08058875_chebi_uk_ac_ebi_orchem_search.so
+2008-12-05 04:41:38 installed /libjox10_11e08058875_chebi_uk_ac_ebi_orchem_singleton.so
+    

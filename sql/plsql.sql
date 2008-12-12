@@ -8,6 +8,7 @@ AS
    FUNCTION similarity_search_smiles (smiles varchar2, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION substructure_search_mol (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION substructure_search_smiles (smile varchar2, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   --FUNCTION substructure_search_NEW (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION get_clob_as_char(mol IN clob) RETURN VARCHAR2;
    PRAGMA   RESTRICT_REFERENCES (get_clob_as_char, WNDS, RNDS, WNPS, RNPS);
 END;
@@ -109,8 +110,12 @@ AS
    RETURN ORCHEM_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
    'uk.ac.ebi.orchem.search.SubstructureSearch.smilesSearch (java.lang.String, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
-
-
+   /*    */
+   -- //TODO remove this function, is temporary 
+   --FUNCTION substructure_search_new (molfile clob, topn NUMBER, debug_YN VARCHAR2) 
+   --RETURN ORCHEM_COMPOUND_LIST
+   --IS LANGUAGE JAVA NAME 
+   --'uk.ac.ebi.orchem.search.SubstructureSearchWITHCACHE.molSearch (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
 END;
 /
 SHOW ERRORS

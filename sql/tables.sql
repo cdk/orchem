@@ -3,11 +3,10 @@
     (  comp_tab_name         varchar2(30) not null
       ,comp_tab_pk_col       varchar2(30) not null
       ,comp_tab_molfile_col  varchar2(30) not null
-      ,comp_tab_formula_col  varchar2(30) not null
     )
     cache
     /
-    -- example :  insert into orchem_parameters values ('COMPOUNDS','MOLREGNO','MOLFILE', 'MOLFORMULA')
+    -- example :  insert into orchem_parameters values ('COMPOUNDS','MOLREGNO','MOLFILE')
     
     
     create table orchem_fingprint_simsearch
@@ -536,9 +535,19 @@
      ,bit510  char(1)
      ,bit511  char(1)
      ,bit512  char(1)
+    ) 
+    /
+   
+    alter table orchem_fingprint_subsearch  add constraint pk_orchem_subsrch primary key (id)
+    /
+
+    create table orchem_compounds
+    (   
+      id                     varchar2(80) not null
      ,single_bond_count      number(6)
      ,double_bond_count      number(6)
      ,triple_bond_count      number(6)
+     ,aromatic_bond_count    number(6)
      ,s_count                number(6)
      ,o_count                number(6)
      ,n_count                number(6)
@@ -547,10 +556,12 @@
      ,br_count               number(6)
      ,i_count                number(6)
      ,c_count                number(6)
-         ,p_count                number(6)
+     ,p_count                number(6)
+     ,saturated_bond_count   number(6)
+     ,cdk_molecule           blob
      )
     /
-
-    alter table orchem_fingprint_subsearch  add constraint pk_orchem_subsrch primary key (id)
+    alter table orchem_compounds  add constraint pk_orchem_compounds primary key (id)
     /
+
     

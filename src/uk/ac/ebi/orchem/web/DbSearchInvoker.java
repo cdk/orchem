@@ -149,9 +149,6 @@ public class DbSearchInvoker {
             List<OrChemCompound> cl = inv.substructureSearch(molfile, conn,50);
             System.out.println("3"+new java.util.Date());
 
-            for(OrChemCompound c: cl) {
-                System.out.println(c.getFormula()+" "+c.getScore());
-            }
 
         }
     }

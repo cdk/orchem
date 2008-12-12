@@ -1,11 +1,12 @@
 <%@ taglib prefix="s" uri="/struts-tags" %>
+<%@ page import="uk.ac.ebi.orchem.singleton.DbAgent"%>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 
 <head>
    <title>
-   OrChem search demo 
+   OrChem search demo on <%=DbAgent.DB_AGENT.getDbName()%> 
    </title>
    <link rel="stylesheet" href="inc/contents.css" type="text/css">
    <link rel="stylesheet" href="inc/userstyles.css" type="text/css">
@@ -28,7 +29,7 @@
           <table border="0" class="contentspane" id="contentspane" summary="The main content pane of the page" style="width: 100%;">
    	    <tbody><tr>
               <td class="contentsarea" id="contentsarea">
-                   <h1>OrChem search demo </h1>
+                   <h1>OrChem search database <%=DbAgent.DB_AGENT.getDbName()%></h1>
                     <a href="<s:url value="smilesSearch.action"/>">Switch to Smiles search </a>
                     
                     <script type="text/javascript" src="inc/browserDetect.js"></script>

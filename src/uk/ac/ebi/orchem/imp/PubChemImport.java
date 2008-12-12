@@ -44,7 +44,6 @@ PubChemImport {
         if (list.length == 0)
             return;
 
-
         String insertCommand =
             " insert into compounds " + " (cid, os_dirnum, iupac_name, openeye_iso_smiles, openeye_mf, fp512, fp1024, cdk_smiles, mdl ) " +
             " values (?,?,?,?,?,?,?,?,?) ";
@@ -52,9 +51,7 @@ PubChemImport {
         conn.setAutoCommit(false);
         OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement(insertCommand);
 
-
         for (int i = 0; i < list.length; i++) {
-
             pubChemfile = new File(dataDir + list[i]);
             InputStream ins = new FileInputStream(pubChemfile);
             IteratingMDLReader reader = new IteratingMDLReader(ins, DefaultChemObjectBuilder.getInstance());

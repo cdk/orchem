@@ -37,7 +37,6 @@ public class  OrChemCompound implements SQLData, Serializable {
     public void readSQL(SQLInput stream, String typeName) throws SQLException {
         sql_type = typeName;
         id = stream.readString();
-        formula = stream.readString();
         molFileClob = stream.readClob();
         score = stream.readFloat();
         
@@ -45,7 +44,6 @@ public class  OrChemCompound implements SQLData, Serializable {
 
     public void writeSQL(SQLOutput stream) throws SQLException {
         stream.writeString(id);
-        stream.writeString(formula);
         stream.writeClob(molFileClob);
         stream.writeFloat(score);
     }
@@ -53,7 +51,6 @@ public class  OrChemCompound implements SQLData, Serializable {
     /* regular bean attributes _________________________________________*/
 
     private String id;
-    private String formula;
     private Clob molFileClob;
     private float score;
 
@@ -64,14 +61,6 @@ public class  OrChemCompound implements SQLData, Serializable {
 
     public String getId() {
         return id;
-    }
-
-    public void setFormula(String formula) {
-        this.formula = formula;
-    }
-
-    public String getFormula() {
-        return formula;
     }
 
     public void setMolFileClob(Clob molFile) {

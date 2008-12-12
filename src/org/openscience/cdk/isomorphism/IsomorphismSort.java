@@ -44,8 +44,9 @@ public class IsomorphismSort {
         /* Create a Map with (key,value) being (atom symbol, overall count) */
         Map map = new TreeMap();
 
-        Iterator atomIterator = iac.atoms(); // 1.0.4
-      //Iterator atomIterator = iac.atoms().iterator();//1.1.2
+        Iterator atomIterator = iac.atoms().iterator();
+        //Iterator atomIterator = iac.atoms();
+
         while (atomIterator.hasNext()) {
             IAtom a = (IAtom)atomIterator.next();
             Integer count = (Integer)(map.get(a.getSymbol()));

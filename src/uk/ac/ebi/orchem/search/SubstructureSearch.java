@@ -1,7 +1,6 @@
 package uk.ac.ebi.orchem.search;
 
 import java.sql.Clob;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -27,7 +26,6 @@ import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
 import org.openscience.cdk.isomorphism.VF2SubgraphIsomorphism;
 import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
 import org.openscience.cdk.isomorphism.matchers.QueryAtomContainerCreator;
-
 import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
@@ -40,7 +38,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  * Substructure search between a query molecule and the database molecules.<BR>
  * This class is loaded in the database and executed as a java stored procedure, hence the
  * proprietary things like "oracle.sql.ARRAY" and defaultConnection.
- *  
+ *
  *
  * @author markr@ebi.ac.uk
  */
@@ -76,7 +74,6 @@ public class SubstructureSearch {
         long uitTime = 0;
         long mlTime=0;
         long prefilterTime=0;
-        long queryExTime=0;
         long clobTime=0;
 
         boolean debugging=false;
@@ -91,14 +88,11 @@ public class SubstructureSearch {
         conn.setReadOnly(true);
         conn.setAutoCommit (false);
         Statement stmPreFilter = null;
-        PreparedStatement pstmLookup = null;
         ResultSet res = null;
         try {
 
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
-            String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
             String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
-            String compoundTableFormulaColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_FORMULA, conn);
 
            /**********************************************************************
             * Pre-filter query section                                           *
@@ -123,33 +117,35 @@ public class SubstructureSearch {
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
             for (int i = 0; i < fingerprint.size(); i++) {
-                if (fingerprint.get(i))
+                if (fingerprint.get(i) &&!isShitBit(i))
                     builtCondition.append(" and bit" + (i + 1) + "='1'");
             }
 
             whereCondition += builtCondition.toString();
             whereCondition = whereCondition.trim();
             debug("Prefilter where condition built ",debugging);
-            //debug(whereCondition,debugging);
+            debug(whereCondition,debugging);
 
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-
             String preFilterQuery = 
-                "  select /*+ INDEX_COMBINE (t) FIRST_ROWS */ " +  
-                "  id " + 
-                ", single_bond_count " + 
-                ", double_bond_count " +
-                ", triple_bond_count " + 
-                ", s_count " + 
-                ", o_count " + 
-                ", n_count " +
-                ", f_count " + 
-                ", cl_count " + 
-                ", br_count " + 
-                ", i_count " + 
-                ", c_count " +
-                "  from orchem_fingprint_subsearch t " + 
-                "  where  1=1 ";
+                "  select /*+ INDEX_COMBINE(s) USE_NL(s c) */ " +  // hints are necessary, oracle buggers up otherwise (full tab scans)
+                "  s.id " + 
+                ", s.single_bond_count " + 
+                ", s.double_bond_count " +
+                ", s.triple_bond_count " + 
+                ", s.s_count " + 
+                ", s.o_count " + 
+                ", s.n_count " +
+                ", s.f_count " + 
+                ", s.cl_count " + 
+                ", s.br_count " + 
+                ", s.i_count " + 
+                ", s.c_count " +
+                ", length(c."+compoundTableMolfileColumn+")  as mdl_length" +
+                ", c."       +compoundTableMolfileColumn+"   as mdl " +
+                "  from orchem_fingprint_subsearch s" +
+                "      ,"    +compoundTableName+" c " + 
+                "  where c.molregno=s.id ";
 
             timestamp =System.currentTimeMillis();
             res = stmPreFilter.executeQuery(preFilterQuery + whereCondition);
@@ -162,15 +158,6 @@ public class SubstructureSearch {
             **********************************************************************/
             Clob molFileClob = null;
             List compounds = new ArrayList();
-
-            String lookupQuery =
-                  " select c." + compoundTablePkColumn      + "," 
-                + "        c." + compoundTableMolfileColumn + "," 
-                + "        c." + compoundTableFormulaColumn + ","
-                + " orchem.get_clob_as_char(c." + compoundTableMolfileColumn + ") mol_as_char"
-                + " from   "   + compoundTableName          + " c " 
-                + " where  c." + compoundTablePkColumn      + "=?";
-            pstmLookup = conn.prepareStatement(lookupQuery);
             Molecule databaseMolecule=null;
 
             debug("start loop over pre-filter results", debugging);
@@ -178,75 +165,63 @@ public class SubstructureSearch {
                 timestamp =System.currentTimeMillis();
                 try {
                     loopCount++;
-                    pstmLookup.setString(1, res.getString("id"));
-                    ResultSet resCompound = pstmLookup.executeQuery();
 
-                    queryExTime+=(System.currentTimeMillis() - timestamp);
-                    timestamp = System.currentTimeMillis();
+                    /*****************************************
+                     * Quick filter                          *
+                     *****************************************/
+                    if (res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT) ||
+                        res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT) ||
+                        res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT) ||
+                        res.getInt("s_count") < (Integer)atomAndBondCounts.get(Utils.S_COUNT) ||
+                        res.getInt("o_count") < (Integer)atomAndBondCounts.get(Utils.O_COUNT) ||
+                        res.getInt("n_count") < (Integer)atomAndBondCounts.get(Utils.N_COUNT) ||
+                        res.getInt("f_count") < (Integer)atomAndBondCounts.get(Utils.F_COUNT) ||
+                        res.getInt("cl_count") < (Integer)atomAndBondCounts.get(Utils.CL_COUNT) ||
+                        res.getInt("br_count") < (Integer)atomAndBondCounts.get(Utils.BR_COUNT) ||
+                        res.getInt("i_count") < (Integer)atomAndBondCounts.get(Utils.I_COUNT) ||
+                        res.getInt("c_count") < (Integer)atomAndBondCounts.get(Utils.C_COUNT)) {
+                        //TODO add saturated bonds and pi electrons
 
-                    if (resCompound.next()) {
+                        /* DO NOTHING - quick scan eliminates the candidate based on attributes */
+                        ignoreCount++;
 
-                        if (
-                             res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT) ||
-                             res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT) ||
-                             res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT) ||
-                             res.getInt("s_count") < (Integer)atomAndBondCounts.get(Utils.S_COUNT) ||
-                             res.getInt("o_count") < (Integer)atomAndBondCounts.get(Utils.O_COUNT) ||
-                             res.getInt("n_count") < (Integer)atomAndBondCounts.get(Utils.N_COUNT) ||
-                             res.getInt("f_count") < (Integer)atomAndBondCounts.get(Utils.F_COUNT) ||
-                             res.getInt("cl_count") < (Integer)atomAndBondCounts.get(Utils.CL_COUNT) ||
-                             res.getInt("br_count") < (Integer)atomAndBondCounts.get(Utils.BR_COUNT) ||
-                             res.getInt("i_count") < (Integer)atomAndBondCounts.get(Utils.I_COUNT) ||
-                             res.getInt("c_count") < (Integer)atomAndBondCounts.get(Utils.C_COUNT)) {
+                    } else {
 
-                            // DO NOTHING - quick scan eliminates the candidate based on attributes
-                            ignoreCount++;
-
-                        } else {
-
-                            //OLD
-                            //molFileClob = resCompound.getClob(compoundTableMolfileColumn);
-                            //int clobLen = new Long(molFileClob.length()).intValue();
-                            //String molfile = (molFileClob.getSubString(1, clobLen));
-
-                            /* Bit of a hack to limit explicit Clob retrievals (slow) as much as pissable */
-                            String molfile = resCompound.getString("mol_as_char");
-                            if (molfile == null) {
-                                clobCount++;
-                                molFileClob = resCompound.getClob(compoundTableMolfileColumn);
-                                int clobLen = new Long(molFileClob.length()).intValue();
-                                molfile = (molFileClob.getSubString(1, clobLen));
-                            }
-
-
+                        int mdlLen= res.getInt("mdl_length");
+                        String molfile=null;
+                        if (mdlLen > 4000) { //TODO test that
+                            clobCount++;
+                            molFileClob = res.getClob("mdl");
+                            int clobLen = new Long(molFileClob.length()).intValue();
+                            molfile = (molFileClob.getSubString(1, clobLen));
                             clobTime += (System.currentTimeMillis() - timestamp);
                             timestamp = System.currentTimeMillis();
-
-                            /* Create molecule */
-                            databaseMolecule = Utils.getNNMolecule(mdlReader, molfile);
-                            mlTime += (System.currentTimeMillis() - timestamp);
-                            timestamp = System.currentTimeMillis();
-
-                            /* Test of the match made is truly a substructure */
-                            SubgraphIsomorphism s =
-                                new SubgraphIsomorphism(new VF2SubgraphIsomorphism(databaseMolecule, qAtCom));
-
-                            if (s.matchSingle()) {
-                                OrChemCompound c = new OrChemCompound();
-                                c.setId(resCompound.getString(compoundTablePkColumn));
-                                c.setFormula(resCompound.getString(compoundTableFormulaColumn));
-                                c.setMolFileClob(resCompound.getClob(compoundTableMolfileColumn));
-                                compounds.add(c);
-                            }
-                            uitTime += (System.currentTimeMillis() - timestamp);
-                            compTested++;
                         }
-                    }
-                    resCompound.close();
-                } catch (Exception e) {
-                    debug ("CDK Error - " + res.getString("molregno") + ": " + e.getMessage(),debugging);
-                }
+                        else
+                            molfile = res.getString("mdl"); 
 
+                        /* Create molecule */
+                        databaseMolecule = Utils.getNNMolecule(mdlReader, molfile);
+                        mlTime += (System.currentTimeMillis() - timestamp);
+                        timestamp = System.currentTimeMillis();
+
+                        /* Test of the match made is truly a substructure */
+                        SubgraphIsomorphism s =
+                            new SubgraphIsomorphism(new VF2SubgraphIsomorphism(databaseMolecule, qAtCom));
+
+                        if (s.matchSingle()) {
+                            OrChemCompound c = new OrChemCompound();
+                            c.setId(res.getString("id"));
+                            c.setMolFileClob(res.getClob("mdl"));
+                            compounds.add(c);
+                        }
+                        uitTime += (System.currentTimeMillis() - timestamp);
+                        compTested++;
+
+                    }
+                } catch (Exception e) {
+                    debug("CDK Error - " + res.getString("molregno") + ": " + e.getMessage(), debugging);
+                }
             }
 
             OrChemCompound[] output = new OrChemCompound[compounds.size()];
@@ -258,9 +233,8 @@ public class SubstructureSearch {
 
             debug("Graph isomorphism tests took (ms)      :  " + uitTime, debugging);
             debug("Creating CDK molecules took (ms)       :  " + mlTime, debugging);
-            debug("Compound lookup time (ms)              :  " + queryExTime, debugging);
             debug("Clob retrieval time (ms)               :  " + clobTime, debugging);
-            debug("Overall time (ms)"+overallTime+" ("+(prefilterTime+queryExTime+clobTime+uitTime+mlTime)+")", debugging);
+            debug("Overall time (ms)"+overallTime+" ("+(prefilterTime+clobTime+uitTime+mlTime)+")", debugging);
             debug("______",debugging);
             debug("Amount of compounds looped             : #" + loopCount, debugging);
             debug("Amount of compounds tested isomorphism : #" + compTested, debugging);
@@ -277,9 +251,6 @@ public class SubstructureSearch {
         } finally {
             if (res != null)
                 res.close();
-
-            if (pstmLookup != null)
-                pstmLookup.close();
 
             if (stmPreFilter != null)
                 res.close();
@@ -301,8 +272,8 @@ public class SubstructureSearch {
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
-        IAtomContainer queryMolecule = Utils.getMolecule(mdlReader, mol);
-        IAtomContainer HACK = Utils.getMolecule(mdlReader, mol);
+        IAtomContainer queryMolecule = Utils.getNNMolecule(mdlReader, mol);
+        IAtomContainer HACK = Utils.getNNMolecule(mdlReader, mol);
         return search(queryMolecule, HACK, topN, debugYN);
     }
 
@@ -359,4 +330,33 @@ public class SubstructureSearch {
          for (int i = 0; i < iac.getBondCount(); i++)  
              iac.getBond(i).setFlag(CDKConstants.ISAROMATIC,false);
      }
+
+    //Try out to ignore overly common bits - should collect these more uhm cleverly 
+    //TODO think if this should be really implemented
+
+    private static List shitBits = new ArrayList();
+    static {
+        shitBits.add(483);
+        shitBits.add(488);
+        shitBits.add(154);
+        shitBits.add(498);
+        shitBits.add(489);
+        shitBits.add(370);
+        shitBits.add(508);
+        shitBits.add(379);
+        shitBits.add(56);
+        shitBits.add(417);
+        shitBits.add(454);
+        shitBits.add(499);
+        shitBits.add(442);
+        shitBits.add(432);
+        shitBits.add(235);
+    }
+    private static boolean isShitBit(int bitNum) {
+
+        if (shitBits.contains(bitNum))
+            return true;
+        else
+            return false;
+    }
 }

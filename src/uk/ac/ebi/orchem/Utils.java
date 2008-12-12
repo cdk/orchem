@@ -1,23 +1,23 @@
 package uk.ac.ebi.orchem;
 
-
 import java.io.StringReader;
 
 import java.util.BitSet;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.Molecule;
+import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.nonotify.NNMolecule;
+import org.openscience.cdk.tools.SaturationChecker;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
 
 /**
  *
@@ -37,7 +37,7 @@ public class Utils {
      * @param structure
      * @return
      * @throws CDKException
-     */
+     *
     public static Molecule getMolecule(MDLV2000Reader mdlReader, String structure) throws CDKException {
         Molecule mol = null;
         mdlReader.setReader(new StringReader(structure));
@@ -48,8 +48,11 @@ public class Utils {
         if (mol2 == null || mol2.getAtomCount() == 0)
             throw new RuntimeException("Error parsing molfile is null or mol atom count is zero. ");
 
+        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(mol2);
+        CDKHueckelAromaticityDetector.detectAromaticity(mol2);
         return mol2;
     }
+    */
 
     public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String structure) throws CDKException {
         NNMolecule mol = null;
@@ -61,6 +64,8 @@ public class Utils {
         if (mol2 == null || mol2.getAtomCount() == 0)
             throw new RuntimeException("Error parsing molfile is null or mol atom count is zero. ");
 
+        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(mol2);
+        CDKHueckelAromaticityDetector.detectAromaticity(mol2);
         return mol2;
     }
 
@@ -81,9 +86,11 @@ public class Utils {
     }
 
 
-    public static final String SINGLE_BOND_COUNT = "sinbc";
-    public static final String DOUBLE_BOND_COUNT = "doubc";
-    public static final String TRIPLE_BOND_COUNT = "tribc";
+    public static final String SINGLE_BOND_COUNT   = "sinbc";
+    public static final String DOUBLE_BOND_COUNT   = "doubc";
+    public static final String TRIPLE_BOND_COUNT   = "tribc";
+    public static final String AROMATIC_BOND_COUNT = "aromcc";
+
     public static final String S_COUNT = "sc";
     public static final String O_COUNT = "oc";
     public static final String N_COUNT = "nc";
@@ -93,6 +100,18 @@ public class Utils {
     public static final String I_COUNT = "ic";
     public static final String C_COUNT = "cc";
     public static final String P_COUNT = "pc";
+    public static final String SATURATED_COUNT = "satc";
+
+
+    private static SaturationChecker satCheck;
+    static {
+        try {
+            satCheck = new SaturationChecker();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Given an atom container, calculates atoms and bonds and
@@ -110,6 +129,8 @@ public class Utils {
         Integer molSingleBondCount = 0;
         Integer molDoubleBondCount = 0;
         Integer molTripleBondCount = 0;
+        Integer molAromBondCount = 0;
+
         Integer molSCount = 0;
         Integer molOCount = 0;
         Integer molNCount = 0;
@@ -119,22 +140,22 @@ public class Utils {
         Integer molICount = 0;
         Integer molCCount = 0;
         Integer molPCount = 0;
+        Integer satCount = 0;
 
         IBond bond;
         IAtom atom;
         for (int i = 0; i < iac.getBondCount(); i++) {
             bond = iac.getBond(i);
-            if (bond.getOrder() ==1 ) //1.0.4
-            //if (bond.getOrder() == Bond.Order.SINGLE )  //1.1.2
 
+            if (bond.getFlag(CDKConstants.ISAROMATIC)) molAromBondCount ++;
+            else if (bond.getOrder() ==  Bond.Order.SINGLE )  
                 molSingleBondCount++;
-            else if (bond.getOrder() == 2) //1.0.4
-            //else if (bond.getOrder() == Bond.Order.DOUBLE) //1.1.2
+            else if (bond.getOrder() == Bond.Order.DOUBLE) 
                 molDoubleBondCount++;
-            else if (bond.getOrder() ==3) //1.0.4
-            //else if (bond.getOrder() == Bond.Order.TRIPLE) //1.1.2
+            else if (bond.getOrder() == Bond.Order.TRIPLE) 
                 molTripleBondCount++;
         }
+
         for (int i = 0; i < iac.getAtomCount(); i++) {
             atom = iac.getAtom(i);
             if (atom.getSymbol().equals("S"))
@@ -156,11 +177,23 @@ public class Utils {
             else if (atom.getSymbol().equals("P"))
                 molPCount++;
 
+            try {
+                if (satCount != 999999)
+                    if (satCheck.isSaturated(atom, iac)) {
+                        satCount++;
+                    }
+            } catch (CDKException e) {
+                e.printStackTrace();
+                satCount = 999999;
+            }
+
         }
 
         result.put(SINGLE_BOND_COUNT, molSingleBondCount);
         result.put(DOUBLE_BOND_COUNT, molDoubleBondCount);
         result.put(TRIPLE_BOND_COUNT, molTripleBondCount);
+        result.put(AROMATIC_BOND_COUNT, molAromBondCount);
+
         result.put(S_COUNT, molSCount);
         result.put(O_COUNT, molOCount);
         result.put(N_COUNT, molNCount);
@@ -171,6 +204,8 @@ public class Utils {
         result.put(C_COUNT, molCCount);
         result.put(P_COUNT, molPCount);
 
+        result.put(SATURATED_COUNT, satCount);
+        
         return result;
 
     }

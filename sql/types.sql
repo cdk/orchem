@@ -4,8 +4,6 @@
      (
      id varchar2(80)
      external name 'java.lang.String',
-     formula varchar2(4000)
-     external name 'java.lang.String',
      mol_file clob
      external name 'java.lang.String',
      score float

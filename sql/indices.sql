@@ -2,12 +2,29 @@
     create bitmap index orchem_idx_bmp_simil on orchem_fingprint_simsearch (bit_count)
     /
 
+
+    
     begin
         for i in 1..512 loop
-           execute immediate (' create bitmap index orchem_bmp_idx_fp'||i||' on orchem_fingprint_subsearch (bit'||i||')');
+           execute immediate (' create bitmap index orchem_bmp_idx_fp'||i||' on orchem_fingprint_subsearch (bit'||i||') parallel 4 nologging');
         end loop;
     end;
     /
+
+                
+   /*
+   declare 
+      j binary_integer; 
+      job varchar2(1000);
+   begin 
+      for i in 66..66 loop
+        job:='execute immediate(''create bitmap index orchem_bmp_idx_fp'||i||' on orchem_fingprint_subsearch (bit'||i||') parallel 4 nologging'' );'  ;
+        dbms_job.submit(j,job,sysdate);
+      end loop;
+   end;
+   */
+
+
 
     -- Archived: Oracle context index. Performance not adequate.
     /*

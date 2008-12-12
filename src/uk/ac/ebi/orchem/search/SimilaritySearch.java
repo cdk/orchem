@@ -159,7 +159,6 @@ public class SimilaritySearch {
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
             String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
             String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
-            String compoundTableFormulaColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_FORMULA, conn);
 
             conn.setDefaultRowPrefetch(100);
 
@@ -272,7 +271,6 @@ public class SimilaritySearch {
             String lookupCompoundQuery = 
             " select " +
                   compoundTableMolfileColumn+
-            " ,"+ compoundTableFormulaColumn+
             " from " +
             " " +compoundTableName+
             " where " +
@@ -289,7 +287,6 @@ public class SimilaritySearch {
                 if (resLookup.next()) {
                     OrChemCompound c = new OrChemCompound();
                     c.setId(bElm.getID());
-                    c.setFormula(resLookup.getString(compoundTableFormulaColumn));
                     c.setMolFileClob(resLookup.getClob(compoundTableMolfileColumn));
                     c.setScore(bElm.getTanimotoCoeff().floatValue());
                     compounds.add(c);
@@ -336,7 +333,7 @@ public class SimilaritySearch {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         int clobLen = new Long(molfileClob.length()).intValue();
         String molfile = (molfileClob.getSubString(1, clobLen));
-        Molecule molecule = Utils.getMolecule(mdlReader, molfile);
+        Molecule molecule = Utils.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter1024().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }
@@ -353,7 +350,7 @@ public class SimilaritySearch {
      */
     public static oracle.sql.ARRAY molSearch(String molfile, Float cutOff, Integer topN, String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
-        Molecule molecule = Utils.getMolecule(mdlReader, molfile);
+        Molecule molecule = Utils.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter1024().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }

@@ -18,6 +18,7 @@
 
   <action name="lookupMolfile" class="uk.ac.ebi.orchem.web.LookupMolfileAction">
    <result name="lookupDone">/searchMol.jsp</result>
+    <result name="error">/error.jsp</result>
   </action>
 
   <action name="molSearch">

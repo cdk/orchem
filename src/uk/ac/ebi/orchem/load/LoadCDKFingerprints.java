@@ -20,12 +20,12 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.BLOB;
 
 import org.openscience.cdk.Molecule;
-import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.io.MDLV2000Reader;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
 
 /**
@@ -35,34 +35,6 @@ import uk.ac.ebi.orchem.db.OrChemParameters;
  * @author markr@ebi.ac.uk
  *
  */
-
-/*
- 
- cdk112 fingerprintert:
- jar -Xmx128m uk.ac.ebi.orchem.load.LoadCDKFingerprints 218 220
- ms make mol 1696
- ms FP 5509
- ms make mol 18
- ms FP 89
- ms make mol 58
- ms FP 4893
- Elapse time 13726 hoppa
- 
- cdk1.0.4
- jar -Xmx128m uk.ac.ebi.orchem.load.LoadCDKFingerprints 218 220
- Loop warning for MOLREGNO: 218Timeout for AllringsFinder exceeded
- ms make mol 6
- ms FP 186
- Loop warning for MOLREGNO: 220Timeout for AllringsFinder exceeded
- Elapse time 12790
- 
- */
-
-
-
-
-
-
 public class LoadCDKFingerprints {
 
     /**
@@ -82,8 +54,6 @@ public class LoadCDKFingerprints {
         long start=System.currentTimeMillis();
         int DEF_ROW_PREFETCH=100;
         int COMMIT_POINT=25;     // kept low due to big size of prepared statements
-        final int FP_1024=1024;  // used for the similarity search table
-        final int FP_512=512;    // used for the substructure search table
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
@@ -92,13 +62,10 @@ public class LoadCDKFingerprints {
         conn.setAutoCommit(false);
         int commitCount=0;
 
-        /* Two fingerprinters will be used. 1024 bits for the similarity search table, 512
-         * for the substructure search table*/
         MDLV2000Reader mdlReader = new MDLV2000Reader();
-        IFingerprinter fingerPrinter1024 = new ExtendedFingerprinter(FP_1024);
-        BitSet fp1024;
-        IFingerprinter fingerPrinter512 = new ExtendedFingerprinter(FP_512);
-        BitSet fp512;
+        IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
+        BitSet fpBitset;
+        final int fpSize = FingerPrinterAgent.FP.getFpSize();
 
         /* Prepare the (flexible) query on the base compound table in the schema */
         String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
@@ -167,45 +134,23 @@ public class LoadCDKFingerprints {
                     System.out.println("ms make mol "+(System.currentTimeMillis()-bef));
 
                     bef=System.currentTimeMillis();
-
-
                     
-                    //TODO
-                    //THIS COSTS TOO MUCH TIME
-                    // either sim search on smaller fingprint... 
-                    // or a hash on the 1024 to be used for a "512"
-                    // or a compromise bitmap index - say ehm 512+256=768..
-                    //TODO also -why is that database SO MUCH slower ? which part.. although it now just did a 
-                    //                            1000 in eh 1:20, 2000 in , 3000 in 2:18 .. full coverage = 1993
-                    
-                    
-                    //fp1024 = fingerPrinter1024.getFingerprint(molecule);
-                    fp512 = fingerPrinter512.getFingerprint(molecule);
-                    fp1024=fp512;
-                    byte[] bytes = Utils.toByteArray(fp1024, FP_1024);
+                    fpBitset = fingerPrinter.getFingerprint(molecule);
+                    byte[] bytes = Utils.toByteArray(fpBitset, fpSize);
                     System.out.println("ms FP "+(System.currentTimeMillis()-bef));
-
-
-
-
-
-
-
-
-
 
                     /* Prepare statement for Similarity search helper table */
                     psInsertSimiFp.setString(1, res.getString(compoundTablePkColumn));
-                    psInsertSimiFp.setInt(2, fp1024.cardinality());
+                    psInsertSimiFp.setInt(2, fpBitset.cardinality());
                     psInsertSimiFp.setBytes(3, bytes);
 
                     /* Prepare statement for Substructure search helper table */
                     int idx = 1;
                     psInsertSubstrFp.setString(idx, res.getString(compoundTablePkColumn));
 
-                    for (int i = 0; i < fp512.size(); i++) {
+                    for (int i = 0; i < fpBitset.size(); i++) {
                         idx = i + 2;
-                        if (fp512.get(i))
+                        if (fpBitset.get(i))
                             psInsertSubstrFp.setString(idx, "1");
                         else
                             psInsertSubstrFp.setString(idx, null);
@@ -246,7 +191,7 @@ public class LoadCDKFingerprints {
 
             } catch (Exception e) {
                 System.err.println("Loop warning for " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) +e.getMessage());
-                throw e;
+                //throw e;
             }
         }
         psInsertSimiFp.executeBatch();

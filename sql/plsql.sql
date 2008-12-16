@@ -104,18 +104,18 @@ AS
    FUNCTION substructure_search_mol (molfile clob, topn NUMBER, debug_YN VARCHAR2) 
    RETURN ORCHEM_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearch.molSearch (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
+   'uk.ac.ebi.orchem.search.SubstructureSearchBAK.molSearch (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
    /*    */
    FUNCTION substructure_search_smiles (smile VARCHAR2, topn NUMBER, debug_YN VARCHAR2) 
    RETURN ORCHEM_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearch.smilesSearch (java.lang.String, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
+   'uk.ac.ebi.orchem.search.SubstructureSearchBAK.smilesSearch (java.lang.String, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
    /*    */
    -- //TODO remove this function, is temporary 
    --FUNCTION substructure_search_new (molfile clob, topn NUMBER, debug_YN VARCHAR2) 
    --RETURN ORCHEM_COMPOUND_LIST
    --IS LANGUAGE JAVA NAME 
-   --'uk.ac.ebi.orchem.search.SubstructureSearchWITHCACHE.molSearch (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
+   --'uk.ac.ebi.orchem.search.SubstructureSearch.molSearch (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
 END;
 /
 SHOW ERRORS

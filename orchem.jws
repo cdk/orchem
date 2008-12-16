@@ -9,9 +9,5 @@
          <value n="nodeClass" v="oracle.ide.model.Project"/>
          <url n="URL" path="orchem.jpr"/>
       </hash>
-      <hash>
-         <value n="nodeClass" v="oracle.ide.model.Project"/>
-         <url n="URL" path="newercdk/newercdk.jpr"/>
-      </hash>
    </list>
 </jws:workspace>

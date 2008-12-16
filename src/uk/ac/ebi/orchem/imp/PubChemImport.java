@@ -45,8 +45,8 @@ PubChemImport {
             return;
 
         String insertCommand =
-            " insert into compounds " + " (cid, os_dirnum, iupac_name, openeye_iso_smiles, openeye_mf, fp512, fp1024, cdk_smiles, mdl ) " +
-            " values (?,?,?,?,?,?,?,?,?) ";
+            " insert into compounds " + " (cid, os_dirnum, iupac_name, openeye_iso_smiles, openeye_mf, mdl ) " +
+            " values (?,?,?, ?,?,?) ";
         Connection conn = new PubChemConnection().getDbConnection();
         conn.setAutoCommit(false);
         OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement(insertCommand);
@@ -93,10 +93,7 @@ PubChemImport {
                     pstmt.setString(3, iupacName);
                     pstmt.setString(4, isoSmiles);
                     pstmt.setString(5, mf);
-                    pstmt.setBytes(6, null);
-                    pstmt.setBytes(7, null);
-                    pstmt.setCLOB(8, null);
-                    pstmt.setCLOB(9, mdlClob);
+                    pstmt.setCLOB(6, mdlClob);
 
                     pstmt.executeUpdate();
 

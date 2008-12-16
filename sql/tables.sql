@@ -12,9 +12,8 @@
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null -- PK
     , bit_count number(4)     not null 
-    , fp raw(128)             not null
+    , fp raw(64)             not null
     )
-    -- PCTFREE 0: could do
     cache
     /
     alter table orchem_fingprint_simsearch  add constraint pk_orchem_simsrch primary key (id)

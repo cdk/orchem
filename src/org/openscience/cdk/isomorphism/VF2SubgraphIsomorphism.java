@@ -1,7 +1,39 @@
-package org.openscience.cdk.isomorphism;
+/* $Revision$ 
+ * $Author$ 
+ * $Date$
+ *
+ * Copyright (C) 2001  
+ *   Dipartimento di Informatica e Sistemistica,
+ *   Universita degli studi di Napoli ``Federico II'
+ *   <http://amalfi.dis.unina.it>
+ * 
+ * 2008  Rajarshi Guha 
+ *       Contact: cdk-devel@lists.sourceforge.net
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ *  1. The above copyright notice and this permission notice shall be included in all copies or substantial
+ *      portions of the Software, together with the associated disclaimers.
+ *  2. Any modification to the standard distribution of the Software shall be mentioned in a prominent notice
+ *      in the documentation provided with the modified distribution, stating clearly how, when and by
+ *      whom the Software has been modified.
+ *  3. Either the modified distribution shall contain the entire sourcecode of the standard distribution of the 
+ *      Software, or the documentation shall provide instructions on where the source code of the standard
+ *      distribution of the Software can be obtained.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ */
 
-import java.util.ArrayList;
-import java.util.List;
+package org.openscience.cdk.isomorphism;
 
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -9,10 +41,18 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtomContainer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Verbatim translation of C++ VF2 algprithm from VF lib.<BR>
  * http://amalfi.dis.unina.it/graph/db/vflib-2.0/doc/vflib.html<BR>
+ *
+ * @author      rajarshi
+ * @cdk.keyword isomorphism
+ * @cdk.license MIT-like
+ * @cdk.module standard
  *
  */
 public class VF2SubgraphIsomorphism extends State {
@@ -34,7 +74,7 @@ public class VF2SubgraphIsomorphism extends State {
     Integer[] order;
 
     private IAtomContainer g2;
-    private IQueryAtomContainer g1;
+    private IAtomContainer g1;
 
     int n1, n2;
     public static Integer share_count =1; 
@@ -74,7 +114,7 @@ public class VF2SubgraphIsomorphism extends State {
     private VF2SubgraphIsomorphism() {
     }
 
-    public VF2SubgraphIsomorphism(IAtomContainer target, IQueryAtomContainer query) {
+    public VF2SubgraphIsomorphism(IAtomContainer target, IAtomContainer query) {
         g1 = query;
         g2 = target;
 
@@ -156,15 +196,22 @@ public class VF2SubgraphIsomorphism extends State {
      * @return true if (node1, node2) can be added to the current state
      */
     boolean isFeasiblePair(Integer node1, Integer node2) {
+    
         assert node1 < n1;
         assert node2 < n2;
         assert core_1[node1] == null;
         assert core_2[node2] == null;
 
-        IQueryAtom g1Atom = (IQueryAtom)g1.getAtom(node1);
+        IAtom atomG1 = g1.getAtom(node1);
         IAtom g2Atom = g2.getAtom(node2);
-        if (!g1Atom.matches(g2Atom))
-            return false;
+
+        if (atomG1 instanceof IQueryAtom) {
+            IQueryAtom g1Atom = (IQueryAtom) atomG1;
+            if (!g1Atom.matches(g2Atom))
+                return false;
+        } else {
+           if (!atomG1.getSymbol().equals(g2Atom.getSymbol())) return false;
+        }
 
         int i, other1, other2;
         int termout1 = 0, termout2 = 0, termin1 = 0, termin2 = 0, new1 = 0, new2 = 0;

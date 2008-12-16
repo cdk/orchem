@@ -32,6 +32,19 @@ Step plan to create the schema
 
  - data loading: orchem_fingprint_simsearch and orchem_fingprint_subsearch 
  
+ declare
+    i binary_integer;
+ begin
+    -- doe maar eh 5 ? 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints( ''1''   ,''15000'' );'     ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''15001'',''30000'');'  ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''30001'',''45000'');'  ,INTERVAL=>null );
+    commit;
+end;
+
+
+ 
+ 
  - post loader indices: 
       - BITMAPs (various)
   
@@ -49,22 +62,18 @@ loadjava
     jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
 
 or
+        loadjava -resolve -user starlite28p/star /home/markr/cvs/sourceforge/OrChem/public_html/WEB-INF/classes/isomorphism.jar
 
-    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/NodePair.java
-    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/State.java
-    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/VF2SubgraphIsomorphism.java
-    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/SubgraphIsomorphism.java
-    loadjava -resolve -user starlite28p/star org/openscience/cdk/isomorphism/IsomorphismSort.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/db/OrChemParameters.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompound.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
-    loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/db/OrChemParameters.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompound.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
+        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
 
 
 

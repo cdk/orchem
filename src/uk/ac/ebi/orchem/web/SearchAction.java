@@ -7,7 +7,6 @@ import java.util.List;
 
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.Utils;
-import uk.ac.ebi.orchem.db.StarliteConnection;
 import uk.ac.ebi.orchem.singleton.DbAgent;
 
 /**
@@ -40,7 +39,7 @@ public class SearchAction extends SessionAwareAction {
                     conn = DbAgent.DB_AGENT.getCachedConnection();
                     debugMsg.append(wsr.getDebugMessage() + "<br>Invoking similarity search  .." + new java.util.Date());
                     compounds =
-                            new DbSearchInvoker().similaritySearchMol(wsr.getStructure(), conn, new Float(wsr.getMinTanCoeff()).floatValue(),
+                            new DBSearchInvoker_workaround().similaritySearchMol(wsr.getStructure(), conn, new Float(wsr.getMinTanCoeff()).floatValue(),
                                                                       new Integer(wsr.getTopN()).intValue());
                 }
 
@@ -49,7 +48,7 @@ public class SearchAction extends SessionAwareAction {
                     debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +
                                     new java.util.Date());
                     compounds =
-                            new DbSearchInvoker().substructureSearchMol(wsr.getStructure(), conn, new Integer(wsr.getTopN()).intValue());
+                            new DBSearchInvoker_workaround().substructureSearchMol(wsr.getStructure(), conn, new Integer(wsr.getTopN()).intValue());
                 }
 
             } else {
@@ -57,7 +56,7 @@ public class SearchAction extends SessionAwareAction {
                     conn = DbAgent.DB_AGENT.getCachedConnection();
                     debugMsg.append(wsr.getDebugMessage() + "<br>Invoking similarity search  .." + new java.util.Date());
                     compounds =
-                            new DbSearchInvoker().similaritySearchSmiles(wsr.getSmiles(), conn, new Float(wsr.getMinTanCoeff()).floatValue(),
+                            new DBSearchInvoker_workaround().similaritySearchSmiles(wsr.getSmiles(), conn, new Float(wsr.getMinTanCoeff()).floatValue(),
                                                                          new Integer(wsr.getTopN()).intValue());
                 }
 
@@ -66,7 +65,7 @@ public class SearchAction extends SessionAwareAction {
                     debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +
                                     new java.util.Date());
                     compounds =
-                            new DbSearchInvoker().substructureSearchSmiles(wsr.getSmiles(), conn, new Integer(wsr.getTopN()).intValue());
+                            new DBSearchInvoker_workaround().substructureSearchSmiles(wsr.getSmiles(), conn, new Integer(wsr.getTopN()).intValue());
                 }
 
             }

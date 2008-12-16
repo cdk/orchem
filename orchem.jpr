@@ -153,10 +153,6 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Ojdbc14_g.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Standard.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
@@ -178,6 +174,10 @@
          </hash>
          <hash>
             <value n="id" v="Cdk-1.1.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Ojdbc5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -248,15 +248,6 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/ojdbc14_g.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Ojdbc14_g.jar"/>
-               <value n="id" v="Ojdbc14_g.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
                   <url path="public_html/WEB-INF/lib/standard.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
@@ -300,6 +291,15 @@
                <value n="id" v="Cdk-1.1.2.jar"/>
                <value n="locked" v="true"/>
             </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/ojdbc5.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Ojdbc5.jar"/>
+               <value n="id" v="Ojdbc5.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
          </list>
       </hash>
       <list n="libraryReferences">
@@ -332,10 +332,6 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Ojdbc14_g.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Standard.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
@@ -357,6 +353,10 @@
          </hash>
          <hash>
             <value n="id" v="Cdk-1.1.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Ojdbc5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

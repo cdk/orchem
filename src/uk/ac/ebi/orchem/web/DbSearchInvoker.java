@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import java.sql.Statement;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,9 @@ import java.util.Map;
 import oracle.jdbc.OracleCallableStatement;
 import oracle.jdbc.OracleTypes;
 
+import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.db.StarliteConnection;
 import uk.ac.ebi.orchem.singleton.DbAgent;
 
 
@@ -72,7 +76,7 @@ public class DbSearchInvoker {
     public List substructureSearchSmiles(String smiles, Connection conn, int topN) throws SQLException, ClassNotFoundException {
 
         String plsqlCall = "begin ?:=orchem.substructure_search_smiles(?,?,?); end;";
-        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
+        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
         ocs.setString(2, smiles);
         ocs.setInt(3, topN);
@@ -128,16 +132,15 @@ public class DbSearchInvoker {
     //
     // TEMP main() method for standalone testing
     // TODO remove
-    /*
     public static void main(String[] args) throws SQLException, Exception {
         System.out.println("1"+new java.util.Date());
+
         Connection conn = new StarliteConnection().getDbConnection();
         Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ResultSet res = stmtQueryCompounds.executeQuery
-        ("select molfile from compounds where molregno=830");
+        ("select molfile from compounds where molregno=11002");
 
         Clob molFileClob = null;
-
         if (res.next()) {
 
             molFileClob = res.getClob("molfile");
@@ -146,11 +149,10 @@ public class DbSearchInvoker {
             System.out.println("2"+new java.util.Date());
 
             DbSearchInvoker inv = new DbSearchInvoker();
-            List<OrChemCompound> cl = inv.substructureSearch(molfile, conn,50);
+            List<OrChemCompound> cl = inv.similaritySearchMol(molfile, conn, 0.9f,50);
             System.out.println("3"+new java.util.Date());
 
 
         }
     }
-    */
 }

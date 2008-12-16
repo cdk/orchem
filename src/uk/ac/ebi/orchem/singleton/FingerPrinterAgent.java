@@ -12,24 +12,21 @@ import org.openscience.cdk.fingerprint.IFingerprinter;
 public class FingerPrinterAgent {
 
     public static final FingerPrinterAgent FP = new FingerPrinterAgent();
-    private IFingerprinter fingerPrinter1024;
-    private IFingerprinter fingerPrinter512;
+    private IFingerprinter fingerPrinter;
+    private static int FP_SIZE;
 
 
     /** Private constructor  */
     private FingerPrinterAgent() {
-        fingerPrinter1024 = new org.openscience.cdk.fingerprint.ExtendedFingerprinter();
-        fingerPrinter512 = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(512);
-
+        FP_SIZE=512;
+        fingerPrinter = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(FP_SIZE);
     }
 
-    public IFingerprinter getFingerPrinter1024() {
-        return fingerPrinter1024;
+    public IFingerprinter getFingerPrinter() {
+        return fingerPrinter;
     }
-
-    public IFingerprinter getFingerPrinter512() {
-        return fingerPrinter512;
+    public int getFpSize() {
+        return FP_SIZE;
     }
-
 
 }

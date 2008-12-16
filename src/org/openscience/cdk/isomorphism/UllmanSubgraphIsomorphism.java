@@ -1,10 +1,45 @@
+/* $Revision$
+ * $Author$
+ * $Date$
+ *
+ * Copyright (C) 2001
+ *   Dipartimento di Informatica e Sistemistica,
+ *   Universita degli studi di Napoli ``Federico II'
+ *   <http://amalfi.dis.unina.it>
+ *
+ * 2008  Rajarshi Guha
+ *       Contact: cdk-devel@lists.sourceforge.net
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ *  1. The above copyright notice and this permission notice shall be included in all copies or substantial
+ *      portions of the Software, together with the associated disclaimers.
+ *  2. Any modification to the standard distribution of the Software shall be mentioned in a prominent notice
+ *      in the documentation provided with the modified distribution, stating clearly how, when and by
+ *      whom the Software has been modified.
+ *  3. Either the modified distribution shall contain the entire sourcecode of the standard distribution of the
+ *      Software, or the documentation shall provide instructions on where the source code of the standard
+ *      distribution of the Software can be obtained.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+
 package org.openscience.cdk.isomorphism;
 
 
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
-import org.openscience.cdk.isomorphism.matchers.IQueryAtomContainer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +47,11 @@ import java.util.List;
 /**
  * Verbatim translation of C++ Ullmann algorithm from VF lib.<BR>
  * http://amalfi.dis.unina.it/graph/db/vflib-2.0/doc/vflib.html<BR>
- * 
+ * @author      rajarshi
+ * @cdk.keyword isomorphism
+ * @cdk.license MIT-like
+ * @cdk.module standard
+ *
  */
 
 public class UllmanSubgraphIsomorphism extends State {
@@ -21,15 +60,13 @@ public class UllmanSubgraphIsomorphism extends State {
     private Integer[] core2;
 
     private IAtomContainer g2;
-    private IQueryAtomContainer g1;
-
+    private IAtomContainer g1;
     int n1, n2;
     byte[][] M;
 
 
 
-    public UllmanSubgraphIsomorphism(IAtomContainer target,IQueryAtomContainer query) {
-
+    public UllmanSubgraphIsomorphism(IAtomContainer target,IAtomContainer query) {
         this.g2 = target;
         this.g1 = query;
 
@@ -46,11 +83,20 @@ public class UllmanSubgraphIsomorphism extends State {
         for (int i = 0; i < n2; i++) core2[i] = null;
         for (int i = 0; i < n1; i++) {
             for (int j = 0; j < n2; j++) {
-                IQueryAtom g1Atom = (IQueryAtom) g1.getAtom(i);
-                IAtom g2Atom = g2.getAtom(j);
+                boolean atomsMatch = false;
 
+                if (g1.getAtom(i) instanceof IQueryAtom) {
+                    IQueryAtom g1Atom = (IQueryAtom) g1.getAtom(i);
+                    IAtom g2Atom = g2.getAtom(j);
+                    atomsMatch = g1Atom.matches(g2Atom);
+                } else {
+                    atomsMatch = g1.getAtom(i).getSymbol().equals(g2.getAtom(j).getSymbol());
+                }
+
+                IAtom g1Atom = g1.getAtom(i);
+                IAtom g2Atom = g2.getAtom(j);
                 if (g1.getConnectedBondsCount(g1Atom) <= g2.getConnectedBondsCount(g2Atom)
-                        && g1Atom.matches(g2Atom)) {
+                        && atomsMatch) {
                     
                     M[i][j] = 1;
                 } else M[i][j] = 0;

@@ -1,21 +1,39 @@
+/* $Revision$
+ * $Author$
+ * $Date$
+ *
+ *  Copyright (C) 2001-2008  The Chemistry Development Kit (CDK) project
+ *
+ *  Contact: cdk-devel@lists.sourceforge.net
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
 package org.openscience.cdk.isomorphism;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
+import java.util.*;
+
 
 /**
  * Facilitates sort before isomorphic comparison
- *
- * @author markr@ebi.ac.uk
+ * @author      markr
+ * @cdk.keyword isomorphism
+ * @cdk.module standard
  *
  */
 public class IsomorphismSort {
@@ -33,8 +51,7 @@ public class IsomorphismSort {
      * For example input C47H65N11O6 will produce an atom array with the "O"
      * atoms first, then "N", then "C" and lastly "H".<BR>
      * This type of sort can benefit algorithms like VF2, sorting the query
-     * container before starting graph comparison.<BR>
-     * Why os sorting so hard in Java anyway ...
+     * container before a subgraph match.<BR>
      *
      * @param iac input IAtomContainer
      * @return a sorted array of atoms for that IAtomContainer
@@ -44,9 +61,7 @@ public class IsomorphismSort {
         /* Create a Map with (key,value) being (atom symbol, overall count) */
         Map map = new TreeMap();
 
-        Iterator atomIterator = iac.atoms().iterator();
-        //Iterator atomIterator = iac.atoms();
-
+       Iterator atomIterator = iac.atoms().iterator();//1.1.2
         while (atomIterator.hasNext()) {
             IAtom a = (IAtom)atomIterator.next();
             Integer count = (Integer)(map.get(a.getSymbol()));

@@ -1,0 +1,49 @@
+
+
+To get struts2 to work in jdeveloper 11g:
+
+(1)
+In /home/markr/.jdeveloper/system11.1.1.0.31.51.88/DefaultDomain/bin/startWebLogic.sh
+add the struts2 jar files to the classpath (all of them)
+
+
+(2)
+In web.xml add dumb filters for Plexus
+
+  <filter>
+    <filter-name>plexus</filter-name>
+    <filter-class>org.apache.struts2.plexus.PlexusFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>plexus</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter>
+    <filter-name>struts2</filter-name>
+    <filter-class>org.apache.struts2.dispatcher.FilterDispatcher</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>struts2</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+   <listener>
+        <listener-class>org.apache.struts2.plexus.PlexusLifecycleListener</listener-class>
+    </listener>
+  <servlet>
+    <servlet-name>DynamicImages</servlet-name>
+    <servlet-class>uk.ac.ebi.orchem.web.ImageServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DynamicImages</servlet-name>
+    <url-pattern>/dynimages/*</url-pattern>
+  </servlet-mapping>
+
+(0)
+to get the more advanced stuff in oracle to work, you need to intercep
+the runtime jdbc jar file.
+which is in /oracle/Middleware/wlserver_10.3/server/ext/jdbc/oracle/11g.
+It's the ojdb6.jar - no wonder it gives problems now and then (like for molregno 42375)
+
+
+

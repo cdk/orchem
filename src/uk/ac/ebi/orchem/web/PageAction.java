@@ -12,7 +12,7 @@ import uk.ac.ebi.orchem.Constants;
 public class PageAction extends SessionAwareAction { 
 
     public String execute() throws Exception {
-        WebSearchResults wsr = (WebSearchResults)getSession().get(Constants.SESSION_WEB_SEARCH_RESULTS);
+        WebSearchResults wsr = (WebSearchResults)this.getSession().get(Constants.SESSION_WEB_SEARCH_RESULTS);
         wsr.setPageNum(page);
         getSession().put(Constants.SESSION_WEB_SEARCH_RESULTS, wsr);
         return "pagingDone";

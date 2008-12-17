@@ -10,6 +10,8 @@ import uk.ac.ebi.orchem.Utils;
  */
 public class LookupMolfileAction extends SessionAwareAction {
 
+   public LookupMolfileAction () {}
+
     public String execute() throws Exception {
         try {
             setMolFile(new DbSearchInvoker().getMolfile(getId()));

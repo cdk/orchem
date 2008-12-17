@@ -2,15 +2,7 @@
 <!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
 "http://java.sun.com/dtd/web-app_2_3.dtd">
 <web-app>
-  <display-name>Orchem Web demo</display-name>
-  <filter>
-     <filter-name>plexus</filter-name>
-     <filter-class>org.apache.struts2.plexus.PlexusFilter</filter-class>
-  </filter>
-  <filter-mapping>
-      <filter-name>plexus</filter-name>
-      <url-pattern>/*</url-pattern>
-  </filter-mapping>
+  <display-name>My Application</display-name>
   <filter>
     <filter-name>struts2</filter-name>
     <filter-class>org.apache.struts2.dispatcher.FilterDispatcher</filter-class>
@@ -19,9 +11,6 @@
     <filter-name>struts2</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-   <listener>
-        <listener-class>org.apache.struts2.plexus.PlexusLifecycleListener</listener-class>
-    </listener>
   <servlet>
     <servlet-name>DynamicImages</servlet-name>
     <servlet-class>uk.ac.ebi.orchem.web.ImageServlet</servlet-class>

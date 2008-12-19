@@ -2,16 +2,21 @@ package uk.ac.ebi.orchem.web;
 
 import uk.ac.ebi.orchem.Utils;
 
-
 /**
- * Struts Action : given an "id", finds a compound in the database and returns its MDL (Molfile).
- * Part of mock web-application. Not core cartridge functionality.
+ * Struts Action class
  *
  */
 public class LookupMolfileAction extends SessionAwareAction {
 
-   public LookupMolfileAction () {}
+    public LookupMolfileAction() {
+    }
 
+    /** 
+     * Given an "id", finds a compound in the database and returns its Mol file.
+     * Part of demo web-application. Not core cartridge functionality.
+     * @return navigation string
+     * @throws Exception
+     */
     public String execute() throws Exception {
         try {
             setMolFile(new DbSearchInvoker().getMolfile(getId()));
@@ -22,9 +27,10 @@ public class LookupMolfileAction extends SessionAwareAction {
         }
     }
 
+    /* Getters and setters follow _____________________________________________________*/
+
     private String id;
     private String molFile;
-
 
     public void setId(String id) {
         this.id = id;

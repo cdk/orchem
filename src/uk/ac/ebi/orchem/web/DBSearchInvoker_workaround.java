@@ -18,7 +18,7 @@ import uk.ac.ebi.orchem.singleton.DbAgent;
 
 
 public class DBSearchInvoker_workaround {
-
+    /*
     public List similaritySearchMol(String molfile, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
                                                                                                             ClassNotFoundException {
 
@@ -113,31 +113,6 @@ public class DBSearchInvoker_workaround {
         }
         return molfile;
     }
-
-
-
-  //
-  // TEMP main() method for standalone testing
-  // TODO remove
-  public static void main(String[] args) throws SQLException, Exception {
-      System.out.println("1"+new java.util.Date());
-
-      Connection conn = new StarliteConnection().getDbConnection();
-      Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-      ResultSet res = stmtQueryCompounds.executeQuery
-      ("select molfile from compounds where molregno=42375");
-
-      Clob molFileClob = null;
-      if (res.next()) {
-
-          molFileClob = res.getClob("molfile");
-          int clobLen = new Long(molFileClob.length()).intValue();
-          String molfile = (molFileClob.getSubString(1, clobLen));
-          System.out.println("2"+new java.util.Date());
-
-          DBSearchInvoker_workaround inv = new DBSearchInvoker_workaround();
-          List<OrChemCompound> cl = inv.similaritySearchMol(molfile, conn, 0.9f,50);
-          System.out.println("3"+new java.util.Date());
-   }
   }
+*/
 }

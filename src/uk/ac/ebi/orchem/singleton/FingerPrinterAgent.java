@@ -4,7 +4,7 @@ import org.openscience.cdk.fingerprint.IFingerprinter;
 
 
 /**
- * Singleton to provide CDK fingerprinters. It would be costly (time-wise) to 
+ * Singleton to provide a CDK fingerprinter. It would be costly (time-wise) to
  * create a new fingerprinter everytime one is needed, so therefore these
  * are kept available.
  */
@@ -16,10 +16,19 @@ public class FingerPrinterAgent {
     private static int FP_SIZE;
 
 
-    /** Private constructor  */
+    /**
+     * Private constructor, creates a fingerprinter for OrChem.<BR>
+     * The value of search depth (the second argument of the fingerprinter constructor)
+     * has direct impact on overall performance, especially the
+     * performance of {@link uk.ac.ebi.orchem.load.LoadCDKFingerprints}. <BR>
+     * */
     private FingerPrinterAgent() {
         FP_SIZE=512;
-        fingerPrinter = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(FP_SIZE);
+        fingerPrinter = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(FP_SIZE,6);
+        //fingerPrinter = new MyExtendedFingerprinter(FP_SIZE,8);
+
+        System.out.println("Fingerprinter ready ");
+
     }
 
     public IFingerprinter getFingerPrinter() {

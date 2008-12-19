@@ -23,6 +23,7 @@ import org.openscience.cdk.Molecule;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.io.MDLV2000Reader;
 
+import uk.ac.ebi.orchem.SimpleMail;
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
@@ -50,10 +51,17 @@ public class LoadCDKFingerprints {
     public static void load(String startId, String endId ) throws Exception {
 
         //try {
+        StringBuilder logMsg = new StringBuilder();
 
         long start=System.currentTimeMillis();
         int DEF_ROW_PREFETCH=100;
         int COMMIT_POINT=25;     // kept low due to big size of prepared statements
+        
+        long getClobTime=0;
+        long makeMolTime=0;
+        long makeFpTime=0;
+        long serializeTime=0;
+        long sqlInsTime=0;
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
@@ -123,21 +131,28 @@ public class LoadCDKFingerprints {
         while (res.next()) {
             try {
                 /* Get molecule and fingerprints */
+
+                bef=System.currentTimeMillis();      
                 molFileClob = res.getClob(compoundTableMolfileColumn);
                 if (molFileClob != null) {
-
                     int clobLen = new Long(molFileClob.length()).intValue();
                     String molfile = (molFileClob.getSubString(1, clobLen));
+                    getClobTime+=(System.currentTimeMillis()-bef);
 
                     bef=System.currentTimeMillis();
                     Molecule molecule = Utils.getNNMolecule(mdlReader, molfile);
-                    System.out.println("ms make mol "+(System.currentTimeMillis()-bef));
+                    makeMolTime+=(System.currentTimeMillis()-bef);
 
                     bef=System.currentTimeMillis();
-                    
                     fpBitset = fingerPrinter.getFingerprint(molecule);
                     byte[] bytes = Utils.toByteArray(fpBitset, fpSize);
-                    System.out.println("ms FP "+(System.currentTimeMillis()-bef));
+                    makeFpTime+=(System.currentTimeMillis()-bef);
+
+                    //for (int i = 0; i < fpBitset.size(); i++) {
+                    //    if (fpBitset.get(i))
+                    //        System.out.println("Bit set "+i);
+                    //}
+
 
                     /* Prepare statement for Similarity search helper table */
                     psInsertSimiFp.setString(1, res.getString(compoundTablePkColumn));
@@ -173,7 +188,9 @@ public class LoadCDKFingerprints {
                     psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.C_COUNT));
                     psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.P_COUNT));
                     psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.SATURATED_COUNT));
+                    bef=System.currentTimeMillis();
                     psInsertCompound.setBlob(++idx,serializeToBlob(conn, molecule));
+                    serializeTime+=(System.currentTimeMillis()-bef);
 
                     psInsertSimiFp.addBatch();
                     psInsertSubstrFp.addBatch();
@@ -181,16 +198,19 @@ public class LoadCDKFingerprints {
                     commitCount++;
 
                     if (commitCount >= COMMIT_POINT) {
+                        bef=System.currentTimeMillis();
                         psInsertSimiFp.executeBatch();
                         psInsertSubstrFp.executeBatch();
                         psInsertCompound.executeBatch();
                         conn.commit();
+                        sqlInsTime+=(System.currentTimeMillis()-bef);
                         commitCount = 0;
                     }
                 }
 
             } catch (Exception e) {
                 System.err.println("Loop warning for " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) +e.getMessage());
+                logMsg.append("\nLoop err " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) +e.getMessage());
                 //throw e;
             }
         }
@@ -205,7 +225,22 @@ public class LoadCDKFingerprints {
         conn.close();
         long end=System.currentTimeMillis();
         
-        System.out.println("Elapse time "+ (end-start));
+        System.out.println("\n\nOverall elapse time (ms) : "+ (end-start));
+        System.out.println("Getting clobs     (ms) :"+getClobTime);
+        System.out.println("Make molecules    (ms) :"+makeMolTime);
+        System.out.println("Make fingerprints (ms) :"+makeFpTime);
+        System.out.println("Serialization     (ms) :"+serializeTime);
+        System.out.println("SQL DML           (ms) :"+sqlInsTime);
+
+
+        logMsg.append(
+        "\nOverall elapse time (ms) : "+ (end-start) +
+        "\nGetting clobs     (ms) :"+getClobTime +
+        "\nMake molecules    (ms) :"+makeMolTime +
+        "\nMake fingerprints (ms) :"+makeFpTime +
+        "\nSerialization     (ms) :"+serializeTime+
+        "\nSQL DML           (ms) :"+sqlInsTime);
+        SimpleMail.sendMail("smtp","smtp.ebi.ac.uk","markr@ebi.ac.uk","orchem load fingerprints",logMsg.toString());
 
         //}
         //catch (Exception e) {
@@ -247,9 +282,17 @@ public class LoadCDKFingerprints {
     public static void load( ) throws Exception {
         load( null,null );
     }
+    
+    /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
         l.load(args[0],args[1]);
+        // begin delete orchem_compounds where id < 9999; delete orchem_fingprint_subsearch where id < 9999; delete orchem_fingprint_simsearch where id < 9999; commit; end;
     }
+    */
 }
+
+
+
+
 

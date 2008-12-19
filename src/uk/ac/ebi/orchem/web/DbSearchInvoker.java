@@ -23,17 +23,26 @@ import uk.ac.ebi.orchem.singleton.DbAgent;
 
 
 /**
- * Invokes a stored java procedure to perform a similarity or substructure search
- * Part of mock web-application. Not core cartridge functionality.
+ * Performs OrChem database searches. 
+ * Part of demo web-application, not really "core" OrChem functionality.
  *
  * @author markr@ebi.ac.uk
- *
  */
 public class DbSearchInvoker {
 
-
+    /**
+     * Run a database similarity search using a mol file as input
+     * 
+     * @param molfile
+     * @param conn
+     * @param tanimotoCutoff
+     * @param topN
+     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     public List similaritySearchMol(String molfile, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
-                                                                                                         ClassNotFoundException {
+                                                                                                        ClassNotFoundException {
         String plsqlCall = "begin ?:= orchem.similarity_search_mol(?,?,?,?); end;";
         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
@@ -41,11 +50,21 @@ public class DbSearchInvoker {
         ocs.setFloat(3, tanimotoCutoff);
         ocs.setInt(4, topN);
         ocs.setString(5, "N");
-
         return executeOCS(ocs, conn);
     }
 
 
+    /**
+     * Run a database similarity search using a Smiles string as input
+     * 
+     * @param smiles
+     * @param conn
+     * @param tanimotoCutoff
+     * @param topN
+     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     public List similaritySearchSmiles(String smiles, Connection conn, float tanimotoCutoff, int topN) throws SQLException,
                                                                                                          ClassNotFoundException {
         String plsqlCall = "begin ?:= orchem.similarity_search_smiles(?,?,?,?); end;";
@@ -60,6 +79,16 @@ public class DbSearchInvoker {
     }
 
 
+    /**
+     * Run a database substructure search using a mol file as input
+     * 
+     * @param molfile
+     * @param conn
+     * @param topN
+     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     public List substructureSearchMol(String molfile, Connection conn, int topN) throws SQLException, ClassNotFoundException {
 
         String plsqlCall = "begin ?:=orchem.substructure_search_mol(?,?,?); end;";
@@ -73,6 +102,15 @@ public class DbSearchInvoker {
     }
 
 
+    /**
+     * Run a database substructure search using a Smiles string as input
+     * @param smiles
+     * @param conn
+     * @param topN
+     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     public List substructureSearchSmiles(String smiles, Connection conn, int topN) throws SQLException, ClassNotFoundException {
 
         String plsqlCall = "begin ?:=orchem.substructure_search_smiles(?,?,?); end;";
@@ -85,6 +123,17 @@ public class DbSearchInvoker {
         return executeOCS(ocs, conn);
     }
 
+    /**
+     * Calls the Orchem package to perform a search, and deals with the returned 
+     * results, which is an Oracle table type ORCHEM_COMPOUND_LIST containing
+     * Oracle ORCHEM_COMPOUND types. These are mapped to {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     *
+     * @param ocs call to procedure/function
+     * @param conn sql connection
+     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     private List executeOCS(OracleCallableStatement ocs, Connection conn) throws SQLException, ClassNotFoundException {
         ocs.executeUpdate();
         Array cARRAY = ocs.getArray(1);
@@ -96,6 +145,12 @@ public class DbSearchInvoker {
     }
 
 
+    /**
+     *  Gets a molfile (clob) from the database for a given compound id
+     * @param id
+     * @return
+     * @throws SQLException
+     */
     public String getMolfile(String id) throws SQLException {
         String molfile =null;
         Connection conn = null;
@@ -129,30 +184,24 @@ public class DbSearchInvoker {
     }
 
 
-    //
-    // TEMP main() method for standalone testing
-    // TODO remove
+    /*
+    // main() method for standalone testing
     public static void main(String[] args) throws SQLException, Exception {
         System.out.println("1"+new java.util.Date());
-
         Connection conn = new StarliteConnection().getDbConnection();
         Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ResultSet res = stmtQueryCompounds.executeQuery
         ("select molfile from compounds where molregno=11002");
-
         Clob molFileClob = null;
         if (res.next()) {
-
             molFileClob = res.getClob("molfile");
             int clobLen = new Long(molFileClob.length()).intValue();
             String molfile = (molFileClob.getSubString(1, clobLen));
             System.out.println("2"+new java.util.Date());
-
             DbSearchInvoker inv = new DbSearchInvoker();
             List<OrChemCompound> cl = inv.similaritySearchMol(molfile, conn, 0.9f,50);
             System.out.println("3"+new java.util.Date());
-
-
         }
     }
+    */
 }

@@ -13,12 +13,12 @@ Step plan to create the schema
 
 
  - 11g -> JIT
-       declare
+      declare
          i number;
        begin
          for r_java in (select replace(name,'/','.') name from user_java_classes ) loop
-             if r_java.name like 'org.openscience.cdk%' then
-                begin 
+             if r_java.name like 'org.openscience.cdk%' or r_java.name like 'orchem%' then
+                begin
                   i:=dbms_java.compile_class (r_java.name);
                 exception
                 when others then
@@ -36,9 +36,11 @@ Step plan to create the schema
     i binary_integer;
  begin
     -- doe maar eh 5 ? 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints( ''1''   ,''15000'' );'     ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''15001'',''30000'');'  ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''30001'',''45000'');'  ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints( ''1''    , ''80000'' );'     ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''80001'' ,''160000'');'  ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''160001'',''240000'');'  ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''240001'',''320000'');'  ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''320001'',''450000'');'  ,INTERVAL=>null );
     commit;
 end;
 

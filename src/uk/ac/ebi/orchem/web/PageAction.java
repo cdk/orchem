@@ -5,7 +5,7 @@ import uk.ac.ebi.orchem.Constants;
 
 /**
  * Struts Action to assist paging through a search result set.
- * Part of mock web-application. Not core cartridge functionality.
+ * Part of demo web-application. Not core cartridge functionality.
  * 
  */
 

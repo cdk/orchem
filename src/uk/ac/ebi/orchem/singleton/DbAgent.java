@@ -49,7 +49,7 @@ public class DbAgent extends Thread {
 
             ods = new OracleDataSource();
 
-            ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
+            ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
             ods.setUser("starlite28p");
             ods.setPassword("star");
             dbName = "Starlite31";
@@ -60,7 +60,7 @@ public class DbAgent extends Thread {
             //dbName = "PubChem (snapshot 5 million)";
             
             
-             //ods.setURL("jdbc:oracle:thin:@172.22.68.24:1521:marx");
+             //ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
              //ods.setUser("chebi");
              //ods.setPassword("chebi");
              //dbName = "Chebi";

@@ -1,4 +1,3 @@
-    
 
 Step plan to create the schema
 
@@ -6,18 +5,37 @@ Step plan to create the schema
  - create types
  - populate the ORCHEM_PARAMETERS table
  
- - loadjava ->  CDK (so far done 1.0.4)
-                Apache commons  .. why again ?
-                Orchem (can be wrapped as JAR?)
-                See new NOTES
+ - loadjava -> 
+               loadjava ... Apache commons  
+               loadjava -user crossref/crossref@litpub vecmath.jar
+               loadjava -user crossref/crossref@litpub jgrapht-0.6.0.jar
+               loadjava -user crossref/crossref@litpub log4j.jar
+               CDK
+               Orchem (can be wrapped as a jar)
+                jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
+               or..
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/Utils.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/SimpleMail.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/db/OrChemParameters.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompound.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElement.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SimilaritySearch.java
+                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SubstructureSearch.java
 
 
  - 11g -> JIT
       declare
          i number;
        begin
-         for r_java in (select replace(name,'/','.') name from user_java_classes ) loop
-             if r_java.name like 'org.openscience.cdk%' or r_java.name like 'orchem%' then
+         for r_java in (select name from user_java_classes ) loop
+             if   r_java.name like 'org/openscience/cdk%' 
+               or r_java.name like 'javax/vecmath%' 
+               or r_java.name like 'org/_3pq%' 
+             then
                 begin
                   i:=dbms_java.compile_class (r_java.name);
                 exception
@@ -32,18 +50,17 @@ Step plan to create the schema
 
  - data loading: orchem_fingprint_simsearch and orchem_fingprint_subsearch 
  
+
  declare
     i binary_integer;
  begin
-    -- doe maar eh 5 ? 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints( ''1''    , ''80000'' );'     ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''80001'' ,''160000'');'  ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''160001'',''240000'');'  ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''240001'',''320000'');'  ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''320001'',''450000'');'  ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints( ''300001'' , ''1500000'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1500001'' , ''3000000'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''3000001'' , ''4000000'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''4000001'' , ''5000000'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''5000001'' , ''10000000'');' ,INTERVAL=>null );
     commit;
 end;
-
 
  
  
@@ -59,24 +76,6 @@ end;
 -------------------
 
 
-loadjava
-
-    jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
-
-or
-        loadjava -resolve -user starlite28p/star /home/markr/cvs/sourceforge/OrChem/public_html/WEB-INF/classes/isomorphism.jar
-
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/db/OrChemParameters.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompound.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
-        loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
-
 
 
 
@@ -86,13 +85,13 @@ or
 Need to edit the jar files that go in to java 1.4. This can be done by retroweaver.
 See retroweaver project in sourceforge. Also the retroweaver-rt jar itself needs to be loaded in
 
-      loadjava -user starlite28p/star ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
+      loadjava -user crossref/crossref@litpub ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
 
 (
  Also loaded these, but not sure if necessary
-    loadjava -user starlite28p/star /tmp/weave/orchem/vecmath.jar
-    loadjava -user starlite28p/star /tmp/weave/orchem/jgrapht-0.6.0.jar
-    loadjava -user starlite28p/star /tmp/weave/orchem/log4j.jar
+    loadjava -user crossref/crossref@litpub /tmp/weave/orchem/vecmath.jar
+    loadjava -user crossref/crossref@litpub /tmp/weave/orchem/jgrapht-0.6.0.jar
+    loadjava -user crossref/crossref@litpub /tmp/weave/orchem/log4j.jar
 )
 
 
@@ -105,7 +104,7 @@ bash-3.00$ java -version
 java version "1.4.2_18"
 Java(TM) 2 Runtime Environment, Standard Edition (build 1.4.2_18-b06)
 Java HotSpot(TM) Client VM (build 1.4.2_18-b06, mixed mode)
-bash-3.00$ ncomp -user starlite28p/star  /tmp/weave/orchem/orchem.jar
+bash-3.00$ ncomp -user crossref/crossref@litpub  /tmp/weave/orchem/orchem.jar
 
 Note -> tun ncomp on cdk-1.0.4.jar FAILS because of the naming. Rename to cdk.jar 
 

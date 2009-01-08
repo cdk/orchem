@@ -19,9 +19,11 @@ import oracle.jdbc.OracleDriver;
 
 import oracle.sql.BLOB;
 
-import org.openscience.cdk.Molecule;
+//import org.openscience.cdk.Molecule;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.io.MDLV2000Reader;
+
+import org.openscience.cdk.nonotify.NNMolecule;
 
 import uk.ac.ebi.orchem.SimpleMail;
 import uk.ac.ebi.orchem.Utils;
@@ -30,7 +32,8 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
 
 /**
- * Populates the orchem fingerprint tables (one for similarity and one for substructure searching)<P>
+ * Populates the orchem fingerprint tables.
+ * <P>
  * This class must be loaded and run inside an Oracle database as Java stored procedure.
  *
  * @author markr@ebi.ac.uk
@@ -39,29 +42,44 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 public class LoadCDKFingerprints {
 
     /**
-     *  Loops over a compound table specified by input arguments.<BR>
-     *  Fetches the primary key and the mol file from the compound table, and stores
-     *  a fingerprint for each compound into the two orchem fingerprint tables.<BR>
-     *  Can performs the loop over a limited range of primary key values, from startId to endId.
+     * <B> TODO replace mail sending - hard coded. Move into pl/sql=easier</B>
+     * <BR><BR>
+     *  This method loops over a given compound table, and fetches the primary key and molfile for each compound. 
+     *  It then creates and stores a fingerprint for each compound into the OrChem fingerprint tables.<BR>
+     *  <BR>
+     *  Can optionally perform the loop over a limited range of primary key values, from argumens startId to endId.<BR>
+     *  <BR>
+     *  It can also optionally serialize (Y or N ) the CDK molecule. The serialized
+     *  Java object will be stored in the database, with the benefit that substrcuture validations can be 
+     *  done faster because the molecule is then readily available from Oracle. <BR>
+     *  However it also means this method will take longer to complete, and that there will be more 
+     *  demand on storage space for OrChem. From practice, the serialized objects can claim as much space (or more) 
+     *  as the original compound table clobs, and this may be undesirable for large compound tables.
      *
-     * @param startId id from which to start select in compound table. See {@link #load() alternative} 
-     * @param endId  id up to which to select in compound table. See {@link #load() alternative} 
+     * @param startId primary key from which to start select in compound table. See {@link #load() alternative} 
+     * @param endId primary key up to which to select in compound table. See {@link #load() alternative} 
+     * @param serializeYN indicates whether or not to serialize the CDK molecule into the database
      * @throws Exception
      */
-    public static void load(String startId, String endId ) throws Exception {
-
-        //try {
-        StringBuilder logMsg = new StringBuilder();
+    public static void load(String startId, String endId, String serializeYN ) throws Exception {
 
         long start=System.currentTimeMillis();
-        int DEF_ROW_PREFETCH=100;
-        int COMMIT_POINT=25;     // kept low due to big size of prepared statements
+
+        /* Commit point is kept low due to big size of prepared statements. Anything much higher will fail; see
+         * the large prepared statements */
+        int COMMIT_POINT=25;     
+        /* Default row prefetch also low due to big row sizes (Clob data) */
+        int DEF_ROW_PREFETCH=10;
+
+        /* Log message to be sent to user through e-mail */
+        StringBuilder logMsg = new StringBuilder();
         
+        /* A number of long variable to capture elapse time for the log message */
         long getClobTime=0;
         long makeMolTime=0;
         long makeFpTime=0;
         long serializeTime=0;
-        long sqlInsTime=0;
+        long sqlInsTime=0;  
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
@@ -79,9 +97,12 @@ public class LoadCDKFingerprints {
         String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
         String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
         String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
+
         String compoundQuery = 
-        " select " + compoundTablePkColumn       +
+        " select /*+ PARALLEL ("+compoundTableName +",3) */" +
+        "        " + compoundTablePkColumn       +
         "      , " + compoundTableMolfileColumn  +
+        "      , dbms_lob.getlength(" + compoundTableMolfileColumn+") leng "  +
         " from   " + compoundTableName;
         if (startId!=null && endId!=null)  {
             compoundQuery+= "  where "+compoundTablePkColumn+" between "+startId+" and "+endId ;    
@@ -89,16 +110,17 @@ public class LoadCDKFingerprints {
 
         /* Statement for inserts into the orchem similarity search table */
         PreparedStatement psInsertSimiFp = conn.prepareStatement(
-        "insert into orchem_fingprint_simsearch (id, bit_count,fp) values (?,?,?)"
+        "insert /*+ APPEND */ into orchem_fingprint_simsearch (id, bit_count,fp) values (?,?,?)"
         );
 
         /* Statement for inserts into the substructure search table */
         PreparedStatement psInsertSubstrFp = conn.prepareStatement(
-        "insert into orchem_fingprint_subsearch values " +
+        "insert /*+ APPEND */ into orchem_fingprint_subsearch values " +
         "(" +
         //id
         "?," +
-        //512 bits
+        //512 bits, see fingerprinter agent
+        //TODO : put this in a loop using a stringbuffer. do not hard code 512 anywhere..
         "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
         "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
         "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
@@ -110,49 +132,60 @@ public class LoadCDKFingerprints {
          ")" 
          );
 
-        /* Statement for inserts into the orchem serialized molecules table */
-        PreparedStatement psInsertCompound = conn.prepareStatement(
-        " insert into orchem_compounds " +
+        /* Statement for inserts into the OrChem compound table */
+        String insertCompounds = 
+        " insert /*+ APPEND */ into orchem_compounds " +
         "   (id, single_bond_count, double_bond_count, triple_bond_count, aromatic_bond_count, " +
         "    s_count, o_count, n_count, f_count, cl_count,  br_count, i_count, c_count, p_count, " +
-        "    saturated_bond_count, cdk_molecule) "+
-        " values " +
-        "   (" +
-        "      ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ? "+
-        "    )" 
-        );
+        "    saturated_bond_count ";
+
+        if (serializeYN.equals("Y"))  
+            insertCompounds+=",cdk_molecule) ";
+        else
+            insertCompounds+=") ";
+
+        insertCompounds+=" values ( ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,? ";
+
+        if (serializeYN.equals("Y"))  
+            insertCompounds+=",? )";
+        else
+            insertCompounds+=")";
+
+        PreparedStatement psInsertCompound = conn.prepareStatement(insertCompounds);
 
         Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ResultSet res = stmtQueryCompounds.executeQuery(compoundQuery);
-        Clob molFileClob = null;
-
         long bef;
+        Clob molFileClob = null;
+        String molfile=null;
+
         /* Start the main loop over the base compound table */
         while (res.next()) {
             try {
-                /* Get molecule and fingerprints */
 
+                /* Check if the clob data is over the varchar2 bound of 4000. If not, get it as
+                 * as String (which is much faster) from the resultSet */
                 bef=System.currentTimeMillis();      
-                molFileClob = res.getClob(compoundTableMolfileColumn);
-                if (molFileClob != null) {
+                if (res.getInt("leng")>4000 )  {
+                    molFileClob = res.getClob(compoundTableMolfileColumn);
                     int clobLen = new Long(molFileClob.length()).intValue();
-                    String molfile = (molFileClob.getSubString(1, clobLen));
-                    getClobTime+=(System.currentTimeMillis()-bef);
-
+                    molfile = (molFileClob.getSubString(1, clobLen));
+                }
+                else
+                    molfile=res.getString(compoundTableMolfileColumn); 
+                getClobTime+=(System.currentTimeMillis()-bef);
+                
+                if (molfile != null) {
                     bef=System.currentTimeMillis();
-                    Molecule molecule = Utils.getNNMolecule(mdlReader, molfile);
+                    /* Create a CDK molecule from the molfile */
+                    NNMolecule molecule = Utils.getNNMolecule(mdlReader, molfile);
                     makeMolTime+=(System.currentTimeMillis()-bef);
 
+                    /* Fingerprint the molecule */
                     bef=System.currentTimeMillis();
                     fpBitset = fingerPrinter.getFingerprint(molecule);
                     byte[] bytes = Utils.toByteArray(fpBitset, fpSize);
                     makeFpTime+=(System.currentTimeMillis()-bef);
-
-                    //for (int i = 0; i < fpBitset.size(); i++) {
-                    //    if (fpBitset.get(i))
-                    //        System.out.println("Bit set "+i);
-                    //}
-
 
                     /* Prepare statement for Similarity search helper table */
                     psInsertSimiFp.setString(1, res.getString(compoundTablePkColumn));
@@ -171,6 +204,7 @@ public class LoadCDKFingerprints {
                             psInsertSubstrFp.setString(idx, null);
                     } 
 
+                    /* Prepare statement for OrChem compound table */
                     Map atomAndBondCounts = Utils.atomAndBondCount(molecule);
                     idx = 1;
                     psInsertCompound.setString(idx, res.getString(compoundTablePkColumn));
@@ -188,9 +222,13 @@ public class LoadCDKFingerprints {
                     psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.C_COUNT));
                     psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.P_COUNT));
                     psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.SATURATED_COUNT));
-                    bef=System.currentTimeMillis();
-                    psInsertCompound.setBlob(++idx,serializeToBlob(conn, molecule));
-                    serializeTime+=(System.currentTimeMillis()-bef);
+
+                    //Serialization (optional)
+                    if (serializeYN.equals("Y"))  {
+                        bef=System.currentTimeMillis();
+                        psInsertCompound.setBlob(++idx,serializeToBlob(conn, molecule));
+                        serializeTime+=(System.currentTimeMillis()-bef);
+                    }
 
                     psInsertSimiFp.addBatch();
                     psInsertSubstrFp.addBatch();
@@ -210,8 +248,7 @@ public class LoadCDKFingerprints {
 
             } catch (Exception e) {
                 System.err.println("Loop warning for " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) +e.getMessage());
-                logMsg.append("\nLoop err " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) +e.getMessage());
-                //throw e;
+                logMsg.append("\nLoop err " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) +" "+e.getMessage());
             }
         }
         psInsertSimiFp.executeBatch();
@@ -242,11 +279,6 @@ public class LoadCDKFingerprints {
         "\nSQL DML           (ms) :"+sqlInsTime);
         SimpleMail.sendMail("smtp","smtp.ebi.ac.uk","markr@ebi.ac.uk","orchem load fingerprints",logMsg.toString());
 
-        //}
-        //catch (Exception e) {
-        //    System.err.println("ERROR:" + e.getMessage()+"\n"+Utils.getErrorString(e));
-        //    // do not throw error; re-throwing may lead to dbms_job rescheduling over and over, java bug?
-        //}
     }
 
     /**
@@ -280,7 +312,7 @@ public class LoadCDKFingerprints {
      * @throws Exception
      */
     public static void load( ) throws Exception {
-        load( null,null );
+        load( null,null,"N" );
     }
     
     /*

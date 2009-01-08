@@ -1,4 +1,3 @@
-    
     create table orchem_parameters
     (  comp_tab_name         varchar2(30) not null
       ,comp_tab_pk_col       varchar2(30) not null
@@ -7,7 +6,28 @@
     cache
     /
     -- example :  insert into orchem_parameters values ('COMPOUNDS','MOLREGNO','MOLFILE')
-    
+
+    create table orchem_compounds
+    (   
+      id                     varchar2(80) not null
+     ,single_bond_count      number(6)
+     ,double_bond_count      number(6)
+     ,triple_bond_count      number(6)
+     ,aromatic_bond_count    number(6)
+     ,s_count                number(6)
+     ,o_count                number(6)
+     ,n_count                number(6)
+     ,f_count                number(6)
+     ,cl_count               number(6)
+     ,br_count               number(6)
+     ,i_count                number(6)
+     ,c_count                number(6)
+     ,p_count                number(6)
+     ,saturated_bond_count   number(6)
+     ,cdk_molecule           blob       -- to blob or not to blob, that is the question
+     )
+    /
+   
     
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null -- PK
@@ -15,8 +35,6 @@
     , fp raw(64)             not null
     )
     cache
-    /
-    alter table orchem_fingprint_simsearch  add constraint pk_orchem_simsrch primary key (id)
     /
     
     create table orchem_fingprint_subsearch
@@ -536,31 +554,8 @@
      ,bit512  char(1)
     ) 
     /
-   
-    alter table orchem_fingprint_subsearch  add constraint pk_orchem_subsrch primary key (id)
-    /
 
-    create table orchem_compounds
-    (   
-      id                     varchar2(80) not null
-     ,single_bond_count      number(6)
-     ,double_bond_count      number(6)
-     ,triple_bond_count      number(6)
-     ,aromatic_bond_count    number(6)
-     ,s_count                number(6)
-     ,o_count                number(6)
-     ,n_count                number(6)
-     ,f_count                number(6)
-     ,cl_count               number(6)
-     ,br_count               number(6)
-     ,i_count                number(6)
-     ,c_count                number(6)
-     ,p_count                number(6)
-     ,saturated_bond_count   number(6)
-     ,cdk_molecule           blob
-     )
-    /
-    alter table orchem_compounds  add constraint pk_orchem_compounds primary key (id)
-    /
+
+ 
 
     

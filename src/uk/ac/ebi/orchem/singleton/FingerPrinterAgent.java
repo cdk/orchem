@@ -25,8 +25,6 @@ public class FingerPrinterAgent {
     private FingerPrinterAgent() {
         FP_SIZE=512;
         fingerPrinter = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(FP_SIZE,6);
-        //fingerPrinter = new MyExtendedFingerprinter(FP_SIZE,8);
-
         System.out.println("Fingerprinter ready ");
 
     }

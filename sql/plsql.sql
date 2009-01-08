@@ -3,12 +3,11 @@ AS
    FUNCTION to_hex( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_oct( p_dec IN NUMBER ) RETURN VARCHAR2;
-   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2);
+   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2, serialize_yn VARCHAR2:='N');
    FUNCTION similarity_search_mol (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION similarity_search_smiles (smiles varchar2, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION substructure_search_mol (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION substructure_search_smiles (smile varchar2, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
-   --FUNCTION substructure_search_NEW (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION get_clob_as_char(mol IN clob) RETURN VARCHAR2;
    PRAGMA   RESTRICT_REFERENCES (get_clob_as_char, WNDS, RNDS, WNPS, RNPS);
 END;
@@ -87,9 +86,14 @@ AS
         RETURN ret;
    END;
    /*    */
-   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, END_id VARCHAR2)
+   PROCEDURE cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2,serialize_yn VARCHAR2)
    IS LANGUAGE JAVA
-   NAME 'uk.ac.ebi.orchem.load.LoadCDKFingerprints.load (java.lang.String, java.lang.String)';
+   NAME 'uk.ac.ebi.orchem.load.LoadCDKFingerprints.load (java.lang.String, java.lang.String, java.lang.String)';
+   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2,serialize_yn VARCHAR2:='N')
+   IS 
+   BEGIN
+      cdk_fingerprints (start_id, end_id, serialize_yn);
+   END;
    /*    */
    FUNCTION similarity_search_mol (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2)
    RETURN orchem_COMPOUND_LIST
@@ -110,12 +114,6 @@ AS
    RETURN ORCHEM_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
    'uk.ac.ebi.orchem.search.SubstructureSearchBAK.smilesSearch (java.lang.String, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
-   /*    */
-   -- //TODO remove this function, is temporary 
-   --FUNCTION substructure_search_new (molfile clob, topn NUMBER, debug_YN VARCHAR2) 
-   --RETURN ORCHEM_COMPOUND_LIST
-   --IS LANGUAGE JAVA NAME 
-   --'uk.ac.ebi.orchem.search.SubstructureSearch.molSearch (java.sql.Clob, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
 END;
 /
 SHOW ERRORS

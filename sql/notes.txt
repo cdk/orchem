@@ -32,12 +32,16 @@ Step plan to create the schema
          i number;
        begin
          for r_java in (select name from user_java_classes ) loop
-             if   r_java.name like 'org/openscience/cdk%' 
-               or r_java.name like 'javax/vecmath%' 
-               or r_java.name like 'org/_3pq%' 
+             if
+               --   r_java.name like 'org/openscience/cdk%' 
+               --or r_java.name like 'javax/vecmath%' 
+               --or r_java.name like 'org/_3pq%' 
+                    r_java.name like 'uk/ac/ebi%' 
+
              then
                 begin
                   i:=dbms_java.compile_class (r_java.name);
+                  dbms_output.put_line ('Compiled '||r_java.name);
                 exception
                 when others then
                   dbms_output.put_line ('Error for '||r_java.name);
@@ -54,12 +58,18 @@ Step plan to create the schema
  declare
     i binary_integer;
  begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints( ''300001'' , ''1500000'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1500001'' , ''3000000'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''3000001'' , ''4000000'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''4000001'' , ''5000000'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''5000001'' , ''10000000'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1''        ,  ''575000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''575001''   , ''1185000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1185001''  , ''1985000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1985001''  , ''2730000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''2730001''  , ''3260000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''3260001''  , ''3780000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''3780001''  , ''4300000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''4300001''  , ''4820000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''4820001''  , ''5355000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''5355001''  , ''10000000'' ,''Y'');' ,INTERVAL=>null );
     commit;
+    -- looks to scale okayish
 end;
 
  
@@ -69,8 +79,9 @@ end;
   
  - Stats!
 
-   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
-   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
+   analyze table orchem_fingprint_simsearch compute statistics for all columns for all indexes
+   -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
+   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsear  ch', estimate_percent=>25, degree=>4);
 
 
 -------------------

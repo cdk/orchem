@@ -1,4 +1,5 @@
-   -- create pks after the loading
+   -- create pks after the loading ? 
+   -- loads faster but can cock up if dbms_job fails and re-inserts..
 
     alter table orchem_compounds  add constraint pk_orchem_compounds primary key (id)
     /

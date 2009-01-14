@@ -1,3 +1,7 @@
+li {
+    margin-bottom:5pt;
+}
+
 pre {
   font-family: Courier New;
   font-size: 8pt;
@@ -27,7 +31,7 @@ a img
 	vertical-align: middle;
 }
 
-h1 { marginwidth: 80%; font-size: 160%; line-height: normal;}
+h1 { font-size: 160%; line-height: normal;}
 h3 { margin-top: 1em; font-size: 120%; }
 h2 { margin-top: 1em; font-size: 140%; }
 

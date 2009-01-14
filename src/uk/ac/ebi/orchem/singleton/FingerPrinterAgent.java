@@ -23,7 +23,7 @@ public class FingerPrinterAgent {
      * performance of {@link uk.ac.ebi.orchem.load.LoadCDKFingerprints}. <BR>
      * */
     private FingerPrinterAgent() {
-        FP_SIZE=512;
+        FP_SIZE=1024;
         fingerPrinter = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(FP_SIZE,6);
         System.out.println("Fingerprinter ready ");
 

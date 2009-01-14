@@ -12,10 +12,9 @@ import javax.mail.internet.MimeMessage;
  * Sends an e-mail
  * 
  * TODO
- * to run this as a tored java procedure you need extra permissions ....
+ * to run this as a stored java procedure you may need extra permissions ....
  * dbms_java.grant_permission( 'STARLITE28P', 'SYS:java.net.SocketPermission', 'smtp.ebi.ac.uk', 'resolve' ); 
  * dbms_java.grant_permission( 'STARLITE28P', 'SYS:java.net.SocketPermission', '193.62.196.9:25', 'connect,resolve' ); 
- * So it seem easier instead to use PL/SQL !
  * 
  */
 public class SimpleMail {

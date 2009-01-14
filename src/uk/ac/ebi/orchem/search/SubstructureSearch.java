@@ -46,8 +46,12 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 public class SubstructureSearch {
     
     private static SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+    private static MDLV2000Reader mdlReader = new MDLV2000Reader();
+
 
     /**
+     * TODO look into shit bits. long term we should get an orchem fingerprinter without andy folding or shit bits
+     * 
      * Performs a substructure search for a query molecule, using a fingerprint based
      * pre-filter query to find likely candidates, and then graph isomorphism to identify
      * and verify true substructures.
@@ -113,7 +117,7 @@ public class SubstructureSearch {
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
             for (int i = 0; i < fingerprint.size(); i++) {
-                if (fingerprint.get(i) &&!isShitBit(i))
+                if (fingerprint.get(i) ) // &&!isShitBit(i))
                     builtCondition.append(" and bit" + (i + 1) + "='1'");
             }
 
@@ -124,7 +128,7 @@ public class SubstructureSearch {
 
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             String preFilterQuery = 
-                "  select /*+ INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  // hints are necessary, oracle buggers up otherwise (full tab scans)
+                "  select /*+ INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  // hints are necessary, Oracle goes slow otherwise
                 "   s.id " + 
                 " , o.single_bond_count " + 
                 " , o.double_bond_count " +
@@ -140,7 +144,9 @@ public class SubstructureSearch {
                 " , o.i_count " + 
                 " , o.c_count " +
                 " , o.cdk_molecule "+
+                " , nvl(dbms_lob.getlength(o.cdk_molecule),0) blob_length" +
                 " , c."+compoundTableMolfileColumn+
+                " , dbms_lob.getlength(c." + compoundTableMolfileColumn+") clob_length "+
                 "  from " +
                 "   orchem_fingprint_subsearch s" +
                 "  ,orchem_compounds o," + 
@@ -162,6 +168,9 @@ public class SubstructureSearch {
             NNMolecule databaseMolecule=null;
 
             debug("start loop over pre-filter results", debugging);
+            Clob molFileClob = null;
+            String molfile=null;
+
             while (res.next() && compounds.size() < topN) {
                 timestamp =System.currentTimeMillis();
                 try {
@@ -189,13 +198,27 @@ public class SubstructureSearch {
 
                     } else {
 
-                        ObjectInputStream ois = new ObjectInputStream(res.getBlob("cdk_molecule").getBinaryStream());
-                        databaseMolecule = (NNMolecule)ois.readObject();
-                        ois.close();
+                        /* Create CDK molecule (either in serialized form or through molfileclob->string->molecule */
+                        if (res.getInt("blob_length")!=0 )  {
+                            ObjectInputStream ois = new ObjectInputStream(res.getBlob("cdk_molecule").getBinaryStream());
+                            databaseMolecule = (NNMolecule)ois.readObject();
+                            ois.close();
+                        }
+                        else {
+                            if (res.getInt("clob_length")>4000 )  {
+                                
+                                molFileClob = res.getClob(compoundTableMolfileColumn);
+                                int clobLen = new Long(molFileClob.length()).intValue();
+                                molfile = (molFileClob.getSubString(1, clobLen));
+                            }
+                            else
+                                molfile=res.getString(compoundTableMolfileColumn); 
+                            databaseMolecule = Utils.getNNMolecule(mdlReader, molfile);
+                        }
                         mlTime += (System.currentTimeMillis() - timestamp);
                         timestamp = System.currentTimeMillis();
 
-                        /* Test of the match made is truly a substructure */
+                        /* Test of the match made is truly a substructure using VF2 algorithm*/
                         SubgraphIsomorphism s =
                         new SubgraphIsomorphism(databaseMolecule, qAtCom,SubgraphIsomorphism.Algorithm.VF2);
 
@@ -220,14 +243,13 @@ public class SubstructureSearch {
             ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor("ORCHEM_COMPOUND_LIST", conn);
             long overallTime = System.currentTimeMillis()-start;
 
+            debug("Results list size                      :  " + compounds.size(), debugging);
             debug("Graph isomorphism tests took (ms)      :  " + uitTime, debugging);
-            debug("Creating CDK molecules took (ms)       :  " + mlTime, debugging);
-            debug("Clob retrieval time (ms)               :  " + clobTime, debugging);
+            debug("Molecule retrieval/creation took (ms)  :  " + mlTime, debugging);
             debug("Overall time (ms)"+overallTime+" ("+(prefilterTime+clobTime+uitTime+mlTime)+")", debugging);
             debug("______",debugging);
             debug("Amount of compounds looped             : #" + loopCount, debugging);
             debug("Amount of compounds tested isomorphism : #" + compTested, debugging);
-            debug("Amount of Clobs made                   : #" + clobCount, debugging);
             debug("Amount of candidates ignored           : #" + ignoreCount, debugging);
             debug("______________________",debugging);
             debug("End", debugging);
@@ -259,7 +281,6 @@ public class SubstructureSearch {
      * @throws Exception
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
-        MDLV2000Reader mdlReader = new MDLV2000Reader();
         IAtomContainer queryMolecule = Utils.getNNMolecule(mdlReader, mol);
         return search(queryMolecule, topN, debugYN);
     }

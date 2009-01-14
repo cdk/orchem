@@ -22,7 +22,6 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
-
 import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
@@ -38,7 +37,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  * Similarity search between a query molecule and the database molecules.<BR>
  * This class is loaded in the database and executed as a java stored procedure, hence the
  * proprietary things like "oracle.sql.ARRAY" and defaultConnection.
- * 
+ *
  * @author markr@ebi.ac.uk, algorithm credits to S.Joshua Swamidass and Pierre Baldi
  *
  */
@@ -151,12 +150,14 @@ public class SimilaritySearch {
         PreparedStatement pstmtFp=null;
         PreparedStatement pstmLookup=null;
         
-        String query = " select bit_count, id, fp from orchem_fingprint_simsearch where  bit_count = ? ";
+        String query = " select /*+ parallel (s,2) */ bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
         float cutOff= _cutOff.floatValue();
         int topN = _topN.intValue();
 
         try {
             conn = (OracleConnection)new OracleDriver().defaultConnection();
+            //conn = (OracleConnection)new PubChemConnection().getDbConnection();
+
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
             String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
             String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
@@ -181,6 +182,7 @@ public class SimilaritySearch {
             int loopCount=0;
     
             while (!done) {
+                //System.out.println("bucket is "+currBucketNum);
                 loopCount++;
                 pstmtFp.setFloat(1, currBucketNum);
                 bucksSearched++;
@@ -223,10 +225,12 @@ public class SimilaritySearch {
     
                             if (heap.size() < topN) {
                                 heap.add(elm);
+                                //System.out.println("add elem");
                                 
                             } else if (tanimotoCoeff > ((SimHeapElement)(heap.get())).getTanimotoCoeff().floatValue()) {
                                 heap.remove();
                                 heap.add(elm);
+                                //System.out.println("remove/add elem");
     
                             }
                         }
@@ -385,5 +389,27 @@ public class SimilaritySearch {
         }
     }
 
+    //Standalone testing
+    /*
+    public static void main(String[] args) throws Exception{
+
+        OracleConnection conn =
+          (OracleConnection)new PubChemConnection().getDbConnection();
+
+        PreparedStatement stmtQueryCompounds =
+          conn.prepareStatement("select cid, mdl from compounds where cid=446600");
+
+        MDLV2000Reader mdlReader = new MDLV2000Reader();
+        ResultSet res = stmtQueryCompounds.executeQuery();
+        Clob molFileClob = null;
+        String mdl = "";
+
+        while (res.next()) {
+          System.out.println(res.getInt("cid"));
+          molFileClob = res.getClob("mdl");
+          molSearch(molFileClob, 0.8f, 50,"Y");
+        }
+    }
+    */
 
 }

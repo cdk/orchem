@@ -1,30 +1,30 @@
-   
-    create bitmap index orchem_idx_bmp_simil on orchem_fingprint_simsearch (bit_count)
-    /
+
+   -- TODO : document this. make user aware that dbms_job should have queue open =>4 to make this run in parallel
 
 
-    
+   create bitmap index orchem_idx_bmp_simil on orchem_fingprint_simsearch (bit_count)
+   /
+        
+   declare 
+      j binary_integer; 
+      job varchar2(1000);
+   begin 
+      for i in 0..7 loop
+        job:='begin for i in '||((i*64)+1)||' .. '||((i+1)*64)||' loop execute immediate(''create bitmap index orchem_bmp_idx_fp''||i||'' on orchem_fingprint_subsearch (bit''||i||'') parallel 3 nologging'' ); end loop; end;'  ;
+        --dbms_output.put_line(job);
+        dbms_job.submit(j,job,sysdate);
+      end loop;
+      commit; -- must commit to activate dbms job
+   end;
+
+    /*
     begin
         for i in 1..512 loop
            execute immediate (' create bitmap index orchem_bmp_idx_fp'||i||' on orchem_fingprint_subsearch (bit'||i||') parallel 4 nologging');
         end loop;
     end;
     /
-
-                
-   /*
-   declare 
-      j binary_integer; 
-      job varchar2(1000);
-   begin 
-      for i in 66..66 loop
-        job:='execute immediate(''create bitmap index orchem_bmp_idx_fp'||i||' on orchem_fingprint_subsearch (bit'||i||') parallel 4 nologging'' );'  ;
-        dbms_job.submit(j,job,sysdate);
-      end loop;
-   end;
-   */
-
-
+    */
 
     -- Archived: Oracle context index. Performance not adequate.
     /*

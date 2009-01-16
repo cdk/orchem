@@ -58,18 +58,11 @@ Step plan to create the schema
  declare
     i binary_integer;
  begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1''        ,  ''575000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''575001''   , ''1185000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1185001''  , ''1985000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''1985001''  , ''2730000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''2730001''  , ''3260000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''3260001''  , ''3780000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''3780001''  , ''4300000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''4300001''  , ''4820000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''4820001''  , ''5355000'' ,''Y'');' ,INTERVAL=>null );
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.load_cdk_fingerprints(''5355001''  , ''10000000'' ,''Y'');' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(      1 ,  300000  ,''Y'');' ,INTERVAL=>null ); 
+    // redo for 3 million pubchem entries
+    // .... make about 6 .. 10(?) threads. 
+    // ..  turns out 6 threads was pretty fast.
     commit;
-    -- looks to scale okayish
 end;
 
  

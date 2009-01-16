@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>OrChem installation</title>
+    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+  </head>
+  <body>
+    <h1>OrChem: installation</h1>
+     
+    <span style="font-size: 8pt;">
+      Author:
+      <a href="mailto:mark_rynbeek@users.sourceforge.net">mark_rynbeek@users.sourceforge.net </a>
+    </span>
+
+<h3>
+TODO compound table takes in schema. And mail details.
+
+</h3>
+   
+    <p>&nbsp;</p><div class="main">
+      <table width="70%" border="0" cellspacing="10" cellpadding="10">
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Before you install</h3>
+            <ul>
+              <li>
+                This page describes how to set up OrChem in an Oracle Database. It is assumed that you have some
+                knowledge of Oracle, that you have a working Oracle client installed (sqlplus, loadjava) and that you
+                have a schema with chemical compounds, including a molfile CLOB for each compound.
+                <br></br>
+                Once installed, OrChem provides similarity and substructure searching against your compound table.
+              </li>
+              <li>OrChem has been developed and tested for Oracle Database 11G. Previous versions of the Oracle database
+                  do not support the current CDK's version.</li>
+              <li>The installation of OrChem requires the creation of a dedicated user account (schema).
+                  With the schema in place, OrChem tables can be created, followed by the loading of required JAR files,
+                  and running a Java class to populate the OrChem tables. The installation is partly done through
+                  convenient scripts.</li>
+              <li>The duration of the installation process depends mainly on the size of your compound table and the
+                  speed of your hardware. In house at the EBI, the OrChem installation against the Chembl compound
+                  database (xx compounds) takes about .. hours (using parallel loading)</li>
+            </ul>
+            <a href="index.html">Back to main page</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Prerequisite DBA tasks (optional)</h3>
+            Create user and privs Java privs
+            Check privs
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Check list before you start</h3>
+            working ora client with sqlplus, loadjava
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Installation script</h3>
+            what happens, how long things can take. how to track progress. intermediate steps: check e-mail works
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Using OrChem</h3>
+            Sample queries. Warm up aspects. What is slow (known) and what should be fast
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Performance of OrChem</h3>
+            warm up cache tables bla
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:9pt">
+            <h3>Keeping OrChem in sync with the base data</h3>
+            audit table. schedule the update whenever you like. or recreate the thing from scratch optional feature
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
+
+
+
+
+

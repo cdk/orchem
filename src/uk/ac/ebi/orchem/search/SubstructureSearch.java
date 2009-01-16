@@ -66,7 +66,6 @@ public class SubstructureSearch {
 
     private static ARRAY search(IAtomContainer queryMolecule, Integer topN, String debugYN ) throws Exception {
         long start= System.currentTimeMillis();
-        int clobCount=0;
         int loopCount=0;
         int ignoreCount=0;
 
@@ -114,10 +113,18 @@ public class SubstructureSearch {
             debug("QueryAtomContainer made",debugging);
 
             /* Build up the where clause for the query using the fingerprint one bits */
+            /* Cndensed fingerprint for substructure search */
+
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
-            for (int i = 0; i < fingerprint.size(); i++) {
-                if (fingerprint.get(i) ) // &&!isShitBit(i))
+            
+            //for (int i = 0; i < fingerprint.size(); i++) {
+            //    if (fingerprint.get(i) ) // &&!isShitBit(i))
+            //        builtCondition.append(" and bit" + (i + 1) + "='1'");
+            // 
+            int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
+            for (int i = 0; i < fpCondensedSize; i++) { 
+                if (fingerprint.get(i) || fingerprint.get(i+fpCondensedSize)) // &&!isShitBit(i))
                     builtCondition.append(" and bit" + (i + 1) + "='1'");
             }
 

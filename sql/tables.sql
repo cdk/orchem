@@ -7,6 +7,20 @@
     /
     -- example :  insert into orchem_parameters values ('COMPOUNDS','MOLREGNO','MOLFILE')
 
+
+    create table orchem_log
+    (  log_id                number(10)    not null
+      ,who                   varchar2(100) not null
+      ,when                  date          not null
+      ,what                  clob          not null
+    )
+    nocache
+    /
+    
+    create sequence orchem_sequence_log_id
+    increment by 1 minvalue 1 nocycle nocache
+    /
+
     create table orchem_compounds
     (   
       id                     varchar2(80) not null
@@ -32,7 +46,7 @@
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null -- PK
     , bit_count number(4)     not null 
-    , fp raw(64)             not null
+    , fp raw(128)             not null
     )
     --cache ----could be to big for cache??? Careful with this one ..
     /

@@ -1,19 +1,21 @@
 package uk.ac.ebi.orchem.load;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import java.text.SimpleDateFormat;
+
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 import oracle.jdbc.OracleConnection;
@@ -21,16 +23,16 @@ import oracle.jdbc.OracleDriver;
 
 import oracle.sql.BLOB;
 
-//import org.openscience.cdk.Molecule;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.io.MDLV2000Reader;
-
 import org.openscience.cdk.nonotify.NNMolecule;
 
-import uk.ac.ebi.orchem.SimpleMail;
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
+
+
+//import org.openscience.cdk.Molecule;
 
 
 /**
@@ -44,7 +46,6 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 public class LoadCDKFingerprints {
 
     /**
-     * <B> TODO replace mail sending - hard coded. Move into pl/sql=easier</B>
      * <BR><BR>
      *  This method loops over a given compound table, and fetches the primary key and molfile for each compound. 
      *  It then creates and stores a fingerprint for each compound into the OrChem fingerprint tables.<BR>
@@ -70,12 +71,14 @@ public class LoadCDKFingerprints {
 
         /* Commit point is kept low due to big size of prepared statements. Anything much higher will fail; see
          * the large prepared statements */
-        int COMMIT_POINT=30;     
+        int COMMIT_POINT=30;   
         /* Default row prefetch also low due to big row sizes (Clob data) */
-        int DEF_ROW_PREFETCH=10;
+        //int DEF_ROW_PREFETCH=10;
 
-        /* Log message to be sent to user through e-mail */
+        /* Log message to be fed back to user */
         StringBuilder logMsg = new StringBuilder();
+        logMsg.append("\nStarted at "+now());
+        OracleConnection conn = null;
 
         try {
             /* A number of long variable to capture elapse time for the log message */
@@ -85,17 +88,18 @@ public class LoadCDKFingerprints {
             long serializeTime = 0;
             long sqlInsTime = 0;
 
-            OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
+            conn = (OracleConnection)new OracleDriver().defaultConnection();
+            //conn = (OracleConnection)new PubChemConnection().getDbConnection();
 
-            conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
             conn.setAutoCommit(false);
+            //conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
             int commitCount = 0;
 
             MDLV2000Reader mdlReader = new MDLV2000Reader();
             IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
             BitSet fpBitset;
             final int fpSize = FingerPrinterAgent.FP.getFpSize();
+            final int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
 
             /* Prepare the (flexible) query on the base compound table in the schema */
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
@@ -104,18 +108,18 @@ public class LoadCDKFingerprints {
                 OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
 
             String compoundQuery =
-                " select " + 
+                " select /*+ full(c) parallel(c,2) */ "+ 
                 "    " + compoundTablePkColumn +
                 "   ," + compoundTableMolfileColumn + 
-                "      , dbms_lob.getlength(" + compoundTableMolfileColumn + ") leng " + 
-                " from   " + compoundTableName;
+              //"   ,    dbms_lob.getlength(" + compoundTableMolfileColumn + ") leng " +  //archived
+                " from   " + compoundTableName + " c ";
             if (startId != null && endId != null) {
                 compoundQuery += "  where " + compoundTablePkColumn + " between " + startId + " and " + endId;
             }
 
             /* Note:
-              /*+ APPEND .. the append hint creates a table lock for DML .. do not use. 
-                  Also may create introduce 2 much empty space and scattered data. Bad for sim searching.
+              /*+ APPEND .. tried this, but the append hint creates a table lock for DML .. do not use :( 
+                  Also may introduce 2 much empty space and scattered data. Bad!
                   http://www.freelists.org/post/oracle-l/Question-about-Append-hint-in-Insert,3 
             */
 
@@ -125,21 +129,13 @@ public class LoadCDKFingerprints {
                 "into orchem_fingprint_simsearch (id, bit_count,fp) values (?,?,?)");
 
             /* Statement for inserts into the substructure search table */
-            PreparedStatement psInsertSubstrFp =
-                conn.prepareStatement("insert into orchem_fingprint_subsearch values " + "(" +
-                    //id
-                    "?," +
-                    //512 bits, see fingerprinter agent
-                    //TODO : put this in a loop using a stringbuffer. do not hard code 512 anywhere..
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?," +
-                    "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,? " +
-                    ")");
+            StringBuffer sb = new StringBuffer();
+            sb.append("insert into orchem_fingprint_subsearch values (? ");
+            for (int idx = 0; idx < fpCondensedSize; idx++) 
+                sb.append(",?");
+            sb.append(")");
+            PreparedStatement psInsertSubstrFp = conn.prepareStatement(sb.toString());
+            
 
             /* Statement for inserts into the OrChem compound table */
             String insertCompounds =
@@ -159,6 +155,7 @@ public class LoadCDKFingerprints {
                 insertCompounds += ",? )";
             else
                 insertCompounds += ")";
+            List<BLOB> blobList = new ArrayList<BLOB>();
 
             PreparedStatement psInsertCompound = conn.prepareStatement(insertCompounds);
 
@@ -167,8 +164,10 @@ public class LoadCDKFingerprints {
             ResultSet res = stmtQueryCompounds.executeQuery(compoundQuery);
             long bef;
 
-            Clob molFileClob = null;
+            //Clob molFileClob = null;
             String molfile = null;
+
+            logMsg.append("\nSet up at "+now());
 
             /* Start the main loop over the base compound table */
             while (res.next()) {
@@ -179,12 +178,13 @@ public class LoadCDKFingerprints {
                      * as String (which is much faster) from the resultSet */
                     bef = System.currentTimeMillis();
                     
-                    if (res.getInt("leng") > 4000) { // try this.. seems to work in latest driver TODO check
-                        molFileClob = res.getClob(compoundTableMolfileColumn);
-                        int clobLen = new Long(molFileClob.length()).intValue();
-                        molfile = (molFileClob.getSubString(1, clobLen));
-                    } else
-                        molfile = res.getString(compoundTableMolfileColumn);
+                    /* In 11g looks like a Clob can be treated as a String .. ? */
+                    //if (res.getInt("leng") > 4000) { // 
+                    //     molFileClob = res.getClob(compoundTableMolfileColumn);
+                    //     int clobLen = new Long(molFileClob.length()).intValue();
+                    //    molfile = (molFileClob.getSubString(1, clobLen));
+                    //} else
+                    molfile = res.getString(compoundTableMolfileColumn);
                     getClobTime += (System.currentTimeMillis() - bef);
 
                     if (molfile != null) {
@@ -208,10 +208,10 @@ public class LoadCDKFingerprints {
                         int idx = 1;
                         psInsertSubstrFp.setString(idx, res.getString(compoundTablePkColumn));
 
-                        /* Hash the 1024 fingerprint into a 512 fingerprint */
-                        for (int i = 0; i < 512; i++) { //for (int i = 0; i < fpBitset.size(); i++) {
+                        /* Hash the l fingerprint into a condensed fingerprint */
+                        for (int i = 0; i < fpCondensedSize; i++) { 
                             idx = i + 2;
-                            if (fpBitset.get(i) || fpBitset.get(i + 512))
+                            if (fpBitset.get(i) || fpBitset.get(i + fpCondensedSize))
                                 psInsertSubstrFp.setString(idx, "1");
                             else
                                 psInsertSubstrFp.setString(idx, null);
@@ -239,7 +239,9 @@ public class LoadCDKFingerprints {
                         //Serialization (optional)
                         if (serializeYN.equals("Y")) {
                             bef = System.currentTimeMillis();
-                            psInsertCompound.setBlob(++idx, serializeToBlob(conn, molecule));
+                            BLOB serializedMolecule = serializeToBlob(conn, molecule);
+                            blobList.add(serializedMolecule);
+                            psInsertCompound.setBlob(++idx, serializedMolecule);
                             serializeTime += (System.currentTimeMillis() - bef);
                         }
 
@@ -256,6 +258,17 @@ public class LoadCDKFingerprints {
                             conn.commit();
                             sqlInsTime += (System.currentTimeMillis() - bef);
                             commitCount = 0;
+
+                            /*Hack - you really need to free the clobs to prevent the Temp tablespace
+                             *from overflowing. Either that, or do short runs and get new connections
+                             * every time*/
+                            if (serializeYN.equals("Y")) {
+                                for (BLOB blobForRemoval : blobList) {
+                                    blobForRemoval.freeTemporary();
+                                    blobForRemoval=null;
+                                }
+                                blobList.clear();
+                            }
                         }
                     }
 
@@ -270,11 +283,9 @@ public class LoadCDKFingerprints {
             psInsertSubstrFp.executeBatch();
             psInsertCompound.executeBatch();
 
-            conn.commit();
             psInsertSimiFp.close();
             res.close();
             stmtQueryCompounds.close();
-            conn.close();
             long end = System.currentTimeMillis();
 
             System.out.println("\n\nOverall elapse time (ms) : " + (end - start));
@@ -292,13 +303,25 @@ public class LoadCDKFingerprints {
                           "\nSerialization       (ms) :" + serializeTime + 
                           "\nSQL DML             (ms) :" + sqlInsTime);
 
-        } catch (SQLException e) {
+            logMsg.append("\nFinished at "+now());
 
+        } catch (Exception e) {
             e.printStackTrace();
-            logMsg.append ( "\n\nERROR - program aborted..\n\n"+"Loop was on compound ID "+logCurrID+"\n"+e.getErrorCode()+" "+e.getMessage()+"\n"+Utils.getErrorString(e));
-
+            logMsg.append("\nError at time "+now());
+            logMsg.append ( "\n\nERROR - program aborted..\n\n"+"Loop was on compound ID "+logCurrID+"\nMsg: "+e.getMessage()+"\nStack\n"+Utils.getErrorString(e));
         }
-        SimpleMail.sendMail("smtp","smtp.ebi.ac.uk","markr@ebi.ac.uk","orchem load fingerprints",logMsg.toString()); //TODO remove hard coded things here !
+        finally {
+            PreparedStatement psInsertLog =  
+            conn.prepareStatement("insert into orchem_log (log_id, who, when, what) values (orchem_sequence_log_id.nextval,?,sysdate,?)");
+            psInsertLog.setString(1,"Load fingerprints "+startId+" "+endId);
+            psInsertLog.setString(2,logMsg.toString());
+            psInsertLog.executeUpdate();
+            
+            conn.commit();
+            conn.close();
+            
+            System.gc();
+        }
 
     }
 
@@ -311,7 +334,8 @@ public class LoadCDKFingerprints {
      * @throws IOException
      */
     private static BLOB serializeToBlob(OracleConnection connection, Object obj) throws SQLException, IOException {
-        BLOB blob_ = BLOB.createTemporary(connection, true, BLOB.DURATION_CALL);
+        // found on web : DURATION_CALL should only be used in PL/SQL code.  Stick to DURATION_SESSION for JDBC clients.
+        BLOB blob_ = BLOB.createTemporary(connection, true, BLOB.DURATION_SESSION);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(obj);
@@ -320,9 +344,16 @@ public class LoadCDKFingerprints {
         OutputStream os = blob_.setBinaryStream(0);
         os.write(data);
         os.flush();
+        //os.close() ?
         return blob_;
     }
 
+     public static String now() {
+       String DATE_FORMAT_NOW = "dd MMM HH:mm:ss";
+       Calendar cal = Calendar.getInstance();
+       SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+       return sdf.format(cal.getTime());
+     }
 
     /**
      *  Loops over a compound table specified by input arguments.<BR>
@@ -335,17 +366,14 @@ public class LoadCDKFingerprints {
     public static void load( ) throws Exception {
         load( null,null,"N" );
     }
-    
     /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
-        l.load(args[0],args[1]);
+        //l.load(args[0],args[1],"N");
+        l.load("261001","261200","Y");
         // begin delete orchem_compounds where id < 9999; delete orchem_fingprint_subsearch where id < 9999; delete orchem_fingprint_simsearch where id < 9999; commit; end;
     }
     */
 }
-
-
-
 
 

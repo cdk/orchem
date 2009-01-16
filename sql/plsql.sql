@@ -4,15 +4,18 @@ AS
    --FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;
    --FUNCTION to_oct( p_dec IN NUMBER ) RETURN VARCHAR2;
    PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2, serialize_yn VARCHAR2:='N');
-   FUNCTION similarity_search_mol (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
-   FUNCTION similarity_search_smiles (smiles varchar2, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
-   FUNCTION substructure_search_mol (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
-   FUNCTION substructure_search_smiles (smile varchar2, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
-   FUNCTION get_clob_as_char(mol IN clob) RETURN VARCHAR2;
-   PRAGMA   RESTRICT_REFERENCES (get_clob_as_char, WNDS, RNDS, WNPS, RNPS);
+   PROCEDURE slice_load (p_start_id integer, p_end_id integer,serialize_yn VARCHAR2:='N');
+   FUNCTION  similarity_search_mol (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   FUNCTION  similarity_search_smiles (smiles varchar2, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   FUNCTION  substructure_search_mol (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   FUNCTION  substructure_search_smiles (smile varchar2, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
+   FUNCTION  get_clob_as_char(mol IN clob) RETURN VARCHAR2;
+   PRAGMA    RESTRICT_REFERENCES (get_clob_as_char, WNDS, RNDS, WNPS, RNPS);
 END;
 /
 SHOW ERRORS
+
+
 
 CREATE OR REPLACE PACKAGE BODY orchem
 AS 
@@ -94,6 +97,28 @@ AS
    BEGIN
       cdk_fingerprints (start_id, end_id, serialize_yn);
    END;
+   /*      */
+   PROCEDURE slice_load (p_start_id integer, p_end_id integer,serialize_yn VARCHAR2:='N')
+   IS  
+       slice_size    integer :=9999;
+       p_slice_start integer :=-1;
+       p_slice_end   integer :=-1;
+   BEGIN  
+     LOOP
+        if p_slice_start=-1 then
+           p_slice_start:=p_start_id;
+        else
+           p_slice_start:=p_slice_end+1;
+        end if;
+        p_slice_end:=p_slice_start+slice_size;
+        if p_slice_end>p_end_id then
+          p_slice_end:=p_end_id;
+        end if;
+        --dbms_output.put_line (p_slice_start||'-'|| p_slice_end);
+        cdk_fingerprints (p_slice_start,p_slice_end,serialize_yn);
+        exit when p_slice_end=p_end_id;
+     END LOOP;
+   END;  
    /*    */
    FUNCTION similarity_search_mol (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2)
    RETURN orchem_COMPOUND_LIST

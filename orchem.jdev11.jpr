@@ -86,12 +86,12 @@
       </hash>
    </hash>
    <hash n="oracle.jdeveloper.compiler.OjcConfiguration">
-      <value n="source" v="Default"/>
-      <value n="target" v="Default"/>
+      <value n="source" v="1.5"/>
+      <value n="target" v="1.5"/>
    </hash>
    <hash n="oracle.jdeveloper.deploy.dt.DeploymentProfiles">
       <hash n="profileDefinitions">
-         <hash n="orchem">
+         <hash n="orchemWar">
             <hash n="appletArchives"/>
             <hash n="appletFiles">
                <value n="autoInclude" v="true"/>
@@ -102,14 +102,9 @@
             <hash n="archiveOptions">
                <value n="hasManifest" v="false"/>
             </hash>
-            <value n="containedProfile" v="false"/>
-            <value n="contextRoot" v="orchem"/>
-            <value n="defaultConnection" v=""/>
-            <hash n="dependencies">
-               <list n="dependencyList"/>
-            </hash>
-            <url n="earURL" path="deploy/orchemDemo.ear"/>
-            <value n="enterpriseAppName" v="orchemDemo"/>
+            <value n="defaultConnection"/>
+            <url n="earURL" path="deploy/orchemWar.ear"/>
+            <value n="enterpriseAppName" v="orchemWar"/>
             <hash n="fileGroups">
                <list n="groups">
                   <hash>
@@ -122,7 +117,27 @@
                      <hash n="filters">
                         <list n="rules">
                            <hash>
+                              <value n="pattern" v="WEB-INF/temp/**"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="WEB-INF/classes/jsp_servlet/**"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="**/.svn/"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
                               <value n="pattern" v="**/CVS/"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="**/.ade_path"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="**/.data/**"/>
                               <value n="type" v="1"/>
                            </hash>
                            <hash>
@@ -186,7 +201,27 @@
                      <hash n="filters">
                         <list n="rules">
                            <hash>
+                              <value n="pattern" v="WEB-INF/temp/**"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="WEB-INF/classes/jsp_servlet/**"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="**/.svn/"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
                               <value n="pattern" v="**/CVS/"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="**/.ade_path"/>
+                              <value n="type" v="1"/>
+                           </hash>
+                           <hash>
+                              <value n="pattern" v="**/.data/**"/>
                               <value n="type" v="1"/>
                            </hash>
                            <hash>
@@ -245,6 +280,10 @@
                            <hash>
                               <value n="pattern" v="**"/>
                            </hash>
+                           <hash>
+                              <value n="pattern" v="struts2-core-2.0.11.2.jar"/>
+                              <value n="type" v="1"/>
+                           </hash>
                         </list>
                      </hash>
                      <value n="internalName" v="libraries"/>
@@ -253,13 +292,15 @@
                   </hash>
                </list>
             </hash>
-            <url n="jarURL" path="deploy/orchemDemo.war"/>
+            <url n="jarURL" path="deploy/orchemWar.war"/>
+            <value n="platformType" v="JEE"/>
+            <value n="platformVersion" v="1.5"/>
             <value n="profileClass" v="oracle.jdeveloper.deploy.war.WarProfile"/>
-            <value n="profileName" v="orchem"/>
+            <value n="profileName" v="orchemWar"/>
          </hash>
       </hash>
       <list n="profileList">
-         <string v="orchem"/>
+         <string v="orchemWar"/>
       </list>
    </hash>
    <hash n="oracle.jdeveloper.model.J2eeSettings">

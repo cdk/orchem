@@ -25,23 +25,22 @@
         <TR>
         <TD width="10%">
            &nbsp;
-           <s:if test="session.wsr.pageNum!=1">
-    
                 <s:form action="pageResults" method="post" cssStyle="border:0">
+                <s:if test="session.wsr.pageNum!=1">
                    <s:hidden name="page" value="%{#session.wsr.prevPageNum}" />
                    <s:submit type="image" src="img/back.gif" />
+                 </s:if>
                  </s:form>
-            </s:if>
        </td>
        <TD width="80%">&nbsp;</td>
        <TD width="10%">
         &nbsp;
-        <s:if test="session.wsr.lastPage==false">
              <s:form action="pageResults" method="post" cssStyle="border:0">
+             <s:if test="session.wsr.lastPage==false">
                <s:hidden name="page" value="%{#session.wsr.nextPageNum}" />
                <s:submit type="image" src="img/forward.gif" />
+             </s:if>
              </s:form>
-        </s:if>
        </td>
 
        </TR>
@@ -63,7 +62,10 @@
                       </s:if>
 
                         <td><s:property value="%{#res_stat.count-#session.wsr.currDisplayStartIdx+1}"/><BR>
-                            <a href="lookupMolfile.action?id=<s:property value="id"/>"> <s:property value="id" /></a><BR>
+                            <s:form action="lookupMolfile" method="post" cssStyle="border:0">
+                              <a href="#" onclick="document.forms[<s:property value="#res_stat.count-#session.wsr.currDisplayStartIdx+2"/>].submit()"" > <s:property value="id" /></a><BR>
+                              <s:hidden name="id" value="%{#res.id}" />
+                            </s:form>
                             <!--a href="http://www.ebi.ac.uk/chebi/searchId.do?chebiId=<s:property value="id"/>"> Chebi <s:property value="id" /></a><BR-->
                             <s:if test="score!=0 ">
                                Score=<s:property value="score" /><BR>

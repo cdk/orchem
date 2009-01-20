@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.sql.SQLException;
+
 import java.util.Iterator;
 
 import javax.servlet.ServletException;
@@ -45,7 +47,13 @@ public class ImageServlet extends HttpServlet {
         //System.out.println("GOT IMAGE REQUEST FOR ID: " + id);
         String mdl = null;
 
-        //mdl = new DbSearchInvoker().getMolfile(id);
+        try {
+            mdl = new DbSearchInvoker().getMolfile(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        /*
         WebSearchResults wsr = (WebSearchResults)(req.getSession().getAttribute(Constants.SESSION_WEB_SEARCH_RESULTS));
         Iterator itr = wsr.getSearchResults().iterator();
         boolean found = false;
@@ -56,6 +64,7 @@ public class ImageServlet extends HttpServlet {
                 found = true;
             }
         }
+        */
 
         byte[] imageData = null;
         if (mdl != null) {

@@ -23,7 +23,7 @@
 
     -- Archived: Oracle context index. Performance not adequate.
     /*
-    CREATE INDEX SUBSTR_SEARCH_INDX ON orchem_fingprint_subsearch (fp_text) INDEXTYPE IS CTXSYS.CONTEXT
+    CREATE INDEX SUBSTR_SEARCH_INDX ON orchem_fp_text (text) INDEXTYPE IS CTXSYS.CONTEXT tablespace crossref_ind
     /
     */
 

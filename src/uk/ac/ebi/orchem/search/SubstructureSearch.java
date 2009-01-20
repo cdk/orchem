@@ -122,7 +122,7 @@ public class SubstructureSearch {
             int bitPos=0;
             int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
             for (int i = 0; i < fpCondensedSize; i++) { 
-                if (fingerprint.get(i) || fingerprint.get(i+fpCondensedSize)) { // &&!isShitBit(i)) 
+                if ( (fingerprint.get(i) || fingerprint.get(i+fpCondensedSize))  &&!isShitBit(i) ) {
                     bitPos=i+1;
                     builtCondition.append(" and bit" + (bitPos) + "='1'");
                 }
@@ -136,7 +136,7 @@ public class SubstructureSearch {
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             String preFilterQuery = 
 
-                "  select /*+ INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  
+                "  select /*+INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  
                 "   s.id " + 
                 " , o.single_bond_count " + 
                 " , o.double_bond_count " +
@@ -336,21 +336,17 @@ public class SubstructureSearch {
     //TODO think if this should be really implemented
     private static List shitBits = new ArrayList();
     static {
-        shitBits.add(483);
-        shitBits.add(488);
-        shitBits.add(154);
+        
+        shitBits.add(30);
+        shitBits.add(54);
+        shitBits.add(188);
+        shitBits.add(147);
+        shitBits.add(201);
+        shitBits.add(502);
         shitBits.add(498);
-        shitBits.add(489);
-        shitBits.add(370);
-        shitBits.add(508);
-        shitBits.add(379);
-        shitBits.add(56);
-        shitBits.add(417);
-        shitBits.add(454);
-        shitBits.add(499);
-        shitBits.add(442);
-        shitBits.add(432);
-        shitBits.add(235);
+        shitBits.add(484);
+        shitBits.add(438 );
+        
     }
     private static boolean isShitBit(int bitNum) {
 

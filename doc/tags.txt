@@ -1,2 +1,15 @@
+http://badgertronics.com/writings/cvs/labeling-n-branching.html
+cvs tag -R tag_name
+
+
+
+
+tags made for OrChem
+______________________________
+
 rel1
 first tag made, for a working version of Orchem on cdk.1.2
+
+rel1a
+tag when finally put together again a working copy with various performance
+tweaks

@@ -1,4 +1,4 @@
-
+s
 Step plan to create the schema
 
  - create tables
@@ -68,16 +68,41 @@ end;
  
  
  - post loader indices: 
-      - BITMAPs (various)
+      - primary keys
+      - BITMAPs
   
  - Stats!
 
    analyze table orchem_fingprint_simsearch compute statistics for all columns for all indexes
+   analyze table orchem_compounds compute statistics for all columns for all indexes
+   analyze table orchem_fingprint_subsearch compute statistics for all columns for all indexes
+
    -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
-   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsear  ch', estimate_percent=>25, degree=>4);
+   -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
 
 
--------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

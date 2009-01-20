@@ -48,7 +48,7 @@
     , bit_count number(4)     not null 
     , fp raw(128)             not null
     )
-    --cache ----could be to big for cache??? Careful with this one ..
+    --cache ----could be to big for cache??? Careful with this one .. confusing!
     /
     
     create table orchem_fingprint_subsearch

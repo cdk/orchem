@@ -4,9 +4,39 @@
 <web-app>
   <display-name>Orchem Web demo</display-name>
   <filter>
+    <filter-name>JpsFilter</filter-name>
+    <filter-class>oracle.security.jps.ee.http.JpsFilter</filter-class>
+  </filter>
+  <filter>
      <filter-name>plexus</filter-name>
      <filter-class>org.apache.struts2.plexus.PlexusFilter</filter-class>
   </filter>
+  <filter-mapping>
+    <filter-name>JpsFilter</filter-name>
+    <url-pattern>*.jspx</url-pattern>
+    <dispatcher>
+      FORWARD
+    </dispatcher>
+    <dispatcher>
+      REQUEST
+    </dispatcher>
+    <dispatcher>
+      INCLUDE
+    </dispatcher>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>JpsFilter</filter-name>
+    <url-pattern>*.jsp</url-pattern>
+    <dispatcher>
+      FORWARD
+    </dispatcher>
+    <dispatcher>
+      REQUEST
+    </dispatcher>
+    <dispatcher>
+      INCLUDE
+    </dispatcher>
+  </filter-mapping>
   <filter-mapping>
       <filter-name>plexus</filter-name>
       <url-pattern>/*</url-pattern>

@@ -84,6 +84,7 @@ public class SubstructureSearch {
 
         debug("Start",debugging);
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
+
         debug("Got connection",debugging);
 
         String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
@@ -113,19 +114,18 @@ public class SubstructureSearch {
             debug("QueryAtomContainer made",debugging);
 
             /* Build up the where clause for the query using the fingerprint one bits */
-            /* Cndensed fingerprint for substructure search */
+            /* Condensed fingerprint for substructure search */
 
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
             
-            //for (int i = 0; i < fingerprint.size(); i++) {
-            //    if (fingerprint.get(i) ) // &&!isShitBit(i))
-            //        builtCondition.append(" and bit" + (i + 1) + "='1'");
-            // 
+            int bitPos=0;
             int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
             for (int i = 0; i < fpCondensedSize; i++) { 
-                if (fingerprint.get(i) || fingerprint.get(i+fpCondensedSize)) // &&!isShitBit(i))
-                    builtCondition.append(" and bit" + (i + 1) + "='1'");
+                if (fingerprint.get(i) || fingerprint.get(i+fpCondensedSize)) { // &&!isShitBit(i)) 
+                    bitPos=i+1;
+                    builtCondition.append(" and bit" + (bitPos) + "='1'");
+                }
             }
 
             whereCondition += builtCondition.toString();
@@ -135,7 +135,8 @@ public class SubstructureSearch {
 
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             String preFilterQuery = 
-                "  select /*+ INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  // hints are necessary, Oracle goes slow otherwise
+
+                "  select /*+ INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  
                 "   s.id " + 
                 " , o.single_bond_count " + 
                 " , o.double_bond_count " +
@@ -163,6 +164,7 @@ public class SubstructureSearch {
                 "  and s.id=o.id "; // AND .. whereCondition will be concatenated
 
             timestamp =System.currentTimeMillis();
+            System.out.println(preFilterQuery + whereCondition);
             res = stmPreFilter.executeQuery(preFilterQuery + whereCondition);
             debug("Pre-filter query took (ms) : " + (System.currentTimeMillis() - timestamp),debugging);
             prefilterTime=System.currentTimeMillis() - start;

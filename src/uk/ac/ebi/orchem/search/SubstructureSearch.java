@@ -136,7 +136,9 @@ public class SubstructureSearch {
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             String preFilterQuery = 
 
-                "  select /*+INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  
+                //"  select /*+INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  
+
+                "  select " +  // which hint .. if any ... pick a btree one perhaps
                 "   s.id " + 
                 " , o.single_bond_count " + 
                 " , o.double_bond_count " +

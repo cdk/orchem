@@ -1,3 +1,4 @@
+prompt creating table "orchem_parameters"
     create table orchem_parameters
     (  comp_tab_name         varchar2(30) not null
       ,comp_tab_pk_col       varchar2(30) not null
@@ -7,7 +8,7 @@
     /
     -- example :  insert into orchem_parameters values ('COMPOUNDS','MOLREGNO','MOLFILE')
 
-
+prompt creating table "orchem_log"
     create table orchem_log
     (  log_id                number(10)    not null
       ,who                   varchar2(100) not null
@@ -16,11 +17,13 @@
     )
     nocache
     /
-    
+
+prompt creating sequence "orchem_sequence_log_id" for "orchem_parameters"    
     create sequence orchem_sequence_log_id
     increment by 1 minvalue 1 nocycle nocache
     /
 
+prompt creating table "orchem_compounds"
     create table orchem_compounds
     (   
       id                     varchar2(80) not null
@@ -42,7 +45,7 @@
      )
     /
    
-    
+prompt creating table "orchem_fingprint_simsearch"
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null -- PK
     , bit_count number(4)     not null 
@@ -50,7 +53,8 @@
     )
     cache -- hm ....
     /
-    
+
+prompt creating table "orchem_fingprint_subsearch"
     create table orchem_fingprint_subsearch
     (   
       id  varchar2(80)  not null

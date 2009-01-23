@@ -1,0 +1,89 @@
+<project name="orchem.project" default="help" basedir=".">
+
+    <property name="app.name"      value="orchem"/>
+    <property name="compile.debug" value="true"/>
+    <property name="project.root"  value="."/>
+    <property name="src.dir"       value="${project.root}/src"/>
+    <property name="prop.dir"      value="${project.root}/properties"/>
+    <property name="web.dir"       value="${project.root}/public_html"/>
+    <property name="build.classes" value="${web.dir}/WEB-INF/classes"/>
+    <property name="lib.dir"       value="${web.dir}/WEB-INF/lib"/>
+    <property name="war.dir"       value="${project.root}/deploy"/>
+
+    <!-- Build working classpath -->
+    <path id="project.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build.classes}"/>
+        <pathelement path="${src.dir}"/>
+    </path>
+
+    <!--  =================================-->
+    <!--  Prints usuage                   -->
+    <!--  =====+++++=======================-->
+    <target name="help">
+        <echo message="***************************************************************************"/>
+        <echo message="The following ANT targets are available in the build.xml:"/>
+	<echo message="clean         - delete all build directories, as well as /build files "/>
+        <echo message="compile       - compile core classes"/>
+        <echo message="war           - clean, compile, and create WAR file (tested Tomcat6) "/>
+        <echo message="***************************************************************************"/>
+    </target>
+
+
+    <!-- ===================================================================  -->
+    <!-- Clean the build directories and war file                             -->
+     <!-- =================================================================== -->
+    <target name="clean">
+        <echo message="Cleaning up compiled classes and other temp data in ${web.dir}"/>
+        <delete>
+           <fileset dir="${build.classes}" includes="**/orchem*.*"/>
+        </delete>
+        <delete dir="${build.classes}/.jsps"  />
+        <delete dir="${build.classes}/.tags"  />
+        <delete dir="${build.classes}/.wlLibs"/>
+        <delete dir="${build.classes}/uk"     />
+
+        <echo message="Deleting old war file.."/>
+        <delete file="${war.dir}/*.war"/>
+    </target>
+ 
+
+
+    <!-- =================================================================== -->
+    <!-- Compile                                                             -->
+    <!-- =================================================================== -->
+    <target name="compile">
+        <!-- compile the Java classes  -->
+        <javac srcdir="${src.dir}" destdir="${build.classes}">
+            <classpath refid="project.classpath"/>
+            <include name="**/*.java"/>
+            <!--exclude name="**/submission/**"/-->
+        </javac>
+    </target>
+
+
+    <!-- =================================================================== -->
+    <!-- Make WAR                                                            -->
+    <!-- =================================================================== -->
+    <target name="war" depends="clean,compile">
+        
+        <echo message="Making WAR file"/>
+        <mkdir dir="${war.dir}"/>
+        
+        <!-- we have several web.xml versions. make sure the tomcat version is copied to web.xml before jar runs -->
+        <copy file="${web.dir}/WEB-INF/web.tomcat6.xml" tofile="${web.dir}/WEB-INF/web.xml" overwrite="true"/>
+
+        <jar jarfile="${war.dir}/${app.name}.war" basedir="${web.dir}"
+            includes="**" excludes="**/junit.jar **/cdk-1.1.2.jar **/*servlet*.jar **/lucene*.jar **/jgrapht*.jar **/vecmath.jar **/old " />
+
+        <!-- put the default webXXXxml back in place -->
+        <copy file="${web.dir}/WEB-INF/web.jdev11.xml" tofile="${web.dir}/WEB-INF/web.xml" overwrite="true"/>
+
+    </target>
+
+
+
+
+</project>

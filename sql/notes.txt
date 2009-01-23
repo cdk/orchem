@@ -7,24 +7,24 @@ Step plan to create the schema
  
  - loadjava -> 
                loadjava ... Apache commons  
-               loadjava -user crossref/crossref@litpub vecmath.jar
-               loadjava -user crossref/crossref@litpub jgrapht-0.6.0.jar
-               loadjava -user crossref/crossref@litpub log4j.jar
+               loadjava -user starlite28p/star vecmath.jar
+               loadjava -user starlite28p/star jgrapht-0.6.0.jar
+               loadjava -user starlite28p/star log4j.jar
                CDK
                Orchem (can be wrapped as a jar)
                 jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
                or..
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/Utils.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/SimpleMail.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/db/OrChemParameters.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompound.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElement.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SimilaritySearch.java
-                loadjava -resolve -user crossref/crossref@litpub uk/ac/ebi/orchem/search/SubstructureSearch.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/SimpleMail.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/db/OrChemParameters.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompound.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
 
 
  - 11g -> JIT
@@ -33,11 +33,10 @@ Step plan to create the schema
        begin
          for r_java in (select name from user_java_classes ) loop
              if
-               --   r_java.name like 'org/openscience/cdk%' 
-               --or r_java.name like 'javax/vecmath%' 
-               --or r_java.name like 'org/_3pq%' 
+                    r_java.name like 'org/openscience/cdk%' 
+                 or r_java.name like 'javax/vecmath%' 
+                 or r_java.name like 'org/_3pq%' 
                     r_java.name like 'uk/ac/ebi%' 
-
              then
                 begin
                   i:=dbms_java.compile_class (r_java.name);
@@ -55,13 +54,32 @@ Step plan to create the schema
  - data loading: orchem_fingprint_simsearch and orchem_fingprint_subsearch 
  
 
- declare
+
+declare
     i binary_integer;
- begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(      1 ,  300000  ,''Y'');' ,INTERVAL=>null ); 
-    // redo for 3 million pubchem entries
-    // .... make about 6 .. 10(?) threads. 
-    // ..  turns out 6 threads was pretty fast.
+begin
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(5010001,6250000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(6250001,7000000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(7000001,7510000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(7510001,8010000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(8010001,8510000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(8510001,9020000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(9020001,9503785 ,''Y'');' ,INTERVAL=>null ); 
+    commit;
+end;
+
+
+
+
+declare
+    i binary_integer;
+begin
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(     1 ,  70000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load( 70001 , 140000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(140001 , 210000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(210001 , 280000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(280001 , 350000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(350001 , 430000 ,''Y'');' ,INTERVAL=>null ); 
     commit;
 end;
 
@@ -74,8 +92,11 @@ end;
  - Stats!
 
    analyze table orchem_fingprint_simsearch compute statistics for all columns for all indexes
+   /
    analyze table orchem_compounds compute statistics for all columns for all indexes
+   /
    analyze table orchem_fingprint_subsearch compute statistics for all columns for all indexes
+   /
 
    -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
    -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
@@ -114,13 +135,13 @@ end;
 Need to edit the jar files that go in to java 1.4. This can be done by retroweaver.
 See retroweaver project in sourceforge. Also the retroweaver-rt jar itself needs to be loaded in
 
-      loadjava -user crossref/crossref@litpub ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
+      loadjava -user starlite28p/star ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
 
 (
  Also loaded these, but not sure if necessary
-    loadjava -user crossref/crossref@litpub /tmp/weave/orchem/vecmath.jar
-    loadjava -user crossref/crossref@litpub /tmp/weave/orchem/jgrapht-0.6.0.jar
-    loadjava -user crossref/crossref@litpub /tmp/weave/orchem/log4j.jar
+    loadjava -user starlite28p/star /tmp/weave/orchem/vecmath.jar
+    loadjava -user starlite28p/star /tmp/weave/orchem/jgrapht-0.6.0.jar
+    loadjava -user starlite28p/star /tmp/weave/orchem/log4j.jar
 )
 
 
@@ -133,7 +154,7 @@ bash-3.00$ java -version
 java version "1.4.2_18"
 Java(TM) 2 Runtime Environment, Standard Edition (build 1.4.2_18-b06)
 Java HotSpot(TM) Client VM (build 1.4.2_18-b06, mixed mode)
-bash-3.00$ ncomp -user crossref/crossref@litpub  /tmp/weave/orchem/orchem.jar
+bash-3.00$ ncomp -user starlite28p/star  /tmp/weave/orchem/orchem.jar
 
 Note -> tun ncomp on cdk-1.0.4.jar FAILS because of the naming. Rename to cdk.jar 
 

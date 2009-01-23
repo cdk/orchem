@@ -37,7 +37,7 @@ PubChemImport {
 
     public void importPubChem(String dirNum) throws Exception {
 
-        String dataDir = "/home/markr/data/pubchem/" + dirNum + "/";
+        String dataDir = "/mnt/c/linux/data/pubchem/Compound_05/02/";
         File dir = new File(dataDir);
         String[] list = dir.list();
         File pubChemfile;

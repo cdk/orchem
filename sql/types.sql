@@ -1,4 +1,6 @@
 
+prompt creating type "orchem_compound"
+
     CREATE or REPLACE TYPE orchem_compound AS OBJECT
     EXTERNAL name 'uk.ac.ebi.orchem.bean.OrChemCompound' LANGUAGE JAVA USING SQLData
      (
@@ -12,7 +14,8 @@
      return self as result
      )
     /
-    
+
+prompt creating type "orchem_compound_list"
     CREATE or REPLACE TYPE ORCHEM_COMPOUND_LIST is TABLE OF orchem_compound
     /
     

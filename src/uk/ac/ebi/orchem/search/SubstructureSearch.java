@@ -8,6 +8,7 @@ import java.sql.Statement;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,8 +51,6 @@ public class SubstructureSearch {
 
 
     /**
-     * TODO look into shit bits. long term we should get an orchem fingerprinter without andy folding or shit bits
-     * 
      * Performs a substructure search for a query molecule, using a fingerprint based
      * pre-filter query to find likely candidates, and then graph isomorphism to identify
      * and verify true substructures.
@@ -84,6 +83,7 @@ public class SubstructureSearch {
 
         debug("Start",debugging);
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
+        //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
 
         debug("Got connection",debugging);
 
@@ -121,12 +121,79 @@ public class SubstructureSearch {
             
             int bitPos=0;
             int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
-            for (int i = 0; i < fpCondensedSize; i++) { 
-                if ( (fingerprint.get(i) || fingerprint.get(i+fpCondensedSize))  &&!isShitBit(i) ) {
-                    bitPos=i+1;
+            Map<String,Integer> bitGroupCounts = new HashMap<String,Integer>();
+
+            String key = "";
+            for (int i = 0; i < fpCondensedSize; i++) {
+                if ((fingerprint.get(i) || fingerprint.get(i + fpCondensedSize))) { //  &&!isShitBit(i) ) {
+                    bitPos = i + 1;
                     builtCondition.append(" and bit" + (bitPos) + "='1'");
+
+                 /* Count in a hash map to which bit 'groups' are set _________________________PUT IN METHOD
+                    These counts will be used to determine heuristically if it's worth 
+                    for the query to use an index.
+                    We have a b*tree index for each 'key' (group) */
+                    //key 0..15 -> 1..16
+                    //key 
+                    key = (((bitPos - 1)/ 32)+1) + "";
+                    if (bitGroupCounts.get(key) != null)
+                        bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
+                    else
+                        bitGroupCounts.put(key, 1);
+
+                    if (bitPos < 17 || bitPos > 496) {
+                        key = "1a";
+                        if (bitGroupCounts.get(key) != null)
+                            bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
+                        else
+                            bitGroupCounts.put(key, 1);
+                    } else {
+                        key = (((bitPos - 17) / 32)+2) + "a";
+                        if (bitGroupCounts.get(key) != null)
+                            bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
+                        else
+                            bitGroupCounts.put(key, 1);
+                    }
+                    //________________________________________________________________________
                 }
             }
+
+            /* Now decide whether to go for a b*tree index */ //--------------------------------PUT IN METHOD
+            
+            int maxBitGroupSize = 0;
+            int cnt=0; String topKey="";
+            for (int idx = 1; idx <= 16; idx++) {
+                try {
+                    cnt = bitGroupCounts.get(idx + "");
+                    if (cnt > maxBitGroupSize) {
+                        maxBitGroupSize = cnt;
+                        topKey = idx + "";
+                    }
+                } catch (NullPointerException e) {
+                    e=null;
+                }
+                try {
+                    cnt = bitGroupCounts.get(idx + "a");
+                    if (cnt > maxBitGroupSize) {
+                        maxBitGroupSize = cnt;
+                        topKey = idx + "a";
+                    }
+                } catch (NullPointerException e) {
+                    e=null;
+                }
+            }
+
+            debug("Max fingerprint bit group size indexed = "+maxBitGroupSize+", index b*tree= "+topKey, debugging);
+            String hint="";
+
+            if(maxBitGroupSize<=8) { // .. important tweak option here -> when to decide to go for a full table scan or not ? 
+                hint="/*+ FULL(s) PARALLEL(s,4) FIRST_ROWS */"; 
+                debug("Forcing full scan..", debugging);
+            }
+            else {
+                hint=" /*+ FIRST_ROWS INDEX(s,orchem_btree"+topKey+") */ ";
+            }
+            //-------------------------------------------------------------------------------------------------
 
             whereCondition += builtCondition.toString();
             whereCondition = whereCondition.trim();
@@ -135,10 +202,7 @@ public class SubstructureSearch {
 
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             String preFilterQuery = 
-
-                //"  select /*+INDEX_COMBINE(s) USE_NL(s o) USE_NL(s c)*/ " +  
-
-                "  select " +  // which hint .. if any ... pick a btree one perhaps
+                " select   " +  hint +
                 "   s.id " + 
                 " , o.single_bond_count " + 
                 " , o.double_bond_count " +
@@ -156,7 +220,6 @@ public class SubstructureSearch {
                 " , o.cdk_molecule "+
                 " , nvl(dbms_lob.getlength(o.cdk_molecule),0) blob_length" +
                 " , c."+compoundTableMolfileColumn+
-                " , dbms_lob.getlength(c." + compoundTableMolfileColumn+") clob_length "+
                 "  from " +
                 "   orchem_fingprint_subsearch s" +
                 "  ,orchem_compounds o," + 
@@ -166,10 +229,10 @@ public class SubstructureSearch {
                 "  and s.id=o.id "; // AND .. whereCondition will be concatenated
 
             timestamp =System.currentTimeMillis();
-            System.out.println(preFilterQuery + whereCondition);
-            res = stmPreFilter.executeQuery(preFilterQuery + whereCondition);
+            res = stmPreFilter.executeQuery(preFilterQuery + whereCondition); 
             debug("Pre-filter query took (ms) : " + (System.currentTimeMillis() - timestamp),debugging);
             prefilterTime=System.currentTimeMillis() - start;
+            
             
            /**********************************************************************
             * Graph validation section                                           *
@@ -179,7 +242,6 @@ public class SubstructureSearch {
             NNMolecule databaseMolecule=null;
 
             debug("start loop over pre-filter results", debugging);
-            Clob molFileClob = null;
             String molfile=null;
 
             while (res.next() && compounds.size() < topN) {
@@ -216,20 +278,13 @@ public class SubstructureSearch {
                             ois.close();
                         }
                         else {
-                            if (res.getInt("clob_length")>4000 )  {
-                                
-                                molFileClob = res.getClob(compoundTableMolfileColumn);
-                                int clobLen = new Long(molFileClob.length()).intValue();
-                                molfile = (molFileClob.getSubString(1, clobLen));
-                            }
-                            else
-                                molfile=res.getString(compoundTableMolfileColumn); 
+                            molfile=res.getString(compoundTableMolfileColumn); 
                             databaseMolecule = Utils.getNNMolecule(mdlReader, molfile);
                         }
                         mlTime += (System.currentTimeMillis() - timestamp);
                         timestamp = System.currentTimeMillis();
 
-                        /* Test of the match made is truly a substructure using VF2 algorithm*/
+                        /* Test if the match made is truly a substructure using VF2 algorithm*/
                         SubgraphIsomorphism s =
                         new SubgraphIsomorphism(databaseMolecule, qAtCom,SubgraphIsomorphism.Algorithm.VF2);
 
@@ -293,6 +348,22 @@ public class SubstructureSearch {
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
         IAtomContainer queryMolecule = Utils.getNNMolecule(mdlReader, mol);
+
+        /*
+        OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
+        //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
+        PreparedStatement psTEMP = conn.prepareStatement("insert into testmdl values (orchem_sequence_log.nextval,?)");
+        CLOB clobAll = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+        clobAll.open(CLOB.MODE_READWRITE);
+        clobAll.setString(5, mol);
+        psTEMP.setClob(1,clobAll);
+        psTEMP.executeUpdate();
+        clobAll.close();
+        clobAll.freeTemporary();
+        psTEMP.close();
+        conn.commit();
+        */
+
         return search(queryMolecule, topN, debugYN);
     }
 
@@ -336,6 +407,7 @@ public class SubstructureSearch {
 
     //Try out to ignore overly common bits - should collect these more uhm cleverly 
     //TODO think if this should be really implemented
+     /*
     private static List shitBits = new ArrayList();
     static {
         
@@ -357,6 +429,6 @@ public class SubstructureSearch {
         else
             return false;
     }
-
+    */
 
 }

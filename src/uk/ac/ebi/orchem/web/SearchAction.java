@@ -48,6 +48,7 @@ public class SearchAction extends SessionAwareAction {
                                                                    new Integer(wsr.getTopN()).intValue());
         }
 
+        //System.out.println("substructure search\n\n"+wsr.getStructure()+"\n\n");
         if (wsr.getStructureSearchMethod().equals("sub")) {
           conn = DbAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +

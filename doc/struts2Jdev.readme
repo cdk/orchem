@@ -39,11 +39,24 @@ In web.xml add dumb filters for Plexus
     <url-pattern>/dynimages/*</url-pattern>
   </servlet-mapping>
 
-(0)
-to get the more advanced stuff in oracle to work, you need to intercep
+
+(3) classpath trouble
+To get the more advanced stuff in oracle to work, you need to intercept
 the runtime jdbc jar file.
 which is in /oracle/Middleware/wlserver_10.3/server/ext/jdbc/oracle/11g.
 It's the ojdb6.jar - no wonder it gives problems now and then (like for molregno 42375)
 
+
+_________________________________________________
+
+To deploy struts to oc4j10g application server like stan
+
+- build a war file using jdeveloper
+- unpack it
+- remove strutsxxxjar from WEB-INF lib
+- add the full struts jar set including plexus etc
+- add velocity jar files
+- war it up again
+- deploy to oas
 
 

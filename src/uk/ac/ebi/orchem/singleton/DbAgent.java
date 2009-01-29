@@ -49,21 +49,20 @@ public class DbAgent extends Thread {
 
             ods = new OracleDataSource();
 
-            ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
-            ods.setUser("starlite28p");
-            ods.setPassword("star");
-            dbName = "Starlite28 - 422k compounds";
+            //ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
+            //ods.setUser("starlite28p");
+            //ods.setPassword("star");
+            //dbName = "Starlite28 - 422k compounds";
 
-            //ods.setURL("jdbc:oracle:thin:@ora-clu1a-vip:1531:litpub1");
-            //ods.setUser("crossref");
-            //ods.setPassword("crossref");
-            //dbName = "PubChem (snapshot 3 million)";
+            ods.setURL("jdbc:oracle:thin:@ora-clu1a-vip:1531:litpub1");
+            ods.setUser("crossref");
+            ods.setPassword("crossref");
+            dbName = "PubChem (snapshot 3.5 million)";
             
-            
-             //ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
-             //ods.setUser("chebi");
-             //ods.setPassword("chebi");
-             //dbName = "Chebi";
+            //ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
+            //ods.setUser("chebi");
+            //ods.setPassword("chebi");
+            //dbName = "Chebi";
 
             ods.setConnectionCachingEnabled(true);
             ods.setConnectionCacheName(CACHE_NAME);

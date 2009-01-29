@@ -6,25 +6,25 @@ Step plan to create the schema
  - populate the ORCHEM_PARAMETERS table
  
  - loadjava -> 
-               loadjava ... Apache commons  
-               loadjava -user starlite28p/star vecmath.jar
-               loadjava -user starlite28p/star jgrapht-0.6.0.jar
-               loadjava -user starlite28p/star log4j.jar
+               loadjava ... Apache commons   uh welke ook al weer?
+               loadjava -user starlite_31/starlite@chemdev vecmath.jar
+               loadjava -user starlite_31/starlite@chemdev jgrapht-0.6.0.jar
+               loadjava -user starlite_31/starlite@chemdev log4j.jar
                CDK
                Orchem (can be wrapped as a jar)
                 jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
                or..
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/SimpleMail.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/db/OrChemParameters.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompound.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/Utils.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/SimpleMail.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/db/OrChemParameters.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/bean/OrChemCompound.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/bean/SimHeapElement.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/search/SimilaritySearch.java
+                loadjava -resolve -user starlite_31/starlite@chemdev uk/ac/ebi/orchem/search/SubstructureSearch.java
 
 
  - 11g -> JIT
@@ -33,9 +33,9 @@ Step plan to create the schema
        begin
          for r_java in (select name from user_java_classes ) loop
              if
-                    r_java.name like 'org/openscience/cdk%' 
-                 or r_java.name like 'javax/vecmath%' 
-                 or r_java.name like 'org/_3pq%' 
+                 --   r_java.name like 'org/openscience/cdk%' 
+                 --or r_java.name like 'javax/vecmath%' 
+                 --or r_java.name like 'org/_3pq%' 
                     r_java.name like 'uk/ac/ebi%' 
              then
                 begin
@@ -74,12 +74,12 @@ end;
 declare
     i binary_integer;
 begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(     1 ,  70000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(   201 ,  70000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load( 70001 , 140000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(140001 , 210000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(210001 , 280000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(280001 , 350000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(350001 , 430000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(350001 , 445000 ,''Y'');' ,INTERVAL=>null ); 
     commit;
 end;
 
@@ -95,11 +95,15 @@ end;
    /
    analyze table orchem_compounds compute statistics for all columns for all indexes
    /
-   analyze table orchem_fingprint_subsearch compute statistics for all columns for all indexes
-   /
+   
+   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>20, degree=>4);
 
-   -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', estimate_percent=>10, degree=>4);
+
+
+
    -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
+   --analyze table orchem_fingprint_subsearch compute statistics for all columns for all indexes
+   --/
 
 
 
@@ -135,13 +139,13 @@ end;
 Need to edit the jar files that go in to java 1.4. This can be done by retroweaver.
 See retroweaver project in sourceforge. Also the retroweaver-rt jar itself needs to be loaded in
 
-      loadjava -user starlite28p/star ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
+      loadjava -user starlite_31/starlite@chemdev ~/java/retroweaver/retroweaver-2.0.7/release/retroweaver-rt-2.0.7.jar
 
 (
  Also loaded these, but not sure if necessary
-    loadjava -user starlite28p/star /tmp/weave/orchem/vecmath.jar
-    loadjava -user starlite28p/star /tmp/weave/orchem/jgrapht-0.6.0.jar
-    loadjava -user starlite28p/star /tmp/weave/orchem/log4j.jar
+    loadjava -user starlite_31/starlite@chemdev /tmp/weave/orchem/vecmath.jar
+    loadjava -user starlite_31/starlite@chemdev /tmp/weave/orchem/jgrapht-0.6.0.jar
+    loadjava -user starlite_31/starlite@chemdev /tmp/weave/orchem/log4j.jar
 )
 
 
@@ -154,7 +158,7 @@ bash-3.00$ java -version
 java version "1.4.2_18"
 Java(TM) 2 Runtime Environment, Standard Edition (build 1.4.2_18-b06)
 Java HotSpot(TM) Client VM (build 1.4.2_18-b06, mixed mode)
-bash-3.00$ ncomp -user starlite28p/star  /tmp/weave/orchem/orchem.jar
+bash-3.00$ ncomp -user starlite_31/starlite@chemdev  /tmp/weave/orchem/orchem.jar
 
 Note -> tun ncomp on cdk-1.0.4.jar FAILS because of the naming. Rename to cdk.jar 
 

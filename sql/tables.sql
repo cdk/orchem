@@ -15,7 +15,7 @@ prompt creating table "orchem_log"
       ,when                  date          not null
       ,what                  clob          not null
     )
-    nocache
+    nocache --????? cache nocache....
     /
 
 prompt creating sequence "orchem_sequence_log_id" for "orchem_parameters"    

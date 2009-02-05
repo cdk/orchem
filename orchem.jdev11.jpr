@@ -368,6 +368,14 @@
    </hash>
    <hash n="oracle.jdeveloper.runner.RunConfigurations">
       <hash n="runConfigurationDefinitions">
+         <hash n="Count atoms">
+            <value n="custom" v="false"/>
+            <value n="javaOptions" v=""/>
+            <value n="name" v="Count atoms"/>
+            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/temp/MyFingerprinter.java"/>
+            <value n="VMName" v="server"/>
+         </hash>
          <hash n="Default">
             <value n="custom" v="false"/>
             <value n="name" v="Default"/>
@@ -384,6 +392,7 @@
          </hash>
       </hash>
       <list n="runConfigurationList">
+         <string v="Count atoms"/>
          <string v="Default"/>
          <string v="PubChem Import"/>
       </list>

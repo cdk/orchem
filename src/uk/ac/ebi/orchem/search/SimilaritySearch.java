@@ -150,7 +150,9 @@ public class SimilaritySearch {
         PreparedStatement pstmtFp=null;
         PreparedStatement pstmLookup=null;
         
-        String query = " select /*+ parallel (s,2) */ bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
+        //String query = " select /*+ parallel (s,2) */ bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
+        String query = " select bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
+
         float cutOff= _cutOff.floatValue();
         int topN = _topN.intValue();
 

@@ -86,25 +86,15 @@ end;
  
  
  - post loader indices: 
-      - primary keys
-      - BITMAPs
+   - primary keys
   
- - Stats!
-
+   - statistics
    analyze table orchem_fingprint_simsearch compute statistics for all columns for all indexes
    /
    analyze table orchem_compounds compute statistics for all columns for all indexes
    /
    
-   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>20, degree=>4);
-
-
-
-
-   -- exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>25, degree=>4);
-   --analyze table orchem_fingprint_subsearch compute statistics for all columns for all indexes
-   --/
-
+   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>33, degree=>4);
 
 
 

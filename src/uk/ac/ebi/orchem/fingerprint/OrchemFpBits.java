@@ -12,6 +12,11 @@ import org.openscience.cdk.interfaces.IBond;
 public class OrchemFpBits {
 
     //TODO how about a ring count in orchem_compounds - should be useful really !
+    
+    //TODO apply singleton pattern
+    //http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html
+
+    //think the rings should move up the food chain
 
     static Map<String, Integer> elemCntBits = new HashMap<String, Integer>();
     static Map<String, Integer> atomPairBits = new HashMap<String, Integer>();
@@ -147,7 +152,6 @@ public class OrchemFpBits {
         neighbourBits.put(bitPos++, Arrays.asList(myArray));
         myArray=new Neighbour[]{ new Neighbour("C",null,false),new Neighbour("S",null,false),new Neighbour("N",null,false)};
         neighbourBits.put(bitPos++, Arrays.asList(myArray));
-
         myArray=new Neighbour[]{ new Neighbour("C",null,false),new Neighbour("C",null,true),new Neighbour("C",null,true),new Neighbour("C",null,true)};
         neighbourBits.put(bitPos++, Arrays.asList(myArray));
         myArray=new Neighbour[]{ new Neighbour("C",null,false),new Neighbour("C",null,true),new Neighbour("C",null,true),new Neighbour("N",null,true)};

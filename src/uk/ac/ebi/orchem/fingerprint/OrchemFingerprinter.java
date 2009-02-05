@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
@@ -31,9 +30,10 @@ public class OrchemFingerprinter implements IFingerprinter {
 
     public BitSet getFingerprint(IAtomContainer molecule) {
         fingerprint = new BitSet(512);
-        elementCounting(molecule, fingerprint);
-        atomPairs(molecule,fingerprint);
-        neighbours(molecule,fingerprint);
+        //elementCounting(molecule, fingerprint);
+        //atomPairs(molecule,fingerprint);
+        //neighbours(molecule,fingerprint);
+        rings(molecule,fingerprint);
 
         return fingerprint;
     }
@@ -44,7 +44,7 @@ public class OrchemFingerprinter implements IFingerprinter {
 
 
     /**
-     * Sets fingerprint bits related to occurence element.<BR>
+     * Sets fingerprint bits related to occurence of elements.<BR>
      * For example, set a bit to true if there are more than 20 carbon atoms in the molecule.
      * @param molecule
      * @param fingerprint
@@ -72,6 +72,7 @@ public class OrchemFingerprinter implements IFingerprinter {
             elemSymbol = (String)it.next();
             int counted = elemCounts.get(elemSymbol);
 
+            /* Behold, lots of hard coded stuff. Perhaps one day I'll think of a pretty design pattern instead */
             if (elemSymbol.equals("C")) {
                 if (counted >= 20)
                     fingerprint.set(OrchemFpBits.elemCntBits.get("C20"), true);
@@ -165,122 +166,92 @@ public class OrchemFingerprinter implements IFingerprinter {
 
 
     /**
-     *
+     * Sets fingerprint bits for patterns of neigbouring atoms.<BR>
+     * Uses {@link Neighbour } beans to store patterns of neighbouring atoms.<BR>
+     * Bond order and aromaticity can be taken into account or ignored, this
+     * is determined by the pattern.
+     * 
      * @param molecule
      * @param fingerprint
      */
     private void neighbours(IAtomContainer molecule, BitSet fingerprint) {
 
+        /* Loop over all atoms and see if it neighbours match a neighbourhood pattern that gets a bit set */
         Iterator<IAtom> atomIterator = molecule.atoms().iterator();
-
         while (atomIterator.hasNext()) {
-            findNeighbours(atomIterator.next(), molecule, fingerprint);
 
-        }
-    }
+            IAtom centralAtom = atomIterator.next();
+            List<Neighbour> atomPlusNeighbours = new ArrayList<Neighbour>();
 
-    private void findNeighbours(IAtom mainAtom, IAtomContainer molecule, BitSet fingerprint) {
+            /* Only the elements listed in the next match are used in neighbourhood patterns */
+            if (centralAtom.getSymbol().matches("(C|N|O|P|S)")) {
 
-        List<Neighbour> neighbourList = new ArrayList<Neighbour>();
+                /* Put the central atom in as element zero in the list (not really a neighbour) */
+                atomPlusNeighbours.add(new Neighbour(centralAtom.getSymbol(), null, false));
+                Iterator<IBond> bondSubIterator = molecule.bonds().iterator();
+                /* Put all neighbours in the list, plus the bond order and aromaticity  */
+                while (bondSubIterator.hasNext()) {
+                    IBond subBond = bondSubIterator.next();
+                    if (subBond.getAtom(0).equals(centralAtom))
+                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(1).getSymbol(), subBond.getOrder(),
+                                                        subBond.getFlag(CDKConstants.ISAROMATIC)));
+                    else if (subBond.getAtom(1).equals(centralAtom))
+                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(0).getSymbol(), subBond.getOrder(),
+                                                        subBond.getFlag(CDKConstants.ISAROMATIC)));
+                }
 
-        if (mainAtom.getSymbol().matches("(C|N|O|P|S)")) {
-            neighbourList.add(new Neighbour(mainAtom.getSymbol(), null, false));
+                /* 
+                   Now loop over all patterns, and see if the current atom plus neighbours matches any.
+                   If so, then set the corresponding fingerprint bit number (given by the pattern) to true. 
+                */
+                Iterator<Integer> patternItr = OrchemFpBits.neighbourBits.keySet().iterator();
+                List<Neighbour> neighbourPatternList = null;
+                while (patternItr.hasNext()) {
+                    Integer bit = patternItr.next();
+                    neighbourPatternList = OrchemFpBits.neighbourBits.get(bit);
+                    if (neighbourPatternList.size() <= atomPlusNeighbours.size() &&
+                        neighbourPatternList.get(0).getSymbol().equals(atomPlusNeighbours.get(0).getSymbol())) {
+                        List<Integer> mappedAtomIndexes = new ArrayList<Integer>();
 
-            Iterator<IBond> bondSubIterator = molecule.bonds().iterator();
-            while (bondSubIterator.hasNext()) {
-                IBond subBond = bondSubIterator.next();
-                if (subBond.getAtom(0).equals(mainAtom))
-                    neighbourList.add(new Neighbour(subBond.getAtom(1).getSymbol(), subBond.getOrder(),
-                                                    subBond.getFlag(CDKConstants.ISAROMATIC)));
-                else if (subBond.getAtom(1).equals(mainAtom))
-                    neighbourList.add(new Neighbour(subBond.getAtom(0).getSymbol(), subBond.getOrder(),
-                                                    subBond.getFlag(CDKConstants.ISAROMATIC)));
-            }
-        }
+                        /* boolean to indicate that all atoms in the pattern have been mapped (meaning: 100% match -> set bit) */
+                        boolean allMapped = false;
+                        
+                        /* nested loop over pattern atoms and then the current neighbour atoms to try and make a match */
+                        for (int patIdx = 1; patIdx < neighbourPatternList.size(); patIdx++) {
+                            boolean patternAtomMapped = false;
+                            Neighbour neighbPatt = neighbourPatternList.get(patIdx);
 
-        //print content of neighbourList
-        //for (Neighbour bob : neighbourList) {
-        //    System.out.print("++  (" + bob.symbol + "   " + bob.bondOrder + "   " + bob.aromatic + ")");
-        //}
-        //System.out.println();
-
-
-        Iterator<Integer> neighbItr = OrchemFpBits.neighbourBits.keySet().iterator();
-        List<Neighbour> neighbourPatternList = null;
-
-        while (neighbItr.hasNext()) {
-            Integer bit = neighbItr.next();
-            neighbourPatternList = OrchemFpBits.neighbourBits.get(bit);
-            if (neighbourPatternList.size() <= neighbourList.size() &&
-                neighbourPatternList.get(0).symbol.equals(neighbourList.get(0).symbol)) {
-                List<Integer> mapped = new ArrayList<Integer>();
-
-                boolean allMapped = false;
-
-                for (int patIdx = 1; patIdx < neighbourPatternList.size(); patIdx++) {
-                    boolean map = false;
-                    Neighbour nPat = neighbourPatternList.get(patIdx);
-
-                    for (int neighIdx = 1; neighIdx < neighbourList.size(); neighIdx++) {
-                        if (!mapped.contains(neighIdx)) {
-                            Neighbour n = neighbourList.get(neighIdx);
-                            if (nPat.symbol.equals(n.symbol) &&
-                                (nPat.bondOrder == null || nPat.bondOrder == n.bondOrder) &&
-                                (nPat.aromatic == null || nPat.aromatic == n.aromatic)) {
-                                map = true;
-                                mapped.add(neighIdx);
-                                if (patIdx == neighbourPatternList.size() - 1) {
-                                    allMapped = true;
+                            for (int neighIdx = 1; neighIdx < atomPlusNeighbours.size(); neighIdx++) {
+                                if (!mappedAtomIndexes.contains(neighIdx)) {
+                                    Neighbour neighb = atomPlusNeighbours.get(neighIdx);
+                                    if (neighbPatt.getSymbol().equals(neighb.getSymbol()) &&
+                                        (neighbPatt.getBondOrder() == null || neighbPatt.getBondOrder() == neighb.getBondOrder()) &&
+                                        (neighbPatt.getAromatic() == null || neighbPatt.getAromatic() == neighb.getAromatic())) {
+                                        patternAtomMapped = true;
+                                        mappedAtomIndexes.add(neighIdx);
+                                        if (patIdx == neighbourPatternList.size() - 1) {
+                                            allMapped = true;
+                                        }
+                                        break;
+                                    }
                                 }
+                            }
+                            if (!patternAtomMapped)
                                 break;
+                            if (allMapped) {
+                               fingerprint.set(bit,true);
                             }
                         }
-                    }
-                    if (!map)
-                        break;
-
-                    if (allMapped) {
-
-
-                        for (Neighbour bob : neighbourPatternList) {
-                            System.out.print(">> (" + bob.symbol + " " + bob.bondOrder + " " + bob.aromatic + ")");
-                            fingerprint.set(bit,true);
-                        }
-                        System.out.println();
-
                     }
                 }
             }
         }
-
-        /*
-             * for each bond B
-             *  for each atom A in this bond
-             *  if A symbol eq C,S,N,O ...
-             *    clear listBO (BO=bond order), clear listAROM (aromaticity indicated)
-             *    put graph elem in list, using partner atom
-             *    for each other bond with A1 in it loop
-             *       put graph elem in list (A2..n)
-             *    end loop
-             *
-             *    for each combination in fp list loop .. and also if that list.size <= list built
-             *       if start elem symbol is same as A
-             *         clear flag list
-             *         for each molecule M in combi loop
-             *            if M symbol in list(N) and aromaticity matches and not flagged
-             *              update flag list N
-             *            else
-             *              <<break>>>
-             *         end loop
-             *         add fingerprint
-             *  fi
-             */
-
-
     }
 
 
-    private void rings(IAtomContainer container) {
+
+
+    private void rings(IAtomContainer container, BitSet fingerprint) {
 
         double weight =
             MolecularFormulaManipulator.getTotalNaturalAbundance(MolecularFormulaManipulator.getMolecularFormula(container));

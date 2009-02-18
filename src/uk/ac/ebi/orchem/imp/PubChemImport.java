@@ -17,7 +17,7 @@ import org.openscience.cdk.Molecule;
 import org.openscience.cdk.io.MDLWriter;
 import org.openscience.cdk.io.iterator.IteratingMDLReader;
 
-import uk.ac.ebi.orchem.db.PubChemConnection;
+import uk.ac.ebi.orchem.scratch.temp.PubChemConnection;
 
 
 /**

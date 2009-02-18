@@ -1,21 +1,5 @@
 package uk.ac.ebi.orchem.web;
 
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import java.sql.Statement;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import uk.ac.ebi.orchem.bean.OrChemCompound;
-import uk.ac.ebi.orchem.db.OrChemParameters;
-import uk.ac.ebi.orchem.db.StarliteConnection;
-import uk.ac.ebi.orchem.singleton.DbAgent;
-
 
 public class DBSearchInvoker_workaround {
     /*

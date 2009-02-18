@@ -7,8 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import java.sql.Statement;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,14 +14,12 @@ import java.util.Map;
 import oracle.jdbc.OracleCallableStatement;
 import oracle.jdbc.OracleTypes;
 
-import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.db.OrChemParameters;
-import uk.ac.ebi.orchem.db.StarliteConnection;
 import uk.ac.ebi.orchem.singleton.DbAgent;
 
 
 /**
- * Performs OrChem database searches. 
+ * Performs OrChem database searches.
  * Part of demo web-application, not really "core" OrChem functionality.
  *
  * @author markr@ebi.ac.uk

@@ -8,23 +8,25 @@ import java.util.Properties;
 import oracle.jdbc.pool.OracleConnectionCacheManager;
 import oracle.jdbc.pool.OracleDataSource;
 
+import uk.ac.ebi.orchem.Constants;
+
 
 /**
  * Singleton to manage db connection for the mock web application.
- * Not part of core cartridge, hard coded values here; no matter.
  */
 public class DbAgent extends Thread {
 
     public static final DbAgent DB_AGENT = new DbAgent();
-    
+
     private OracleConnectionCacheManager connMgr = null;
 
     private OracleDataSource ods = null;
-    public Exception constructorException;
+    Exception constructorException;
     public static final String CACHE_NAME = "myCache";
-    
+
     private String dbName;
-    public String getDbName () {
+
+    public String getDbName() {
         return this.DB_AGENT.dbName;
     }
 
@@ -34,44 +36,30 @@ public class DbAgent extends Thread {
 
             /* Set up an Oracle Connection cache to provide connections to non-Toplink database actions */
 
+            Properties databaseProperties = Constants.getDatabaseProperties();
+
+            ods = new OracleDataSource();
+            ods.setURL(databaseProperties.getProperty("dbUrl"));
+            ods.setUser(databaseProperties.getProperty("dbUser"));
+            ods.setPassword(databaseProperties.getProperty("dbPass"));
+            dbName = databaseProperties.getProperty("dbLabel");
+            ods.setConnectionCachingEnabled(true);
+            ods.setConnectionCacheName(CACHE_NAME);
+
+            Properties cacheProperties = new Properties();
+            cacheProperties.setProperty("MinLimit", databaseProperties.getProperty("connCacheMinLimit"));
+            cacheProperties.setProperty("MaxLimit", databaseProperties.getProperty("connCacheMaxLimit"));
+            cacheProperties.setProperty("InitialLimit", databaseProperties.getProperty("connCacheIniLimit"));
+
+
             connMgr = OracleConnectionCacheManager.getConnectionCacheManagerInstance();
-            Properties properties = new Properties();
-            properties.setProperty("MinLimit", "1");
-            properties.setProperty("MaxLimit", "8");
-            properties.setProperty("InitialLimit", "1");
-
-
             if (connMgr.existsCache(CACHE_NAME)) {
                 System.out.println("Cache " + CACHE_NAME + " already exists, cleaning up first.");
                 connMgr.purgeCache(CACHE_NAME, true);
                 connMgr.removeCache(CACHE_NAME, 0);
-            } 
+            }
 
-            ods = new OracleDataSource();
-
-            ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
-            ods.setUser("starlite28p");
-            ods.setPassword("star");
-            dbName = "Starlite28 - 422k compounds";
-
-            //ods.setURL("jdbc:oracle:thin:@ora-clu1a-vip:1531:litpub1");
-            //ods.setUser("crossref");
-            //ods.setPassword("crossref");
-            //dbName = "PubChem (snapshot 3.5 million)";
-            
-            //ods.setURL("jdbc:oracle:thin:@172.22.69.17:1521:marx");
-            //ods.setUser("chebi");
-            //ods.setPassword("chebi");
-            //dbName = "Chebi";
-
-            //ods.setURL("jdbc:oracle:thin:@royaloak.ebi.ac.uk:1521:chemdev");
-            //ods.setUser("starlite_31");
-            //ods.setPassword("starlite");
-            //dbName = "Starlite (database='Chemdev')";
- 
-            ods.setConnectionCachingEnabled(true);
-            ods.setConnectionCacheName(CACHE_NAME);
-            connMgr.createCache(CACHE_NAME, ods, properties);
+            connMgr.createCache(CACHE_NAME, ods, cacheProperties);
 
 
         } catch (Exception fatal) {
@@ -109,6 +97,7 @@ public class DbAgent extends Thread {
         }
         return conn;
     }
+
     /**
      * Return a connection back to the connection pool. ALWAYS call this method
      * eventually after calling {@link #getCachedConnection() }.
@@ -123,7 +112,7 @@ public class DbAgent extends Thread {
     }
 
 
-    public static String getUser () {
+    public static String getUser() {
         return DB_AGENT.ods.getUser();
     }
 

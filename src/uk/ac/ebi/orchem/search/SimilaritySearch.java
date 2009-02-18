@@ -35,7 +35,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
 /**
  * Similarity search between a query molecule and the database molecules.<BR>
- * This class is loaded in the database and executed as a java stored procedure, hence the
+ * This Java class is to be loaded in the database and executed as a Java stored procedure, hence the
  * proprietary things like "oracle.sql.ARRAY" and defaultConnection.
  *
  * @author markr@ebi.ac.uk, algorithm credits to S.Joshua Swamidass and Pierre Baldi
@@ -150,7 +150,6 @@ public class SimilaritySearch {
         PreparedStatement pstmtFp=null;
         PreparedStatement pstmLookup=null;
         
-        //String query = " select /*+ parallel (s,2) */ bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
         String query = " select bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
 
         float cutOff= _cutOff.floatValue();
@@ -158,33 +157,35 @@ public class SimilaritySearch {
 
         try {
             conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //conn = (OracleConnection)new PubChemConnection().getDbConnection();
+            //conn = (OracleConnection)new ChemdevConnection().getDbConnection();
 
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
             String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
             String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
 
-            conn.setDefaultRowPrefetch(100);
-
             float queryBitCount = queryFp.cardinality();
             byte[] queryBytes = Utils.toByteArray(queryFp, fpSize);
+            int queryByteArrLen = queryBytes.length;
     
             float lowBucketNum = queryBitCount - 1;
             float highBucketNum = queryBitCount + 1;
             float currBucketNum = queryBitCount;
     
             pstmtFp = conn.prepareStatement(query);
+            pstmtFp.setFetchSize(250);
+            
             ResultSet resFp = null;
             boolean done = false;
-            byte[] compBytes = null;
+            byte[] dbByteArray = null;
             float bitsInCommon = 0;
             float tanimotoCoeff = 0f;
             heap = new PriorityBuffer(true, heapComparator);
             int bucksSearched=0;
             int loopCount=0;
+            long countor=0;
     
             while (!done) {
-                //System.out.println("bucket is "+currBucketNum);
+                System.out.println("bucket is "+currBucketNum);
                 loopCount++;
                 pstmtFp.setFloat(1, currBucketNum);
                 bucksSearched++;
@@ -204,14 +205,23 @@ public class SimilaritySearch {
                 }
                 //
     
+
                 if (!done) {
                     //Algorithm 15-26
                     while (resFp.next()) { 
     
                         bitsInCommon = 0;
-                        compBytes = resFp.getBytes("fp");
-                        for (int i = 0; i < compBytes.length && i < queryBytes.length; i++) {
-                            int bAnd = compBytes[i] & queryBytes[i];
+                        dbByteArray = resFp.getBytes("fp");
+
+                        int dbByteArrLen = dbByteArray.length;
+                        int arrLen = 0;
+                        if (dbByteArrLen < queryByteArrLen)
+                            arrLen = dbByteArrLen;
+                        else
+                            arrLen = queryByteArrLen;
+
+                        for (int i = 0; i < arrLen; i++) {
+                            int bAnd = dbByteArray[i] & queryBytes[i];
                             if (bAnd < 0) {
                                 bAnd += 128;
                                 bitsInCommon += BIT_COUNT[bAnd] + 1;
@@ -266,6 +276,7 @@ public class SimilaritySearch {
                 }
             }
             debug("searched bit_count buckets: "+loopCount,debugging);
+            System.out.println(countor);
     
 
            /********************************************************************
@@ -396,10 +407,10 @@ public class SimilaritySearch {
     public static void main(String[] args) throws Exception{
 
         OracleConnection conn =
-          (OracleConnection)new PubChemConnection().getDbConnection();
+          (OracleConnection)new ChemdevConnection().getDbConnection();
 
         PreparedStatement stmtQueryCompounds =
-          conn.prepareStatement("select cid, mdl from compounds where cid=446600");
+          conn.prepareStatement("select molregno, molfile from compounds where molregno=55888");
 
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         ResultSet res = stmtQueryCompounds.executeQuery();
@@ -407,11 +418,10 @@ public class SimilaritySearch {
         String mdl = "";
 
         while (res.next()) {
-          System.out.println(res.getInt("cid"));
-          molFileClob = res.getClob("mdl");
-          molSearch(molFileClob, 0.8f, 50,"Y");
+          System.out.println(res.getInt("molregno"));
+          molFileClob = res.getClob("molfile");
+          molSearch(molFileClob, 0.85f, 50,"Y");
         }
     }
     */
-
 }

@@ -1,19 +1,14 @@
 package uk.ac.ebi.orchem.fingerprint;
 
-import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import java.util.Set;
 
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -22,9 +17,9 @@ import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
 import org.openscience.cdk.ringsearch.RingPartitioner;
 import org.openscience.cdk.ringsearch.SSSRFinder;
-import org.openscience.cdk.tools.CDKValencyChecker;
-import org.openscience.cdk.tools.SaturationChecker;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+
+import uk.ac.ebi.orchem.fingerprint.bitpos.BitPosApi;
+import uk.ac.ebi.orchem.fingerprint.bitpos.Neighbour;
 
 
 /**
@@ -32,20 +27,21 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * Creates a fingerprint that is (supposed to be) tweaked for Chembl-like
  * databases with drug compounds.
  *
- * TODO!! I think we should throw in the rarer elements. These are often part of wonky mols
- * 322326, 154147 and such. Also give some more bits of course
- *
  */
 public class OrchemFingerprinter implements IFingerprinter {
 
     private BitSet fingerprint;
 
     public BitSet getFingerprint(IAtomContainer molecule) {
-        fingerprint = new BitSet(512); //...
-        //elementCounting(molecule, fingerprint);
-        //atomPairs(molecule,fingerprint);
-        //neighbours(molecule,fingerprint);
-        rings(molecule, fingerprint);
+        fingerprint = new BitSet(512); //TODO
+        elementCounting(molecule);
+        atomPairs(molecule);
+        neighbours(molecule);
+
+        IRingSet ringSet = new SSSRFinder(molecule).findSSSR();
+        rings(ringSet);
+        List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
+        ringSets(rslist);
 
         return fingerprint;
     }
@@ -60,9 +56,8 @@ public class OrchemFingerprinter implements IFingerprinter {
      * For example, set a bit to true if there are more than 20 carbon atoms in the molecule.
      * What bit to set when is determined by input data from {@link OrchemFpBits}
      * @param molecule
-     * @param fingerprint
      */
-    private void elementCounting(IAtomContainer molecule, BitSet fingerprint) {
+    private void elementCounting(IAtomContainer molecule) {
 
         String elemSymbol = null;
         Integer elemSymbCount = 0;
@@ -87,11 +82,9 @@ public class OrchemFingerprinter implements IFingerprinter {
 
             for (int cnt = 1; cnt <= counted; cnt++) {
                 String mapKey = elemSymbol + cnt;
-                //System.out.println(mapKey);
-                Integer bitPos = OrchemFpBits.elemCntBits.get(mapKey);
+                Integer bitPos = BitPosApi.bp.elemCntBits.get(mapKey);
                 if (bitPos != null) {
                     fingerprint.set(bitPos, true);
-                    //System.out.println(">>>>>>>"+bitPos);
                 }
             }
         }
@@ -102,9 +95,8 @@ public class OrchemFingerprinter implements IFingerprinter {
      * Sets fingerprint bits for atom pairs of interest<BR>
      * For example, set a bit to true if there is a O-O atom pair.
      * @param molecule
-     * @param fingerprint
      */
-    private void atomPairs(IAtomContainer molecule, BitSet fingerprint) {
+    private void atomPairs(IAtomContainer molecule) {
         /* Loop over all bonds in the molecule */
         Iterator<IBond> bondIterator = molecule.bonds().iterator();
         while (bondIterator.hasNext()) {
@@ -114,10 +106,10 @@ public class OrchemFingerprinter implements IFingerprinter {
 
             /* Test if the atoms in the bond occur as an atom pair we want to fingerprint.
              * Try both ways.. */
-            if (OrchemFpBits.atomPairBits.containsKey(symbol1 + "-" + symbol2))
-                fingerprint.set(OrchemFpBits.atomPairBits.get(symbol1 + "-" + symbol2), true);
-            else if (OrchemFpBits.atomPairBits.containsKey(symbol2 + "-" + symbol1))
-                fingerprint.set(OrchemFpBits.atomPairBits.get(symbol2 + "-" + symbol1), true);
+            if (BitPosApi.bp.atomPairBits.containsKey(symbol1 + "-" + symbol2))
+                fingerprint.set(BitPosApi.bp.atomPairBits.get(symbol1 + "-" + symbol2), true);
+            else if (BitPosApi.bp.atomPairBits.containsKey(symbol2 + "-" + symbol1))
+                fingerprint.set(BitPosApi.bp.atomPairBits.get(symbol2 + "-" + symbol1), true);
         }
     }
 
@@ -129,9 +121,8 @@ public class OrchemFingerprinter implements IFingerprinter {
      * is determined by the pattern.
      *
      * @param molecule
-     * @param fingerprint
      */
-    private void neighbours(IAtomContainer molecule, BitSet fingerprint) {
+    private void neighbours(IAtomContainer molecule) {
 
         /* Loop over all atoms and see if it neighbours match a neighbourhood pattern that gets a bit set */
         Iterator<IAtom> atomIterator = molecule.atoms().iterator();
@@ -150,24 +141,21 @@ public class OrchemFingerprinter implements IFingerprinter {
                 while (bondSubIterator.hasNext()) {
                     IBond subBond = bondSubIterator.next();
                     if (subBond.getAtom(0).equals(centralAtom))
-                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(1).getSymbol(), subBond.getOrder(),
-                                                             subBond.getFlag(CDKConstants.ISAROMATIC)));
+                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(1).getSymbol(), subBond.getOrder(), subBond.getFlag(CDKConstants.ISAROMATIC)));
                     else if (subBond.getAtom(1).equals(centralAtom))
-                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(0).getSymbol(), subBond.getOrder(),
-                                                             subBond.getFlag(CDKConstants.ISAROMATIC)));
+                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(0).getSymbol(), subBond.getOrder(), subBond.getFlag(CDKConstants.ISAROMATIC)));
                 }
 
                 /*
                    Now loop over all patterns, and see if the current atom plus neighbours matches any.
                    If so, then set the corresponding fingerprint bit number (given by the pattern) to true.
                 */
-                Iterator<Integer> patternItr = OrchemFpBits.neighbourBits.keySet().iterator();
+                Iterator<Integer> patternItr = BitPosApi.bp.neighbourBits.keySet().iterator();
                 List<Neighbour> neighbourPatternList = null;
                 while (patternItr.hasNext()) {
                     Integer bit = patternItr.next();
-                    neighbourPatternList = OrchemFpBits.neighbourBits.get(bit);
-                    if (neighbourPatternList.size() <= atomPlusNeighbours.size() &&
-                        neighbourPatternList.get(0).getSymbol().equals(atomPlusNeighbours.get(0).getSymbol())) {
+                    neighbourPatternList = BitPosApi.bp.neighbourBits.get(bit);
+                    if (neighbourPatternList.size() <= atomPlusNeighbours.size() && neighbourPatternList.get(0).getSymbol().equals(atomPlusNeighbours.get(0).getSymbol())) {
                         List<Integer> mappedAtomIndexes = new ArrayList<Integer>();
 
                         /* boolean to indicate that all atoms in the pattern have been mapped (meaning: 100% match -> set bit) */
@@ -182,10 +170,8 @@ public class OrchemFingerprinter implements IFingerprinter {
                                 if (!mappedAtomIndexes.contains(neighIdx)) {
                                     Neighbour neighb = atomPlusNeighbours.get(neighIdx);
                                     if (neighbPatt.getSymbol().equals(neighb.getSymbol()) &&
-                                        (neighbPatt.getBondOrder() == null ||
-                                         neighbPatt.getBondOrder() == neighb.getBondOrder()) &&
-                                        (neighbPatt.getAromatic() == null ||
-                                         neighbPatt.getAromatic() == neighb.getAromatic())) {
+                                        (neighbPatt.getBondOrder() == null || neighbPatt.getBondOrder() == neighb.getBondOrder()) &&
+                                        (neighbPatt.getAromatic() == null || neighbPatt.getAromatic() == neighb.getAromatic())) {
                                         patternAtomMapped = true;
                                         mappedAtomIndexes.add(neighIdx);
                                         if (patIdx == neighbourPatternList.size() - 1) {
@@ -207,157 +193,202 @@ public class OrchemFingerprinter implements IFingerprinter {
         }
     }
 
+    /**
+     * Sets fingerprint bits related to single rings: size, aromaticity, atoms in the rings
+     * @param ringSet
+     */
+    private void rings(IRingSet ringSet) {
+        Iterator<IAtomContainer> ringIterator = ringSet.atomContainers().iterator();
+        Map<String, Integer> ringProps = new HashMap<String, Integer>();
 
-    private void rings(IAtomContainer container, BitSet fingerprint) {
+        /* Loop over all the rings and build up a map with ring aspects */
+        while (ringIterator.hasNext()) {
 
-        IRingSet ringSet = new SSSRFinder(container).findSSSR();
-        List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
+            IAtomContainer ring = ringIterator.next();
 
+            int ringSize = ring.getAtomCount();
+            boolean hasNitrogen = false;
+            boolean hasHeteroAtom = false;
+            boolean hasOnlyCarbon = true;
 
-        /*
-            Bit Position  Bit Substructure
-            >= 1 any ring size 3
-
-            >= 1 carbon-only ring size 3
-            >= 1 nitrogen-containing ring size 3
-            >= 1 heteroatom-containing ring size 3
-
-            >= 1  carbon-only ring size 3 > with non ar double bond?
-            >= 1  nitrogen-containing ring size 3 > with non ar double bond?
-            >= 1  heteroatom-containing ring size 3 > with non ar double bond?
-
-            ............
-
-            ..
-
-            =>1 ringset with multiple rings
-            =>2 ringset with multiple rings
-            =>3 ringset with multiple rings
-            =>4 ringset with multiple rings
-            =>5 ringset with multiple rings
-
-
-           ....
-
-            =>1 ringset pair 3,3 .. does that ever occur?
-            =>1 ringset pair 3,4
-            =>1 ringset pair 3,5
-            =>1 ringset pair 3,6 starl 36763
-            =>1 ringset pair 3,8
-
-            =>1 ringset pair 4,4
-            =>1 ringset pair 4,5
-            =>1 ringset pair 4,6
-            =>1 ringset pair 4,8
-
-            =>1 ringset pair 5,5
-            =>1 ringset pair 5,6
-            =>1 ringset pair 5,8
-
-            =>2 ringset pair 5,6 starlite 375179
-            =>2 ringset pair 5,8 starlite 861
-
-            =>1 ringset pair 6,6 .. or too common???
-            =>1 ringset pair 6,8 ..  starlite 158895
-
-            =>3 ringset hexring count
-            =>4 ringset hexring count
-            =>5 ringset hexring count
-
-            =>2 ringset pentring count
-            =>3 ringset pentring count
-
-        */
-
-        /* Counter for ringsets with multiple rings, not single ring (uninteresting) sets   */
-        int multipleRingSetCount = 0;
-        /* Map tracking how many of what size multi ring sets we find */
-        Map<Integer, Integer> ringsetSizes = new HashMap<Integer, Integer>();
-
-        for (IRingSet irs : rslist) {
-            int numberOfRingsInSet = irs.getAtomContainerCount();
-            if (numberOfRingsInSet > 1) {
-                /* Increase overall counter */
-                multipleRingSetCount++;
-                /* Update map with current set sizes found */
-                Integer cnt = ringsetSizes.get(numberOfRingsInSet);
-                if (cnt != null) {
-                    ringsetSizes.put(numberOfRingsInSet, ++cnt);
-
-                } else {
-                    ringsetSizes.put(numberOfRingsInSet, 1);
+            Iterator<IAtom> itr = ring.atoms().iterator();
+            while (itr.hasNext()) {
+                IAtom atom = itr.next();
+                if (atom.getSymbol().equals("N")) {
+                    hasNitrogen = true;
+                } else if (!atom.getSymbol().equals("C")) {
+                    hasHeteroAtom = true;
+                }
+                if (hasNitrogen && hasHeteroAtom)
+                    break;
+            }
+ 
+            if (hasNitrogen || hasHeteroAtom)
+                hasOnlyCarbon=false;
+           
+            String aromStr = BitPosApi.bp.ringPrefixNonArom;
+            Iterator<IBond> bondItr = ring.bonds().iterator();
+            while (bondItr.hasNext()) {
+                IBond bond = bondItr.next();
+                if (bond.getFlag(CDKConstants.ISAROMATIC)) {
+                    aromStr = BitPosApi.bp.ringPrefixArom;
+                    break;
                 }
             }
 
-            Iterator<IAtomContainer> itr =  irs.atomContainers().iterator();
-            while (itr.hasNext())  {
-                IRing ring = (IRing)itr.next();
-                IRingSet rs2 = irs.getConnectedRings(ring);
-                Iterator<IAtomContainer> it2 = rs2.atomContainers().iterator();
-                while (it2.hasNext())  {
-                    IRing neighbourRing = (IRing)it2.next();
-                    System.out.println(ring.getAtomCount()+"_"+neighbourRing.getAtomCount());
-                    //TODO find useful values here, run on a large range of things
-                }
-                
-
-            }
+            addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + BitPosApi.bp.ringPrefixAny);
+            addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr);
+            if (hasNitrogen)
+                addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr + BitPosApi.bp.ringPrefixNitro);
+            if (hasHeteroAtom)
+                addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr + BitPosApi.bp.ringPrefixHetero);
+            if (hasOnlyCarbon)
+                addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr + BitPosApi.bp.ringPrefixCarbonOnly);
 
         }
 
-        /* Set bits for compounds with one or more ringsets with multiple rings */
-        for (int cnt = 1; cnt <= multipleRingSetCount; cnt++) {
-            String mapKey = OrchemFpBits.ringsetCountTotalPrefix + "" + cnt;
-            if (OrchemFpBits.ringSetBits.containsKey(mapKey)) {
-                fingerprint.set(OrchemFpBits.ringSetBits.get(mapKey), true);
-            }
-        }
-
-        /* Set bits that indicate the number of rings in the multiple ring sets */
-        Set<Integer> keys = ringsetSizes.keySet();
-        Iterator<Integer> i = keys.iterator();
-        while (i.hasNext()) {
-            Integer numberOfRingsInSet = i.next();
-            Integer counted = ringsetSizes.get(numberOfRingsInSet);
-
-            for (int cnt = 1; cnt <= numberOfRingsInSet; cnt++) {
-                String mapKey = OrchemFpBits.ringsetCountBySizePrefix + cnt;
-                Integer bitPos = OrchemFpBits.ringSetBits.get(mapKey);
-                if (bitPos != null) {
+        Iterator<String> itr = ringProps.keySet().iterator();
+        while (itr.hasNext()) {
+            String ringProperties = itr.next();
+            int countPropsOccurence = ringProps.get(ringProperties);
+            
+            for (int i = 1; i <= countPropsOccurence; i++) {
+                if (BitPosApi.bp.ringBits.containsKey(ringProperties + i)) {
+                    int bitPos = BitPosApi.bp.ringBits.get(ringProperties + i);
                     fingerprint.set(bitPos, true);
                 }
             }
         }
+    }
 
+    /**
+     * Helper method for {@link #rings(IRingSet)}
+     * @param m Map
+     * @param s Key for Map
+     */
+    private void addRingProps(Map<String, Integer> m, String s) {
+        if (m.containsKey(s)) {
+            int cnt = m.get(s) + 1;
+            m.put(s, cnt);
+        } else
+            m.put(s, 1);
+    }
+
+
+    /**
+     * Set fingerprint bits related to ring set properties: size, members and connectivity.
+     * Only rings sets with two or more atomcontainers ("multi") are considered (the single
+     * ring sets are taken care of by the rings() method.
+     *
+     * @param ringsetList
+     */
+    private void ringSets(List<IRingSet> ringsetList) {
+
+        /* Map tracking how many of what size multi ring sets we find */
+        Map<Integer, Integer> ringsetCountPerSet = new HashMap<Integer, Integer>();
+
+        int ringSetCount = 0;
+        int maxConnectedCount = 0;
+        int maxHexRingInSetCount = 0;
+        int maxPentRingInSetCount = 0;
+
+        /* Loop over all the ringsets*/
+        for (IRingSet irs : ringsetList) {
+            int numberOfRingsInSet = irs.getAtomContainerCount();
+            if (numberOfRingsInSet > 1) {
+                /* Increase overall counter, keeping track how many multi ring set are found */
+                ringSetCount++;
+
+                /* Track number of rings per set */
+                Integer cnt = ringsetCountPerSet.get(numberOfRingsInSet);
+                if (cnt != null) {
+                    ringsetCountPerSet.put(numberOfRingsInSet, ++cnt);
+                } else {
+                    ringsetCountPerSet.put(numberOfRingsInSet, 1);
+                }
+
+                int hexRingInSetCount = 0;
+                int pentRingInSetCount = 0;
+                /* Loop over each ring in the ringset */
+                Iterator<IAtomContainer> ringsetMembers = irs.atomContainers().iterator();
+                while (ringsetMembers.hasNext()) {
+
+                    IRing ring = (IRing)ringsetMembers.next();
+                    /* Track number of hex and pent rings per set */
+                    if (ring.getAtomCount() == 6)
+                        hexRingInSetCount++;
+                    if (ring.getAtomCount() == 5)
+                        pentRingInSetCount++;
+
+                    int cntNeighb = 0;
+                    /* Loop over the ringset's neighbours (connected) */
+                    IRingSet connectedRings = irs.getConnectedRings(ring);
+                    Iterator<IAtomContainer> connRingMembers = connectedRings.atomContainers().iterator();
+                    while (connRingMembers.hasNext()) {
+                        cntNeighb++;
+                        IRing neighbourRing = (IRing)connRingMembers.next();
+                        int ringSize1 = ring.getAtomCount();
+                        int ringSize2 = neighbourRing.getAtomCount();
+                        if (ringSize1 <= ringSize2) {
+
+                            /* Set bits for ring pairs glued together.
+                             * Example:
+                             *   a five ring and a six ring are glued (=share atoms/bonds).
+                             *   The bit for ring pair 5_6 is set accordingly.
+                             * */
+                            Integer bitPos = BitPosApi.bp.ringSetBits.get(BitPosApi.bp.ringsetPairPrefix + ringSize1 + "_" + ringSize2);
+                            if (bitPos != null) {
+                                fingerprint.set(bitPos, true);
+                            }
+                        }
+                    }
+                    if (cntNeighb > maxConnectedCount)
+                        maxConnectedCount = cntNeighb;
+                    if (hexRingInSetCount > maxHexRingInSetCount)
+                        maxHexRingInSetCount = hexRingInSetCount;
+                    if (pentRingInSetCount > maxPentRingInSetCount)
+                        maxPentRingInSetCount = pentRingInSetCount;
+                }
+
+                /* Set bit overall ringset count */
+                flipRingSetBits(1, ringSetCount, BitPosApi.bp.ringsetCountTotalPrefix);
+
+                /* Set rings related to cluttering - maximum amount of connected rings for any ring in the set */
+                flipRingSetBits(2, maxConnectedCount, BitPosApi.bp.ringsetCountConnectedPrefix);
+
+                /* Set rings related to occurence of hex and pent rings */
+                flipRingSetBits(3, maxHexRingInSetCount, BitPosApi.bp.ringsetCountHexPrefix);
+                flipRingSetBits(2, maxPentRingInSetCount, BitPosApi.bp.ringsetCountPentPrefix);
+
+                /* Set bits that indicate the number of rings in the multiple ring sets */
+                Set<Integer> keys = ringsetCountPerSet.keySet();
+                Iterator<Integer> setCntItr = keys.iterator();
+                while (setCntItr.hasNext()) {
+                    Integer ringSetSize = setCntItr.next();
+                    flipRingSetBits(2, ringSetSize, BitPosApi.bp.ringsetCountPerSet);
+                }
+            }
+        }
 
     }
 
-    private void setRingFingerprints(IAtomContainer ring) {
-        Iterator<IAtom> itr = ring.atoms().iterator();
-        while (itr.hasNext()) {
-            IAtom atom = itr.next();
-            if (atom.getSymbol().equals("N")) {
-                System.out.println("Nitrogen in ring");
-            } else if (!atom.getSymbol().equals("C")) {
-                System.out.println("Hetero atom in ring");
-            }
-            //TODO break out (optimize)
-        }
-        //TODO -> conclude carbon only
-
-        Iterator<IBond> bondItr = ring.bonds().iterator();
-        while (bondItr.hasNext()) {
-            IBond bond = bondItr.next();
-            if (bond.getFlag(CDKConstants.ISAROMATIC)) {
-                System.out.println("Aromatic RING");
-                //TODO break out
+    /**
+     * Helper method for {@link #ringSets(List) }
+     * @param start
+     * @param maxCount
+     * @param prefix
+     */
+    private void flipRingSetBits(int start, int maxCount, String prefix) {
+        for (int cnt = start; cnt <= maxCount; cnt++) {
+            String mapKey = prefix + cnt;
+            if (BitPosApi.bp.ringSetBits.containsKey(mapKey)) {
+                fingerprint.set(BitPosApi.bp.ringSetBits.get(mapKey), true);
             }
         }
-
     }
-
 
     /*
+
     private void neighbours(IAtomContainer molecule, BitSet fingerprint) {
         Map<String, String> results = new HashMap<String, String>();
         for (int atomPos = 0; atomPos < molecule.getAtomCount(); atomPos++) {
@@ -368,11 +399,10 @@ public class OrchemFingerprinter implements IFingerprinter {
         Iterator iterator = results.keySet().iterator();
         while (iterator.hasNext()) {
             String pattern = (String)iterator.next();
-            if (OrchemFpBits.atomPairBits.containsKey(pattern))
-                fingerprint.set(OrchemFpBits.atomPairBits.get(pattern), true);
+            if (OrchemFpBitsSingleton.fp.atomPairBits.containsKey(pattern))
+                fingerprint.set(OrchemFpBitsSingleton.fp.atomPairBits.get(pattern), true);
         }
     }
-
 
     private void traverse(List<SubGraphElement> currSubGraph, IAtomContainer molecule, Map<String, String> results) {
         IAtom lastAtomInList = currSubGraph.get(currSubGraph.size() - 1).at;

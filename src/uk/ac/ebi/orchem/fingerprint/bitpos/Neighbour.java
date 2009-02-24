@@ -1,19 +1,20 @@
-package uk.ac.ebi.orchem.fingerprint;
+package uk.ac.ebi.orchem.fingerprint.bitpos;
 
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IBond;
 
 /**
  * Bean type class to store details relevant to fingerpint neighbouring atoms.
- * These beans can be put in collections, thhus setting up patterns that interesting to fingerprint.
+ * These beans can be put in collections of patterns interesting for fingerprinting.
+ * 
  */
-class Neighbour {
+public class Neighbour {
 
     private String symbol;
     private IBond.Order bondOrder;
     private Boolean aromatic;
 
-        Neighbour (String _symbol, IBond.Order _bondOrder, Boolean _aromatic) {
+        public Neighbour (String _symbol, IBond.Order _bondOrder, Boolean _aromatic) {
             this.symbol=_symbol;
             this.bondOrder=_bondOrder;
             this.aromatic=_aromatic;
@@ -41,5 +42,9 @@ class Neighbour {
 
     public Boolean getAromatic() {
         return aromatic;
+    }
+    
+    public String toString () {
+        return symbol+":"+bondOrder+":"+aromatic+" ";        
     }
 }

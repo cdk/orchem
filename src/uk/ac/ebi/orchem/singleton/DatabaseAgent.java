@@ -41,9 +41,9 @@ import uk.ac.ebi.orchem.Constants;
  * 
  * @author markr@ebi.ac.uk
  */
-public class DbAgent extends Thread {
+public class DatabaseAgent extends Thread {
 
-    public static final DbAgent DB_AGENT = new DbAgent();
+    public static final DatabaseAgent DB_AGENT = new DatabaseAgent();
 
     private OracleConnectionCacheManager connMgr = null;
 
@@ -58,7 +58,7 @@ public class DbAgent extends Thread {
     }
 
     /** Private constructor  */
-    private DbAgent() {
+    private DatabaseAgent() {
         try {
 
             /* Set up an Oracle Connection cache to provide connections to non-Toplink database actions */

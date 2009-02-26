@@ -1,3 +1,26 @@
+/*  
+ *  $Author$
+ *  $Date$
+ *  $Revision$
+ *
+ *  Copyright (C) 2008-2009  OrChem project
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *  All we ask is that proper credit is given for our work, which includes
+ *  - but is not limited to - adding the above copyright notice to the beginning
+ *  of your source code files, and to any copyright notice that you may distribute
+ *  with programs based on this work.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *
+ */
 package uk.ac.ebi.orchem.search;
 
 import java.sql.Clob;
@@ -30,6 +53,7 @@ import uk.ac.ebi.orchem.bean.OrChemCompoundTanimComparator;
 import uk.ac.ebi.orchem.bean.SimHeapElement;
 import uk.ac.ebi.orchem.bean.SimHeapElementTanimComparator;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
 
@@ -38,7 +62,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  * This Java class is to be loaded in the database and executed as a Java stored procedure, hence the
  * proprietary things like "oracle.sql.ARRAY" and defaultConnection.
  *
- * @author markr@ebi.ac.uk, algorithm credits to S.Joshua Swamidass and Pierre Baldi
+ * @author markr@ebi.ac.uk, algorithm by S.Joshua Swamidass and Pierre Baldi
  *
  */
 public class SimilaritySearch {
@@ -351,7 +375,7 @@ public class SimilaritySearch {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         int clobLen = new Long(molfileClob.length()).intValue();
         String molfile = (molfileClob.getSubString(1, clobLen));
-        Molecule molecule = Utils.getNNMolecule(mdlReader, molfile);
+        Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }
@@ -368,7 +392,7 @@ public class SimilaritySearch {
      */
     public static oracle.sql.ARRAY molSearch(String molfile, Float cutOff, Integer topN, String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
-        Molecule molecule = Utils.getNNMolecule(mdlReader, molfile);
+        Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }

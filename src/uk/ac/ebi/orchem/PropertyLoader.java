@@ -1,3 +1,9 @@
+/*  
+ *  $Author$
+ *  $Date$
+ *  $Revision$
+ *
+ */
 package uk.ac.ebi.orchem;
 
 

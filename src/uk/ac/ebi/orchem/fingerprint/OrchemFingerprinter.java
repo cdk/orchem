@@ -23,41 +23,46 @@ import uk.ac.ebi.orchem.fingerprint.bitpos.Neighbour;
 
 
 /**
- *
- * Creates a fingerprint that is (supposed to be) tweaked for Chembl-like
- * databases with drug compounds.
+ * Creates a fingerprint for OrChem, tuned for substructure and
+ * similarity searching in (drug) compounds databases
  *
  */
 public class OrchemFingerprinter implements IFingerprinter {
 
-    private BitSet fingerprint;
-
-    public BitSet getFingerprint(IAtomContainer molecule) {
-        fingerprint = new BitSet(512); //TODO
-        elementCounting(molecule);
-        atomPairs(molecule);
-        neighbours(molecule);
-
-        IRingSet ringSet = new SSSRFinder(molecule).findSSSR();
-        rings(ringSet);
-        List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
-        ringSets(rslist);
-
-        return fingerprint;
-    }
+    public final static int FINGERPRINT_SIZE=575;
 
     public int getSize() {
-        return fingerprint.size();
+        return FINGERPRINT_SIZE;
+    }
+
+    public BitSet getFingerprint(IAtomContainer molecule) {
+
+        BitSet fingerprint;
+        fingerprint = new BitSet(FINGERPRINT_SIZE); //TODO
+        
+        elementCounting(molecule,fingerprint);
+        atomPairs(molecule,fingerprint);
+
+        neighbours(molecule,fingerprint);
+
+        IRingSet ringSet = new SSSRFinder(molecule).findSSSR();
+        rings(ringSet,fingerprint);
+
+        List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
+        ringSets(rslist,fingerprint);
+
+        smartsPatterns(molecule,fingerprint);
+        return fingerprint;
     }
 
 
     /**
      * Sets fingerprint bits related to occurence of elements.<BR>
      * For example, set a bit to true if there are more than 20 carbon atoms in the molecule.
-     * What bit to set when is determined by input data from {@link OrchemFpBits}
+     * What bit to set when is determined by input data from {@link uk.ac.ebi.orchem.fingerprint.bitpos.BitPositions}
      * @param molecule
      */
-    private void elementCounting(IAtomContainer molecule) {
+    private void elementCounting(IAtomContainer molecule, BitSet fingerprint) {
 
         String elemSymbol = null;
         Integer elemSymbCount = 0;
@@ -96,7 +101,7 @@ public class OrchemFingerprinter implements IFingerprinter {
      * For example, set a bit to true if there is a O-O atom pair.
      * @param molecule
      */
-    private void atomPairs(IAtomContainer molecule) {
+    private void atomPairs(IAtomContainer molecule, BitSet fingerprint) {
         /* Loop over all bonds in the molecule */
         Iterator<IBond> bondIterator = molecule.bonds().iterator();
         while (bondIterator.hasNext()) {
@@ -122,7 +127,7 @@ public class OrchemFingerprinter implements IFingerprinter {
      *
      * @param molecule
      */
-    private void neighbours(IAtomContainer molecule) {
+    private void neighbours(IAtomContainer molecule,BitSet fingerprint) {
 
         /* Loop over all atoms and see if it neighbours match a neighbourhood pattern that gets a bit set */
         Iterator<IAtom> atomIterator = molecule.atoms().iterator();
@@ -197,7 +202,7 @@ public class OrchemFingerprinter implements IFingerprinter {
      * Sets fingerprint bits related to single rings: size, aromaticity, atoms in the rings
      * @param ringSet
      */
-    private void rings(IRingSet ringSet) {
+    private void rings(IRingSet ringSet,BitSet fingerprint) {
         Iterator<IAtomContainer> ringIterator = ringSet.atomContainers().iterator();
         Map<String, Integer> ringProps = new HashMap<String, Integer>();
 
@@ -222,10 +227,10 @@ public class OrchemFingerprinter implements IFingerprinter {
                 if (hasNitrogen && hasHeteroAtom)
                     break;
             }
- 
+
             if (hasNitrogen || hasHeteroAtom)
-                hasOnlyCarbon=false;
-           
+                hasOnlyCarbon = false;
+
             String aromStr = BitPosApi.bp.ringPrefixNonArom;
             Iterator<IBond> bondItr = ring.bonds().iterator();
             while (bondItr.hasNext()) {
@@ -251,7 +256,7 @@ public class OrchemFingerprinter implements IFingerprinter {
         while (itr.hasNext()) {
             String ringProperties = itr.next();
             int countPropsOccurence = ringProps.get(ringProperties);
-            
+
             for (int i = 1; i <= countPropsOccurence; i++) {
                 if (BitPosApi.bp.ringBits.containsKey(ringProperties + i)) {
                     int bitPos = BitPosApi.bp.ringBits.get(ringProperties + i);
@@ -262,7 +267,7 @@ public class OrchemFingerprinter implements IFingerprinter {
     }
 
     /**
-     * Helper method for {@link #rings(IRingSet)}
+     * Helper method for {@link #rings(IRingSet,BitSet)}
      * @param m Map
      * @param s Key for Map
      */
@@ -282,7 +287,7 @@ public class OrchemFingerprinter implements IFingerprinter {
      *
      * @param ringsetList
      */
-    private void ringSets(List<IRingSet> ringsetList) {
+    private void ringSets(List<IRingSet> ringsetList,BitSet fingerprint) {
 
         /* Map tracking how many of what size multi ring sets we find */
         Map<Integer, Integer> ringsetCountPerSet = new HashMap<Integer, Integer>();
@@ -351,21 +356,21 @@ public class OrchemFingerprinter implements IFingerprinter {
                 }
 
                 /* Set bit overall ringset count */
-                flipRingSetBits(1, ringSetCount, BitPosApi.bp.ringsetCountTotalPrefix);
+                flipRingSetBits(1, ringSetCount, BitPosApi.bp.ringsetCountTotalPrefix,fingerprint);
 
                 /* Set rings related to cluttering - maximum amount of connected rings for any ring in the set */
-                flipRingSetBits(2, maxConnectedCount, BitPosApi.bp.ringsetCountConnectedPrefix);
+                flipRingSetBits(2, maxConnectedCount, BitPosApi.bp.ringsetCountConnectedPrefix,fingerprint);
 
                 /* Set rings related to occurence of hex and pent rings */
-                flipRingSetBits(3, maxHexRingInSetCount, BitPosApi.bp.ringsetCountHexPrefix);
-                flipRingSetBits(2, maxPentRingInSetCount, BitPosApi.bp.ringsetCountPentPrefix);
+                flipRingSetBits(3, maxHexRingInSetCount, BitPosApi.bp.ringsetCountHexPrefix,fingerprint);
+                flipRingSetBits(2, maxPentRingInSetCount, BitPosApi.bp.ringsetCountPentPrefix,fingerprint);
 
                 /* Set bits that indicate the number of rings in the multiple ring sets */
                 Set<Integer> keys = ringsetCountPerSet.keySet();
                 Iterator<Integer> setCntItr = keys.iterator();
                 while (setCntItr.hasNext()) {
                     Integer ringSetSize = setCntItr.next();
-                    flipRingSetBits(2, ringSetSize, BitPosApi.bp.ringsetCountPerSet);
+                    flipRingSetBits(2, ringSetSize, BitPosApi.bp.ringsetCountPerSet,fingerprint);
                 }
             }
         }
@@ -373,12 +378,12 @@ public class OrchemFingerprinter implements IFingerprinter {
     }
 
     /**
-     * Helper method for {@link #ringSets(List) }
+     * Helper method for {@link #ringSets(List,BitSet) }
      * @param start
      * @param maxCount
      * @param prefix
      */
-    private void flipRingSetBits(int start, int maxCount, String prefix) {
+    private void flipRingSetBits(int start, int maxCount, String prefix,BitSet fingerprint) {
         for (int cnt = start; cnt <= maxCount; cnt++) {
             String mapKey = prefix + cnt;
             if (BitPosApi.bp.ringSetBits.containsKey(mapKey)) {
@@ -387,83 +392,89 @@ public class OrchemFingerprinter implements IFingerprinter {
         }
     }
 
-    /*
-
-    private void neighbours(IAtomContainer molecule, BitSet fingerprint) {
+    /**
+     * TODO
+     * @param molecule
+     */
+    private void smartsPatterns(IAtomContainer molecule,BitSet fingerprint) {
+        /* Build up result list */
         Map<String, String> results = new HashMap<String, String>();
         for (int atomPos = 0; atomPos < molecule.getAtomCount(); atomPos++) {
-            List<SubGraphElement> currSubGraph = new ArrayList<SubGraphElement>();
-            currSubGraph.add(new SubGraphElement(molecule.getAtom(atomPos), IBond.Order.SINGLE, false));
-            traverse(currSubGraph, molecule, results);
+            List<IAtom> atoms = new ArrayList<IAtom>();
+            IAtom at = molecule.getAtom(atomPos);
+            atoms.add(at);
+            traverse(atoms, at.getSymbol(), molecule, results);
         }
+
+        /* Loop over result list and set bits where result matches a smarts pattern */
         Iterator iterator = results.keySet().iterator();
         while (iterator.hasNext()) {
             String pattern = (String)iterator.next();
-            if (OrchemFpBitsSingleton.fp.atomPairBits.containsKey(pattern))
-                fingerprint.set(OrchemFpBitsSingleton.fp.atomPairBits.get(pattern), true);
+            if (BitPosApi.bp.smartsPatternBits.containsKey(pattern)) {
+                fingerprint.set(BitPosApi.bp.smartsPatternBits.get(pattern), true);
+            }
         }
+
     }
 
-    private void traverse(List<SubGraphElement> currSubGraph, IAtomContainer molecule, Map<String, String> results) {
-        IAtom lastAtomInList = currSubGraph.get(currSubGraph.size() - 1).at;
-        for (Iterator bonds = molecule.bonds().iterator(); bonds.hasNext(); ) {
-            Bond bond = (Bond)bonds.next();
+    /**
+     * .................
+     * @param atomList
+     * @param smarts
+     * @param molecule
+     * @param results
+     */
+    private void traverse(List<IAtom> atomList, String smarts, IAtomContainer molecule, Map<String, String> results) {
+
+        IAtom lastAtomInList = atomList.get(atomList.size() - 1);
+
+        for (Iterator<IBond> bonds = molecule.bonds().iterator(); bonds.hasNext(); ) {
+            IBond bond = bonds.next();
             Iterator atoms = bond.atoms().iterator();
             IAtom at1 = (IAtom)atoms.next();
             IAtom at2 = (IAtom)atoms.next();
-            IAtom nextCandidate = null;
 
-            if (at1.equals(lastAtomInList) && !currSubGraph.contains(at2)) {
-                nextCandidate = at2;
-            } else if (at2.equals(lastAtomInList) && !currSubGraph.contains(at1)) {
-                nextCandidate = at1;
+            IAtom nextAtom = null;
+            if (at1.equals(lastAtomInList) && !atomList.contains(at2)) {
+                nextAtom = at2;
+            } else if (at2.equals(lastAtomInList) && !atomList.contains(at1)) {
+                nextAtom = at1;
             }
 
-            if (nextCandidate != null) {
-                currSubGraph.add(new SubGraphElement(nextCandidate, bond.getOrder(), false));
-
-                StringBuilder strb = new StringBuilder();
-                StringBuilder strb2 = new StringBuilder();
-
-                if (currSubGraph.size() >= 2) {
-                    //"-", "=", and "#"
-                    for (SubGraphElement s : currSubGraph) {
-                        strb.append("_" + s.at.getSymbol());
-                        //TODO aromatic and double/triple bonds !
-                        if (s.bondOrder == IBond.Order.SINGLE)
-                            strb2.append("-" + s.at.getSymbol());
-                        else if (s.bondOrder == IBond.Order.DOUBLE)
-                            strb2.append("=" + s.at.getSymbol());
-                        else if (s.bondOrder == IBond.Order.TRIPLE)
-                            strb2.append("#" + s.at.getSymbol());
-
-                    }
-                    String subgraph = strb.toString();
-                    subgraph = subgraph.substring(1, subgraph.length());
-                    results.put(subgraph, subgraph);
-
-                    subgraph = strb2.toString();
-                    subgraph = subgraph.substring(1, subgraph.length());
-                    results.put(subgraph, subgraph);
+            if (nextAtom != null) {
+                String nextSmart = null;
+                atomList.add(nextAtom);
+                if (bond.getFlag(CDKConstants.ISAROMATIC))
+                    nextSmart = smarts + ":" + nextAtom.getSymbol();
+                else if (bond.getOrder() == IBond.Order.SINGLE) {
+                    nextSmart = smarts + "-" + nextAtom.getSymbol();
+                } else if (bond.getOrder() == IBond.Order.DOUBLE) {
+                    nextSmart = smarts + "=" + nextAtom.getSymbol();
+                } else if (bond.getOrder() == IBond.Order.TRIPLE) {
+                    nextSmart = smarts + "#" + nextAtom.getSymbol();
                 }
 
-                if (currSubGraph.size() != 5) // TODO MAX depth -> doc and make constant
-                    traverse(currSubGraph, molecule, results);
+                if (atomList.size() >= 4) {
+                    results.put(nextSmart, nextSmart);
+                }
 
-                currSubGraph.remove(currSubGraph.size() - 1);
+                if (atomList.size() != 5) // TODO MAX depth -> doc and make constant
+                    traverse(atomList, nextSmart, molecule, results);
+
+                atomList.remove(atomList.size() - 1);
             }
         }
     }
 
 
     public static void main(String[] args) {
-        String test = "Cl";
-        System.out.println(test.matches("(C|Cl|P)"));
-
+        BitSet bs = new BitSet(575);
+        bs.set(560,true);
+        for (int i = 0; i < bs.size(); i++) {
+            System.out.println(i+" "+bs.get(i));
+        }
 
     }
-
-*/
 
 }
 

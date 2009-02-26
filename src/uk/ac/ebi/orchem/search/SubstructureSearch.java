@@ -1,3 +1,26 @@
+/*  
+ *  $Author$
+ *  $Date$
+ *  $Revision$
+ *
+ *  Copyright (C) 2008-2009  OrChem project
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *  All we ask is that proper credit is given for our work, which includes
+ *  - but is not limited to - adding the above copyright notice to the beginning
+ *  of your source code files, and to any copyright notice that you may distribute
+ *  with programs based on this work.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *
+ */
 package uk.ac.ebi.orchem.search;
 
 import java.io.ObjectInputStream;
@@ -32,6 +55,8 @@ import org.openscience.cdk.smiles.SmilesParser;
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
+import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
 
@@ -110,7 +135,7 @@ public class SubstructureSearch {
 
             QueryAtomContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
             BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(qAtCom);
-            Map atomAndBondCounts = Utils.atomAndBondCount(qAtCom);
+            Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(qAtCom);
             debug("QueryAtomContainer made",debugging);
 
             /* Build up the where clause for the query using the fingerprint one bits */
@@ -252,19 +277,19 @@ public class SubstructureSearch {
                     /*****************************************
                      * Quick filter                          *
                      *****************************************/
-                    if (res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT) ||
-                        res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT) ||
-                        res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT) ||
-                        res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(Utils.AROMATIC_BOND_COUNT ) ||
-                        res.getInt("saturated_bond_count") < (Integer)atomAndBondCounts.get(Utils.SATURATED_COUNT ) ||
-                        res.getInt("s_count") < (Integer)atomAndBondCounts.get(Utils.S_COUNT) ||
-                        res.getInt("o_count") < (Integer)atomAndBondCounts.get(Utils.O_COUNT) ||
-                        res.getInt("n_count") < (Integer)atomAndBondCounts.get(Utils.N_COUNT) ||
-                        res.getInt("f_count") < (Integer)atomAndBondCounts.get(Utils.F_COUNT) ||
-                        res.getInt("cl_count") < (Integer)atomAndBondCounts.get(Utils.CL_COUNT) ||
-                        res.getInt("br_count") < (Integer)atomAndBondCounts.get(Utils.BR_COUNT) ||
-                        res.getInt("i_count") < (Integer)atomAndBondCounts.get(Utils.I_COUNT) ||
-                        res.getInt("c_count") < (Integer)atomAndBondCounts.get(Utils.C_COUNT)) {
+                    if (res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT) ||
+                        res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT) ||
+                        res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT) ||
+                        res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT ) ||
+                        res.getInt("saturated_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.SATURATED_COUNT ) ||
+                        res.getInt("s_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT) ||
+                        res.getInt("o_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT) ||
+                        res.getInt("n_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT) ||
+                        res.getInt("f_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT) ||
+                        res.getInt("cl_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT) ||
+                        res.getInt("br_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT) ||
+                        res.getInt("i_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT) ||
+                        res.getInt("c_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT)) {
         
                         /* DO NOTHING - quick scan eliminates the candidate based on attributes */
                         ignoreCount++;
@@ -279,7 +304,7 @@ public class SubstructureSearch {
                         }
                         else {
                             molfile=res.getString(compoundTableMolfileColumn); 
-                            databaseMolecule = Utils.getNNMolecule(mdlReader, molfile);
+                            databaseMolecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                         }
                         mlTime += (System.currentTimeMillis() - timestamp);
                         timestamp = System.currentTimeMillis();
@@ -347,7 +372,7 @@ public class SubstructureSearch {
      * @throws Exception
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
-        IAtomContainer queryMolecule = Utils.getNNMolecule(mdlReader, mol);
+        IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader, mol);
 
         /*
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();

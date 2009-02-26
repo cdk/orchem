@@ -37,6 +37,8 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
  * Class for creating molecules
+ * 
+ * @author markr@ebi.ac.uk
  */
 public class MoleculeCreator {
 

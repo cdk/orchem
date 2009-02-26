@@ -1,3 +1,26 @@
+/*  
+ *  $Author$
+ *  $Date$
+ *  $Revision$
+ *
+ *  Copyright (C) 2008-2009  OrChem project
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *  All we ask is that proper credit is given for our work, which includes
+ *  - but is not limited to - adding the above copyright notice to the beginning
+ *  of your source code files, and to any copyright notice that you may distribute
+ *  with programs based on this work.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *
+ */
 package uk.ac.ebi.orchem.load;
 
 import java.io.ByteArrayOutputStream;
@@ -29,6 +52,8 @@ import org.openscience.cdk.nonotify.NNMolecule;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
+import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
 
@@ -190,7 +215,7 @@ public class LoadCDKFingerprints {
                     if (molfile != null) {
                         bef = System.currentTimeMillis();
                         /* Create a CDK molecule from the molfile */
-                        NNMolecule molecule = Utils.getNNMolecule(mdlReader, molfile);
+                        NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                         makeMolTime += (System.currentTimeMillis() - bef);
 
                         /* Fingerprint the molecule */
@@ -218,23 +243,23 @@ public class LoadCDKFingerprints {
                         }
 
                         /* Prepare statement for OrChem compound table */
-                        Map atomAndBondCounts = Utils.atomAndBondCount(molecule);
+                        Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(molecule);
                         idx = 1;
                         psInsertCompound.setString(idx, res.getString(compoundTablePkColumn));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.SINGLE_BOND_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.DOUBLE_BOND_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.TRIPLE_BOND_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.AROMATIC_BOND_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.S_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.O_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.N_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.F_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.CL_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.BR_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.I_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.C_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.P_COUNT));
-                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(Utils.SATURATED_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.P_COUNT));
+                        psInsertCompound.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.SATURATED_COUNT));
 
                         //Serialization (optional)
                         if (serializeYN.equals("Y")) {

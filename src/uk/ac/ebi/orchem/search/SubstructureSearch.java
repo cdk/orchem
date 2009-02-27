@@ -32,7 +32,6 @@ import java.sql.Statement;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +40,6 @@ import oracle.jdbc.OracleDriver;
 
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
-
 import oracle.sql.CLOB;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;

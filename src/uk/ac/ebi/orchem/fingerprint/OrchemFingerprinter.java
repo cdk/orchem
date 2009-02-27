@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
@@ -65,7 +66,9 @@ public class OrchemFingerprinter implements IFingerprinter {
 
         BitSet fingerprint;
         fingerprint = new BitSet(FINGERPRINT_SIZE); //TODO
-        
+
+        longCarbonTrails(molecule,fingerprint);
+
         elementCounting(molecule,fingerprint);
         atomPairs(molecule,fingerprint);
 
@@ -490,6 +493,57 @@ public class OrchemFingerprinter implements IFingerprinter {
                 atomList.remove(atomList.size() - 1);
             }
         }
+    }
+
+
+    //TODO
+    // set up for different lengths (cascade down)
+    // set for with or without double boings
+
+    private void longCarbonTrails (IAtomContainer molecule,BitSet fingerprint) {
+
+        List<IBond> ccBonds = new ArrayList<IBond>();
+        for (Iterator<IBond> iterator = molecule.bonds().iterator(); iterator.hasNext(); ) {
+            IBond b = iterator.next();
+            if (b.getAtom(0).getSymbol().equals("C") && b.getAtom(1).getSymbol().equals("C") && !b.getFlag(CDKConstants.ISAROMATIC))  {
+                ccBonds.add(b);
+            }
+        }
+        int series=0;
+        for (int i = 0; i < ccBonds.size(); i++)  {
+            List<Integer> taken= new ArrayList<Integer>();
+            taken.add(i);
+            int len =carbonSeriesCounter (ccBonds,taken, 2);
+            if (len>series)  {
+                    series=len;
+            }
+        }
+        if (series>17)  {
+            System.out.println("..........  longest ->" +series);
+        }
+        
+    }
+
+    private int carbonSeriesCounter (List<IBond> ccBonds, List<Integer> bondsTakenIdxList, int length) {
+        int lastBond = bondsTakenIdxList.get(bondsTakenIdxList.size()-1);
+        IAtom at0 = ccBonds.get(lastBond).getAtom(0);
+        IAtom at1 = ccBonds.get(lastBond).getAtom(0);
+        int ret=length;
+
+        for (Integer i = 0; i < ccBonds.size(); i++) {
+            IBond b = ccBonds.get(i);
+            if (!bondsTakenIdxList.contains(i) && (b.getAtom(0).equals(at0) || b.getAtom(0).equals(at1)|| b.getAtom(1).equals(at0) ||b.getAtom(1).equals(at1)))  {
+                bondsTakenIdxList.add(i);
+                int newLen= carbonSeriesCounter(ccBonds, bondsTakenIdxList,length+1);
+
+                //System.out.println(newLen);
+                //System.out.println(bondsTakenIdxList);
+
+                ret = newLen > ret ? newLen : ret;
+                bondsTakenIdxList.remove(bondsTakenIdxList.size()-1);
+            }
+        }        
+        return ret;
     }
 
 

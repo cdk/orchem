@@ -7,23 +7,7 @@
  */
 package uk.ac.ebi.orchem;
 
-import java.io.StringReader;
-
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.openscience.cdk.Bond;
-import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IBond;
-import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.nonotify.NNMolecule;
-import org.openscience.cdk.tools.SaturationChecker;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 
 /**

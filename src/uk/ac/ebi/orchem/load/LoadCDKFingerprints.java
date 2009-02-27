@@ -124,7 +124,7 @@ public class LoadCDKFingerprints {
             IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
             BitSet fpBitset;
             final int fpSize = FingerPrinterAgent.FP.getFpSize();
-            final int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
+
 
             /* Prepare the (flexible) query on the base compound table in the schema */
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
@@ -156,7 +156,7 @@ public class LoadCDKFingerprints {
             /* Statement for inserts into the substructure search table */
             StringBuffer sb = new StringBuffer();
             sb.append("insert into orchem_fingprint_subsearch values (? ");
-            for (int idx = 0; idx < fpCondensedSize; idx++) 
+            for (int idx = 0; idx < fpSize; idx++) 
                 sb.append(",?");
             sb.append(")");
             PreparedStatement psInsertSubstrFp = conn.prepareStatement(sb.toString());
@@ -234,9 +234,9 @@ public class LoadCDKFingerprints {
                         psInsertSubstrFp.setString(idx, res.getString(compoundTablePkColumn));
 
                         /* Hash the l fingerprint into a condensed fingerprint */
-                        for (int i = 0; i < fpCondensedSize; i++) { 
+                        for (int i = 0; i < fpSize; i++) { 
                             idx = i + 2;
-                            if (fpBitset.get(i) || fpBitset.get(i + fpCondensedSize))
+                            if (fpBitset.get(i) ) // || fpBitset.get(i + fpCondensedSize))
                                 psInsertSubstrFp.setString(idx, "1");
                             else
                                 psInsertSubstrFp.setString(idx, null);

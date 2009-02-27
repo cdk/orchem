@@ -45,9 +45,9 @@ public class SimpleMail {
         transport.close();
     }
 
-    public static void main(String[] args) throws Exception {
-        sendMail("smtp","smtp.ebi.ac.uk","markr@ebi.ac.uk","Hallo","\n\n\ncheck");
-    }
+    //public static void main(String[] args) throws Exception {
+    //    sendMail("smtp","smtp.ebi.ac.uk","markr@ebi.ac.uk","Hallo","\n\n\ncheck");
+    //}
 
 
 }

@@ -38,7 +38,7 @@ import oracle.jdbc.OracleCallableStatement;
 import oracle.jdbc.OracleTypes;
 
 import uk.ac.ebi.orchem.db.OrChemParameters;
-import uk.ac.ebi.orchem.singleton.DbAgent;
+import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 
 
 /**
@@ -173,7 +173,7 @@ public class DbSearchInvoker {
     public String getMolfile(String id) throws SQLException {
         String molfile =null;
         Connection conn = null;
-        conn = DbAgent.DB_AGENT.getCachedConnection();
+        conn = DatabaseAgent.DB_AGENT.getCachedConnection();
 
         String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
         String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
@@ -197,7 +197,7 @@ public class DbSearchInvoker {
             psst.close();
         } finally {
             if (conn != null)
-                DbAgent.DB_AGENT.returnCachedConnection(conn);
+                DatabaseAgent.DB_AGENT.returnCachedConnection(conn);
         }
         return molfile;
     }

@@ -30,7 +30,7 @@ import java.util.List;
 
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.Utils;
-import uk.ac.ebi.orchem.singleton.DbAgent;
+import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 
 
 /**
@@ -61,7 +61,7 @@ public class SearchAction extends SessionAwareAction {
 
       if (wsr.getSmilesOrMol().equals("mol")) {
         if (wsr.getStructureSearchMethod().equals("sim")) {
-          conn = DbAgent.DB_AGENT.getCachedConnection();
+          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +
                           "<br>Invoking similarity search  .." +
                           new java.util.Date());
@@ -74,7 +74,7 @@ public class SearchAction extends SessionAwareAction {
 
         //System.out.println("substructure search\n\n"+wsr.getStructure()+"\n\n");
         if (wsr.getStructureSearchMethod().equals("sub")) {
-          conn = DbAgent.DB_AGENT.getCachedConnection();
+          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +
                           "<br>Invoking substr search using VF2 and bitmap indices .." +
                           new java.util.Date());
@@ -86,7 +86,7 @@ public class SearchAction extends SessionAwareAction {
 
       } else {
         if (wsr.getStructureSearchMethod().equals("sim")) {
-          conn = DbAgent.DB_AGENT.getCachedConnection();
+          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +
                           "<br>Invoking similarity search  .." +
                           new java.util.Date());
@@ -98,7 +98,7 @@ public class SearchAction extends SessionAwareAction {
         }
 
         if (wsr.getStructureSearchMethod().equals("sub")) {
-          conn = DbAgent.DB_AGENT.getCachedConnection();
+          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +
                           "<br>Invoking substr search using VF2 and bitmap indices .." +
                           new java.util.Date());
@@ -132,7 +132,7 @@ public class SearchAction extends SessionAwareAction {
 
     } finally {
       if (conn != null)
-        DbAgent.DB_AGENT.returnCachedConnection(conn);
+                DatabaseAgent.DB_AGENT.returnCachedConnection(conn);
     }
 
   }

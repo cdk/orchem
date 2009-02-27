@@ -26,6 +26,7 @@ package uk.ac.ebi.orchem.search;
 import java.io.ObjectInputStream;
 
 import java.sql.Clob;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -41,6 +42,8 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
+import oracle.sql.CLOB;
+
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -52,7 +55,6 @@ import org.openscience.cdk.isomorphism.matchers.QueryAtomContainerCreator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesParser;
 
-import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
@@ -145,12 +147,12 @@ public class SubstructureSearch {
             StringBuffer builtCondition = new StringBuffer();
             
             int bitPos=0;
-            int fpCondensedSize=FingerPrinterAgent.FP.getFpCondensedSize();
-            Map<String,Integer> bitGroupCounts = new HashMap<String,Integer>();
+            int fpSize=FingerPrinterAgent.FP.getFpSize();
+            //Map<String,Integer> bitGroupCounts = new HashMap<String,Integer>();
 
-            String key = "";
-            for (int i = 0; i < fpCondensedSize; i++) {
-                if ((fingerprint.get(i) || fingerprint.get(i + fpCondensedSize))) { //  &&!isShitBit(i) ) {
+            //String key = "";
+            for (int i = 0; i < fpSize; i++) {
+                if ((fingerprint.get(i) )){   //|| fingerprint.get(i + fpCondensedSize))) { //  &&!isShitBit(i) ) {
                     bitPos = i + 1;
                     builtCondition.append(" and bit" + (bitPos) + "='1'");
 
@@ -158,8 +160,7 @@ public class SubstructureSearch {
                     These counts will be used to determine heuristically if it's worth 
                     for the query to use an index.
                     We have a b*tree index for each 'key' (group) */
-                    //key 0..15 -> 1..16
-                    //key 
+                    /*
                     key = (((bitPos - 1)/ 32)+1) + "";
                     if (bitGroupCounts.get(key) != null)
                         bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
@@ -179,12 +180,13 @@ public class SubstructureSearch {
                         else
                             bitGroupCounts.put(key, 1);
                     }
+                    */
                     //________________________________________________________________________
                 }
             }
 
             /* Now decide whether to go for a b*tree index */ //--------------------------------PUT IN METHOD
-            
+            /*
             int maxBitGroupSize = 0;
             int cnt=0; String topKey="";
             for (int idx = 1; idx <= 16; idx++) {
@@ -207,17 +209,17 @@ public class SubstructureSearch {
                     e=null;
                 }
             }
+            */
 
-            debug("Max fingerprint bit group size indexed = "+maxBitGroupSize+", index b*tree= "+topKey, debugging);
             String hint="";
-
-            if(maxBitGroupSize<=8) { // .. important tweak option here -> when to decide to go for a full table scan or not ? 
-                hint="/*+ FULL(s) PARALLEL(s,4) FIRST_ROWS */"; 
-                debug("Forcing full scan..", debugging);
-            }
-            else {
-                hint=" /*+ FIRST_ROWS INDEX(s,orchem_btree"+topKey+") */ ";
-            }
+            //debug("Max fingerprint bit group size indexed = "+maxBitGroupSize+", index b*tree= "+topKey, debugging);
+            //if(maxBitGroupSize<=8) { // .. important tweak option here -> when to decide to go for a full table scan or not ? 
+            //    hint="/*+ FULL(s) PARALLEL(s,4) FIRST_ROWS */"; 
+            //    debug("Forcing full scan..", debugging);
+            //}
+            //else {
+            //    hint=" /*+ FIRST_ROWS INDEX(s,orchem_btree"+topKey+") */ ";
+            //}
             //-------------------------------------------------------------------------------------------------
 
             whereCondition += builtCondition.toString();
@@ -374,7 +376,6 @@ public class SubstructureSearch {
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
         IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader, mol);
 
-        /*
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
         PreparedStatement psTEMP = conn.prepareStatement("insert into testmdl values (orchem_sequence_log.nextval,?)");
@@ -387,7 +388,6 @@ public class SubstructureSearch {
         clobAll.freeTemporary();
         psTEMP.close();
         conn.commit();
-        */
 
         return search(queryMolecule, topN, debugYN);
     }

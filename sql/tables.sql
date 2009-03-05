@@ -50,7 +50,7 @@ prompt creating table "orchem_fingprint_simsearch"
     ( id varchar2(80)         not null -- PK
     , bit_count number(4)     not null 
   --, fp raw(128)             not null
-    , fp raw(72)             not null
+    , fp raw(80)             not null
   )
     cache -- hm ....
     /
@@ -59,6 +59,7 @@ prompt creating table "orchem_fingprint_subsearch"
     create table orchem_fingprint_subsearch
     (   
       id  varchar2(80)  not null
+     ,bit0  char(1)
      ,bit1  char(1)
      ,bit2  char(1)
      ,bit3  char(1)
@@ -635,10 +636,73 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit574  char(1)
      ,bit575  char(1)
      ,bit576  char(1)
+     ,bit577  char(1)
+     ,bit578  char(1)
+     ,bit579  char(1)
+     ,bit580  char(1)
+     ,bit581  char(1)
+     ,bit582  char(1)
+     ,bit583  char(1)
+     ,bit584  char(1)
+     ,bit585  char(1)
+     ,bit586  char(1)
+     ,bit587  char(1)
+     ,bit588  char(1)
+     ,bit589  char(1)
+     ,bit590  char(1)
+     ,bit591  char(1)
+     ,bit592  char(1)
+     ,bit593  char(1)
+     ,bit594  char(1)
+     ,bit595  char(1)
+     ,bit596  char(1)
+     ,bit597  char(1)
+     ,bit598  char(1)
+     ,bit599  char(1)
+     ,bit600  char(1)
+     ,bit601  char(1)
+     ,bit602  char(1)
+     ,bit603  char(1)
+     ,bit604  char(1)
+     ,bit605  char(1)
+     ,bit606  char(1)
+     ,bit607  char(1)
+     ,bit608  char(1)
+     ,bit609  char(1)
+     ,bit610  char(1)
+     ,bit611  char(1)
+     ,bit612  char(1)
+     ,bit613  char(1)
+     ,bit614  char(1)
+     ,bit615  char(1)
+     ,bit616  char(1)
+     ,bit617  char(1)
+     ,bit618  char(1)
+     ,bit619  char(1)
+     ,bit620  char(1)
+     ,bit621  char(1)
+     ,bit622  char(1)
+     ,bit623  char(1)
+     ,bit624  char(1)
+     ,bit625  char(1)
+     ,bit626  char(1)
+     ,bit627  char(1)
+     ,bit628  char(1)
+     ,bit629  char(1)
+     ,bit630  char(1)
+     ,bit631  char(1)
+     ,bit632  char(1)
+     ,bit633  char(1)
+     ,bit634  char(1)
+     ,bit635  char(1)
+     ,bit636  char(1)
+     ,bit637  char(1)
+     ,bit638  char(1)
+     ,bit639  char(1)
     ) 
     /
 
 
- 
+exit; 
 
     

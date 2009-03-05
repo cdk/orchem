@@ -4,8 +4,8 @@
     <property name="compile.debug" value="true"/>
     <property name="project.root"  value="."/>
     <property name="src.dir"       value="${project.root}/src"/>
-    <property name="prop.dir"      value="${project.root}/properties"/>
     <property name="web.dir"       value="${project.root}/public_html"/>
+    <property name="test.dir"       value="${project.root}/test"/>
     <property name="build.classes" value="${web.dir}/WEB-INF/classes"/>
     <property name="lib.dir"       value="${web.dir}/WEB-INF/lib"/>
     <property name="war.dir"       value="${project.root}/deploy"/>
@@ -47,6 +47,8 @@
 
         <echo message="Deleting old war file.."/>
         <delete file="${war.dir}/*.war"/>
+        <delete file="${build.classes}/webapp.properties"/>
+        <delete file="${build.classes}/unittest.properties"/>
     </target>
  
 
@@ -61,6 +63,8 @@
             <include name="**/*.java"/>
             <!--exclude name="**/submission/**"/-->
         </javac>
+        <copy file="${project.root}/properties/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>
+        <copy file="${project.root}/properties/webapp.properties" tofile="${build.classes}/webapp.properties" overwrite="true"/>
     </target>
 
 

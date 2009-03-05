@@ -20,3 +20,4 @@ prompt creating type "orchem_compound_list"
     /
     
     
+exit;

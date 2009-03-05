@@ -114,7 +114,7 @@ public class LoadCDKFingerprints {
             long sqlInsTime = 0;
 
             conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //conn = (OracleConnection)new PubChemConnection().getDbConnection();
+            //conn = (OracleConnection)new StarliteConnection().getDbConnection();
 
             conn.setAutoCommit(false);
             //conn.setDefaultRowPrefetch(DEF_ROW_PREFETCH);
@@ -155,10 +155,15 @@ public class LoadCDKFingerprints {
 
             /* Statement for inserts into the substructure search table */
             StringBuffer sb = new StringBuffer();
-            sb.append("insert into orchem_fingprint_subsearch values (? ");
+            //sb.append("insert into orchem_fingprint_subsearch values (? ");
+            sb.append("insert into orchem_fingprint_subsearch ( id ");
+            for (int idx = 0; idx < fpSize; idx++) 
+                sb.append(",bit"+(idx));
+            sb.append (") values (? ");
             for (int idx = 0; idx < fpSize; idx++) 
                 sb.append(",?");
             sb.append(")");
+            //System.out.println(sb.toString());
             PreparedStatement psInsertSubstrFp = conn.prepareStatement(sb.toString());
             
 
@@ -236,10 +241,12 @@ public class LoadCDKFingerprints {
                         /* Hash the l fingerprint into a condensed fingerprint */
                         for (int i = 0; i < fpSize; i++) { 
                             idx = i + 2;
-                            if (fpBitset.get(i) ) // || fpBitset.get(i + fpCondensedSize))
+                            if (fpBitset.get(i) ) {
                                 psInsertSubstrFp.setString(idx, "1");
-                            else
+                            }
+                            else {
                                 psInsertSubstrFp.setString(idx, null);
+                            }
                         }
 
                         /* Prepare statement for OrChem compound table */
@@ -391,11 +398,12 @@ public class LoadCDKFingerprints {
     public static void load( ) throws Exception {
         load( null,null,"N" );
     }
+
     /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
         //l.load(args[0],args[1],"N");
-        l.load("261001","261200","Y");
+        l.load("28345","28399","Y");
         // begin delete orchem_compounds where id < 9999; delete orchem_fingprint_subsearch where id < 9999; delete orchem_fingprint_simsearch where id < 9999; commit; end;
     }
     */

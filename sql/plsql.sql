@@ -145,3 +145,4 @@ END;
 /
 SHOW ERRORS
 
+exit;

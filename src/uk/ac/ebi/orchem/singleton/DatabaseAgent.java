@@ -61,22 +61,22 @@ public class DatabaseAgent extends Thread {
     private DatabaseAgent() {
         try {
 
-            /* Set up an Oracle Connection cache to provide connections to non-Toplink database actions */
+            /* Set up an Oracle Connection cache for the demo web application  */
 
-            Properties databaseProperties = Constants.getDatabaseProperties();
+            Properties props = Constants.getWebAppProperties();
 
             ods = new OracleDataSource();
-            ods.setURL(databaseProperties.getProperty("dbUrl"));
-            ods.setUser(databaseProperties.getProperty("dbUser"));
-            ods.setPassword(databaseProperties.getProperty("dbPass"));
-            dbName = databaseProperties.getProperty("dbLabel");
+            ods.setURL(props.getProperty("dbUrl"));
+            ods.setUser(props.getProperty("dbUser"));
+            ods.setPassword(props.getProperty("dbPass"));
+            dbName = props.getProperty("dbLabel");
             ods.setConnectionCachingEnabled(true);
             ods.setConnectionCacheName(CACHE_NAME);
 
             Properties cacheProperties = new Properties();
-            cacheProperties.setProperty("MinLimit", databaseProperties.getProperty("connCacheMinLimit"));
-            cacheProperties.setProperty("MaxLimit", databaseProperties.getProperty("connCacheMaxLimit"));
-            cacheProperties.setProperty("InitialLimit", databaseProperties.getProperty("connCacheIniLimit"));
+            cacheProperties.setProperty("MinLimit", props.getProperty("connCacheMinLimit"));
+            cacheProperties.setProperty("MaxLimit", props.getProperty("connCacheMaxLimit"));
+            cacheProperties.setProperty("InitialLimit", props.getProperty("connCacheIniLimit"));
 
 
             connMgr = OracleConnectionCacheManager.getConnectionCacheManagerInstance();

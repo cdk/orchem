@@ -40,6 +40,7 @@ import oracle.jdbc.OracleDriver;
 
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
+
 import oracle.sql.CLOB;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
@@ -136,89 +137,24 @@ public class SubstructureSearch {
             QueryAtomContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
             BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(qAtCom);
             Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(qAtCom);
-            debug("QueryAtomContainer made",debugging);
+            debug("QueryAtomContainer was made",debugging);
 
             /* Build up the where clause for the query using the fingerprint one bits */
-            /* Condensed fingerprint for substructure search */
-
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
             
-            int bitPos=0;
+            //int bitPos=0;
             int fpSize=FingerPrinterAgent.FP.getFpSize();
-            //Map<String,Integer> bitGroupCounts = new HashMap<String,Integer>();
 
-            //String key = "";
             for (int i = 0; i < fpSize; i++) {
-                if ((fingerprint.get(i) )){   //|| fingerprint.get(i + fpCondensedSize))) { //  &&!isShitBit(i) ) {
-                    bitPos = i + 1;
-                    builtCondition.append(" and bit" + (bitPos) + "='1'");
-
-                 /* Count in a hash map to which bit 'groups' are set _________________________PUT IN METHOD
-                    These counts will be used to determine heuristically if it's worth 
-                    for the query to use an index.
-                    We have a b*tree index for each 'key' (group) */
-                    /*
-                    key = (((bitPos - 1)/ 32)+1) + "";
-                    if (bitGroupCounts.get(key) != null)
-                        bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
-                    else
-                        bitGroupCounts.put(key, 1);
-
-                    if (bitPos < 17 || bitPos > 496) {
-                        key = "1a";
-                        if (bitGroupCounts.get(key) != null)
-                            bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
-                        else
-                            bitGroupCounts.put(key, 1);
-                    } else {
-                        key = (((bitPos - 17) / 32)+2) + "a";
-                        if (bitGroupCounts.get(key) != null)
-                            bitGroupCounts.put(key, (bitGroupCounts.get(key) + 1));
-                        else
-                            bitGroupCounts.put(key, 1);
-                    }
-                    */
-                    //________________________________________________________________________
+                if ((fingerprint.get(i) )){   
+                    builtCondition.append(" and bit" + i + "='1'");
                 }
             }
 
-            /* Now decide whether to go for a b*tree index */ //--------------------------------PUT IN METHOD
-            /*
-            int maxBitGroupSize = 0;
-            int cnt=0; String topKey="";
-            for (int idx = 1; idx <= 16; idx++) {
-                try {
-                    cnt = bitGroupCounts.get(idx + "");
-                    if (cnt > maxBitGroupSize) {
-                        maxBitGroupSize = cnt;
-                        topKey = idx + "";
-                    }
-                } catch (NullPointerException e) {
-                    e=null;
-                }
-                try {
-                    cnt = bitGroupCounts.get(idx + "a");
-                    if (cnt > maxBitGroupSize) {
-                        maxBitGroupSize = cnt;
-                        topKey = idx + "a";
-                    }
-                } catch (NullPointerException e) {
-                    e=null;
-                }
-            }
-            */
-
-            String hint="";
-            //debug("Max fingerprint bit group size indexed = "+maxBitGroupSize+", index b*tree= "+topKey, debugging);
-            //if(maxBitGroupSize<=8) { // .. important tweak option here -> when to decide to go for a full table scan or not ? 
-            //    hint="/*+ FULL(s) PARALLEL(s,4) FIRST_ROWS */"; 
-            //    debug("Forcing full scan..", debugging);
-            //}
-            //else {
-            //    hint=" /*+ FIRST_ROWS INDEX(s,orchem_btree"+topKey+") */ ";
-            //}
-            //-------------------------------------------------------------------------------------------------
+            /* Why hint? To prevent a hash join when too few distinctive bits have been set.
+             * For example, when queried only for an aromatic hex ring */
+            String hint="/*+ USE_NL(s,c) USE_NL(s,o) */ ";
 
             whereCondition += builtCondition.toString();
             whereCondition = whereCondition.trim();
@@ -373,9 +309,7 @@ public class SubstructureSearch {
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
         IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader, mol);
-
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
-        //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
         PreparedStatement psTEMP = conn.prepareStatement("insert into testmdl values (orchem_sequence_log.nextval,?)");
         CLOB clobAll = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
         clobAll.open(CLOB.MODE_READWRITE);
@@ -427,31 +361,5 @@ public class SubstructureSearch {
          }
      }
 
-
-    //Try out to ignore overly common bits - should collect these more uhm cleverly 
-    //TODO think if this should be really implemented
-     /*
-    private static List shitBits = new ArrayList();
-    static {
-        
-        shitBits.add(30);
-        shitBits.add(54);
-        shitBits.add(188);
-        shitBits.add(147);
-        shitBits.add(201);
-        shitBits.add(502);
-        shitBits.add(498);
-        shitBits.add(484);
-        shitBits.add(438 );
-        
-    }
-    private static boolean isShitBit(int bitNum) {
-
-        if (shitBits.contains(bitNum))
-            return true;
-        else
-            return false;
-    }
-    */
 
 }

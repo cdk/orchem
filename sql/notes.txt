@@ -81,7 +81,7 @@ end;
 declare
     i binary_integer;
 begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(   201 ,  70000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(     1 ,  70000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load( 70001 , 140000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(140001 , 210000 ,''Y'');' ,INTERVAL=>null ); 
     dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(210001 , 280000 ,''Y'');' ,INTERVAL=>null ); 

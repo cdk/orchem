@@ -30,8 +30,8 @@ public class Constants {
     // See http://www.javaspecialists.eu/archive/el_GR/Issue114.html
     public static final String SESSION_WEB_SEARCH_RESULTS = new String("wsr");
 
-    private static  Properties databaseProperties = PropertyLoader.loadProperties("database.properties");
-    public static Properties getDatabaseProperties() {
-        return databaseProperties;
+    private static  Properties webappProperties = PropertyLoader.loadProperties("webapp.properties");
+    public static Properties getWebAppProperties() {
+        return webappProperties;
     }
 }

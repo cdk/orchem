@@ -1,4 +1,4 @@
-/*  
+/*
  *  $Author$
  *  $Date$
  *  $Revision$
@@ -34,16 +34,16 @@ import java.sql.SQLInput;
 import java.sql.SQLOutput;
 
 /**
- * 
+ *
  * Compound bean for basic compound data.<BR>
- * Implements SQLData: this class is used to pass results coming 
- * from the Java stored procedures that perform substructure and similarity 
+ * Implements SQLData: this class is used to pass results coming
+ * from the Java stored procedures that perform substructure and similarity
  * searching in the (Oracle) database.
- * 
+ *
  * @author markr@ebi.ac.uk
- * 
+ *
  */
-public class  OrChemCompound implements SQLData, Serializable {
+public class OrChemCompound implements SQLData, Serializable, Comparable {
 
     public boolean equals(Object obj) {
         return this.getId().equals(((OrChemCompound)obj).getId());
@@ -62,7 +62,7 @@ public class  OrChemCompound implements SQLData, Serializable {
         id = stream.readString();
         molFileClob = stream.readClob();
         score = stream.readFloat();
-        
+
     }
 
     public void writeSQL(SQLOutput stream) throws SQLException {
@@ -106,10 +106,10 @@ public class  OrChemCompound implements SQLData, Serializable {
      * Convenient getter method to get molfile as a String instead of a Clob
      * @return molfile as a String
      */
-    public String getMolfile() {     
-        String molfile=null;
+    public String getMolfile() {
+        String molfile = null;
         int clobLen;
-        if (molFileClob!=null)  {
+        if (molFileClob != null) {
             try {
                 clobLen = new Long(molFileClob.length()).intValue();
                 molfile = (molFileClob.getSubString(1, clobLen));
@@ -121,7 +121,22 @@ public class  OrChemCompound implements SQLData, Serializable {
         return molfile;
     }
 
-    
-    
+
+    public int compareTo(Object o) {
+
+        int comp=0;
+        if (o instanceof OrChemCompound)  {
+            OrChemCompound that = (OrChemCompound )o;
+            try {
+                Integer thisId = new Integer(id);
+                Integer thatId = new Integer(that.getId());
+                comp = thisId.compareTo(thatId);
+                
+            } catch (Exception ex) {
+                comp = id.compareTo(that.getId());
+            }   
+        }
+        return comp;        
+    }
 }
 

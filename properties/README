@@ -1,0 +1,10 @@
+
+To use these properties, copy them into directory "my_local_properties". 
+
+Do not put these copies in CVS.
+
+Update the copied properties files with values that work for you.
+
+The ant build file will use your copies, so does the unit test framwework.
+
+

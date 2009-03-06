@@ -7,3 +7,5 @@
     /
     --alter table orchem_fingprint_simsearch  add constraint pk_orchem_simsrch primary key (id)
     --/
+
+exit

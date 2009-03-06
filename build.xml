@@ -63,8 +63,8 @@
             <include name="**/*.java"/>
             <!--exclude name="**/submission/**"/-->
         </javac>
-        <copy file="${project.root}/properties/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>
-        <copy file="${project.root}/properties/webapp.properties" tofile="${build.classes}/webapp.properties" overwrite="true"/>
+        <copy file="${project.root}/properties/my_local_copies/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>
+        <copy file="${project.root}/properties/my_local_copies/webapp.properties" tofile="${build.classes}/webapp.properties" overwrite="true"/>
     </target>
 
 

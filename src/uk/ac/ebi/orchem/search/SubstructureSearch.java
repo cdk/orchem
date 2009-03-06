@@ -309,6 +309,7 @@ public class SubstructureSearch {
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
         IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader, mol);
+        /*
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         PreparedStatement psTEMP = conn.prepareStatement("insert into testmdl values (orchem_sequence_log.nextval,?)");
         CLOB clobAll = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
@@ -320,7 +321,7 @@ public class SubstructureSearch {
         clobAll.freeTemporary();
         psTEMP.close();
         conn.commit();
-
+        */
         return search(queryMolecule, topN, debugYN);
     }
 

@@ -23,187 +23,289 @@
  */
 package uk.ac.ebi.orchem.test;
 
-import java.sql.Array;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import java.util.Arrays;
-import java.util.BitSet;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import junit.framework.TestCase;
 
-import oracle.jdbc.OracleCallableStatement;
-import oracle.jdbc.OracleTypes;
-
-import org.openscience.cdk.Bond;
-import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.fingerprint.IFingerprinter;
-import org.openscience.cdk.interfaces.IAtomContainer;
-
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
-import org.openscience.cdk.nonotify.NNMolecule;
 
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
-import uk.ac.ebi.orchem.shared.MoleculeCreator;
-import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
+
 
 /**
- * Test class for OrChem substructure searching
- * @author sinterklaas
+ * Junit test for OrChem substructure searching<P>
+ *
+ * Contains a long list of test methods, each for a "query compound" with the
+ * number in the method is the database id (primary key) of that compound in
+ * table ORCHEM_COMPOUND_SAMPLE.<P>
+ *
+ * You can add more query compounds to this table by adding them to
+ * the queries mol file in the unit test directory. They will get loaded by {@link LoadCompounds}.<P>
+ *
+ * Target compounds are loaded from a second file with an id offset of 1000.<P>
+ *
+ * Searches are done with query compounds against the target compounds <B>plus</B> the query compounds, to
+ * test if the substructure search at least establishes that a query compound is a substructure of itself.
+ *
  */
 
 public class TestSubstructureSearch extends TestCase {
 
-    Connection conn;
+    private DbApi dbApi = new DbApi();
+    
+    static Connection conn;
+    static List<MyAtomContainer> targetMolecules;
+    static {
+        try {
+            System.out.println("___ static : Begin set up target list (once) ");
+            Properties properties = Constants.getUnittestProperties();
+            DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+            conn = DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
+            targetMolecules = new DbApi().getAllCompounds(conn);
+            System.out.println("___ static : End set up target list");
 
-    public void setUp() throws SQLException {
-        Properties properties = Constants.getUnittestProperties();
-        DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-        conn = DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void setUp() throws SQLException, CDKException {
     }
 
     public void tearDown() throws SQLException {
-        conn.close();
     }
 
-    public void testFingerprintFilterFindsAllCandidates() throws Exception {
+    public void testCompoundID_1() throws Exception {
+        fingerprintVersusFullScan(1);
+    }
 
-        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id=29 --id> 1 and id < 1000");
+    public void testCompoundID_2() throws Exception {
+        fingerprintVersusFullScan(2);
+    }
+
+    public void testCompoundID_3() throws Exception {
+        fingerprintVersusFullScan(3);
+    }
+
+    public void testCompoundID_4() throws Exception {
+        fingerprintVersusFullScan(4);
+    }
+
+    public void testCompoundID_5() throws Exception {
+        fingerprintVersusFullScan(5);
+    }
+
+    public void testCompoundID_6() throws Exception {
+        fingerprintVersusFullScan(6);
+    }
+
+    public void testCompoundID_7() throws Exception {
+        fingerprintVersusFullScan(7);
+    }
+
+    public void testCompoundID_8() throws Exception {
+        fingerprintVersusFullScan(8);
+    }
+
+    public void testCompoundID_9() throws Exception {
+        fingerprintVersusFullScan(9);
+    }
+
+    public void testCompoundID_10() throws Exception {
+        fingerprintVersusFullScan(10);
+    }
+
+    public void testCompoundID_11() throws Exception {
+        fingerprintVersusFullScan(11);
+    }
+
+    public void testCompoundID_12() throws Exception {
+        fingerprintVersusFullScan(12);
+    }
+
+    public void testCompoundID_13() throws Exception {
+        fingerprintVersusFullScan(13);
+    }
+
+    public void testCompoundID_14() throws Exception {
+        fingerprintVersusFullScan(14);
+    }
+
+    public void testCompoundID_15() throws Exception {
+        fingerprintVersusFullScan(15);
+    }
+
+    public void testCompoundID_16() throws Exception {
+        fingerprintVersusFullScan(16);
+    }
+
+    public void testCompoundID_17() throws Exception {
+        fingerprintVersusFullScan(17);
+    }
+
+    public void testCompoundID_18() throws Exception {
+        fingerprintVersusFullScan(18);
+    }
+
+    public void testCompoundID_19() throws Exception {
+        fingerprintVersusFullScan(19);
+    }
+
+    public void testCompoundID_20() throws Exception {
+        fingerprintVersusFullScan(20); 
+    }
+
+    public void testCompoundID_21() throws Exception {
+        fingerprintVersusFullScan(21);
+    }
+
+    public void testCompoundID_22() throws Exception {
+        fingerprintVersusFullScan(22);
+    }
+    public void testCompoundID_23() throws Exception {
+        fingerprintVersusFullScan(23);
+    }
+
+    public void testCompoundID_24() throws Exception {
+        fingerprintVersusFullScan(24);
+    }
+
+    public void testCompoundID_25() throws Exception {
+        fingerprintVersusFullScan(25);
+    }
+
+    public void testCompoundID_26() throws Exception {
+        fingerprintVersusFullScan(26);
+    }
+
+    public void testCompoundID_27() throws Exception {
+        fingerprintVersusFullScan(27);
+    }
+
+    public void testCompoundID_28() throws Exception {
+        fingerprintVersusFullScan(28);
+    }
+
+    public void testCompoundID_29() throws Exception {
+        fingerprintVersusFullScan(29);
+    }
+
+
+    /**
+     * Tests how a substructure search using a pre-filter by fingerprint relates to
+     * a full non filtered search. These two should give exactly the same result - if 
+     * not, then the fingerprinter is corrupt and incorrectly filtering.
+     * 
+     * @param dbId database id of query molecule in database test set
+     * @throws Exception
+     */
+    private void fingerprintVersusFullScan(int dbId) throws Exception {
+
+        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id=?");
+        pStmt.setInt(1,dbId);
         ResultSet res = pStmt.executeQuery();
         Clob molFileClob = null;
         String mdl = null;
-        CompleteIsomorphismCheck c = new CompleteIsomorphismCheck();
 
         while (res.next()) {
-            System.out.println("\n\n\n______________________________________________");
+            System.out.println("\n______________________________________________");
             System.out.println("db id is "+res.getInt("id"));
             
             molFileClob = res.getClob("molfile");
             int clobLen = new Long(molFileClob.length()).intValue();
             mdl = (molFileClob.getSubString(1, clobLen));
-           
-            
+
+            /* part 1: do a substructure search using the fingerprinter */            
             System.out.println("Fingerprint substructure search:");
-            List<OrChemCompound> l1 = substructureSearchMol(mdl, conn, 9999999);
-            System.out.println("results # : "+l1.size());
-            Collections.sort(l1);
-        
-            for (OrChemCompound oc : l1) {
+            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearchMol(mdl, conn, 9999999);
+            System.out.println("results # : "+fprintSearchResults.size());
+            Collections.sort(fprintSearchResults);
+            for (OrChemCompound oc : fprintSearchResults) {
                 System.out.print(oc.getId() + " ");
             }
 
+            /* part 2: find all substructures by doing a full scan on the data set */            
             System.out.println("\nFull isomorphism test : ");
-            List<Integer> l2 = c.check(res.getInt("id"), SubgraphIsomorphism.Algorithm.VF2, conn);
-            Collections.sort(l2);
-            for (Integer id : l2) {
+            List<Integer> fullScanResults = fullScan(res.getInt("id"), targetMolecules, SubgraphIsomorphism.Algorithm.VF2, conn);
+            Collections.sort(fullScanResults);
+            System.out.println("results # : "+fullScanResults.size());
+
+            for (Integer id : fullScanResults) {
                 System.out.print(id + " ");
             }
             System.out.println();
 
-            if (l2.size() != l1.size()) {
-                System.err.println("BUG found");
-            }
-
-            assertEquals(l1.size(),l2.size());
-            //TODO assert list content same !
-
+            assertEquals("Fingerprint search and full scan must have same results size list ",fprintSearchResults.size(),fullScanResults.size());
+            assertTrue  ("Fingerprint search and full scan must have same result id's in list ",equalIds(fprintSearchResults,fullScanResults));
         }
         res.close();
         pStmt.close();
     }
 
-
     /**
-     * Run a database substructure search using a mol file as input
+     * Performs a complete substructure search between a query compound 
+     * and target compounds. This can be used to find all substructures and 
+     * validate this against the prefilter result from a fingerprinter.
      *
-     * @param molfile
-     * @param conn
-     * @param topN
-     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @param id query compound database id
+     * @param alg isomorphism algorithm {@link org.openscience.cdk.isomorphism.SubgraphIsomorphism.Algorithm }
+     * @param conn database connection
+     * @return list of ids of compounds of which compound with arg "id" is a substructure
      * @throws SQLException
-     * @throws ClassNotFoundException
+     * @throws CDKException
+     * @throws CloneNotSupportedException
      */
-    public List<OrChemCompound> substructureSearchMol(String molfile, Connection conn, int topN) throws SQLException, ClassNotFoundException {
+    List<Integer> fullScan(int id, List<MyAtomContainer> targetMolecules, SubgraphIsomorphism.Algorithm alg, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
+        List<Integer> result = new ArrayList<Integer>();
 
-        String plsqlCall = "begin ?:=orchem.substructure_search_mol(?,?,?); end;";
-        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
-        ocs.registerOutParameter(1, OracleTypes.ARRAY, "ORCHEM_COMPOUND_LIST");
-        ocs.setString(2, molfile);
-        ocs.setInt(3, topN);
-        ocs.setString(4, "N");
-        return executeOCS(ocs, conn);
+        System.out.println("+++++++++++++++++++++++++");
+        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id = ?");
+        pStmt.setInt(1, id);
+
+        List<MyAtomContainer> queryMol = dbApi.getMols(pStmt);
+        if (queryMol.size() == 1) {
+
+            MyAtomContainer query = queryMol.get(0);
+            //QueryAtomContainer queryAtomContainer = QueryAtomContainerCreator.createBasicQueryContainer(query.getAtomContainer());
+
+            for (MyAtomContainer target : targetMolecules) {
+                SubgraphIsomorphism s = new SubgraphIsomorphism(target.getAtomContainer(), query.getAtomContainer(), alg);
+                if (s.matchSingle()) {
+                    result.add(target.getDbId());
+                }
+            }
+        }
+        pStmt.close();
+        return result;
     }
-
 
     /**
-     * Run a database substructure search using a Smiles string as input
-     * @param smiles
-     * @param conn
-     * @param topN
-     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
-     * @throws SQLException
-     * @throws ClassNotFoundException
+     * Helper method to assert if lists have same database Ids in them
+     * @param compList
+     * @param ids
+     * @return 
      */
-    public List<OrChemCompound> substructureSearchSmiles(String smiles, Connection conn, int topN) throws SQLException, ClassNotFoundException {
-        String plsqlCall = "begin ?:=orchem.substructure_search_smiles(?,?,?); end;";
-        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-        ocs.registerOutParameter(1, OracleTypes.ARRAY, "ORCHEM_COMPOUND_LIST");
-        ocs.setString(2, smiles);
-        ocs.setInt(3, topN);
-        ocs.setString(4, "N");
-        return executeOCS(ocs, conn);
+    private boolean equalIds (List<OrChemCompound> compList, List<Integer> ids) {
+        for(OrChemCompound c : compList) {
+            if (!ids.contains(new Integer(c.getId())))  {
+                 return false;   
+            }
+        }
+        return true;
     }
-
-    private List executeOCS(OracleCallableStatement ocs, Connection conn) throws SQLException, ClassNotFoundException {
-        ocs.executeUpdate();
-        Array cARRAY = ocs.getArray(1);
-        Map map = conn.getTypeMap();
-        map.put("ORCHEM_COMPOUND", Class.forName("uk.ac.ebi.orchem.bean.OrChemCompound", false, Thread.currentThread().getContextClassLoader()));
-        Object[] compoundArray = (Object[])cARRAY.getArray();
-        return Arrays.asList(compoundArray);
-    }
-
 }
 
 
-/*
- 
- db id is 20
-Fingerprint substructure search:
-results # : 33
-2 5 20 21 22 1071 1130 1131 1144 1145 1179 1180 1348 1351 1352 1360 1361 1367 1369 1378 1379 1438 1446 1452 1455 1456 1457 1494 1498 1502 1515 1519 1520 
-Full isomorphism test : 
-BUG found
-2 5 20 21 22 1062 1071 1130 1131 1144 1145 1179 1180 1348 1351 1352 1360 1361 1367 1369 1378 1379 1438 1446 1452 1455 1456 1457 1494 1498 1502 1519 1520 1540 1541 
-Process exited with exit code 0.
-
-db id is 20
-Fingerprint substructure search:
-results # : 33
-2 5 20 21 22 1071 1130 1131 1144 1145 1179 1180 1348 1351 1352 1360 1361 1367 1369 1378 1379 1438 1446 1452 1455 1456 1457 1494 1498 1502 1515 1519 1520 
-Full isomorphism test : 
-2 5 20 21 22 1062 1071 1130 1131 1144 1145 1179 1180 1348 1351 1352 1360 1361 1367 1369 1378 1379 1438 1446 1452 1455 1456 1457 1494 1498 1502 1519 1520 1538 
-BUG found
-
-db id is 20
-Fingerprint substructure search:
-results # : 33
-2 5 20 21 22 1071 1130 1131 1144 1145 1179 1180 1348 1351 1352 1360 1361 1367 1369 1378 1379 1438 1446 1452 1455 1456 1457 1494 1498 1502 1515 1519 1520 
-Full isomorphism test : 
-2 5 20 21 22 1062 1071 1130 1131 1144 1145 1179 1180 1348 1351 1352 1360 1361 1367 1369 1378 1379 1438 1446 1452 1455 1456 1457 1494 1498 1502 1519 1520 1540 1542 
-BUG found
- 
- */

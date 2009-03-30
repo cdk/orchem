@@ -29,7 +29,7 @@ import org.openscience.cdk.io.iterator.IteratingMDLReader;
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.PropertyLoader;
 import uk.ac.ebi.orchem.imp.PubChemImport;
-import uk.ac.ebi.orchem.scratch.temp.PubChemConnection;
+import uk.ac.ebi.orchem.scratch.PubChemConnection;
 
 /**
  * Loads test set of compounds into test schema.

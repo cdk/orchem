@@ -1,4 +1,4 @@
-/*  
+/*
  *  $Author$
  *  $Date$
  *  $Revision$
@@ -35,9 +35,10 @@ import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
+
 /**
  * Class for creating molecules
- * 
+ *
  * @author markr@ebi.ac.uk
  */
 public class MoleculeCreator {
@@ -65,10 +66,10 @@ public class MoleculeCreator {
             Matcher m = p.matcher(mdlString);
             StringBuilder sb = new StringBuilder(mdlString);
             while (m.find()) {
-                sb.replace(m.start(),m.start()+1,"H");
+                sb.replace(m.start(), m.start() + 1, "H");
             }
             //retry, hopefully NullPointer fixed...
-            mdlString=sb.toString();
+            mdlString = sb.toString();
             mdlReader.setReader(new StringReader(mdlString));
             molecule = new NNMolecule();
             molecule = (NNMolecule)mdlReader.read(molecule);
@@ -83,7 +84,7 @@ public class MoleculeCreator {
         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
         return nnMolecule;
     }
-    
-    
+
+
 
 }

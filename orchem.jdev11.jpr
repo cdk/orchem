@@ -321,7 +321,6 @@
          <list n="constituent-sets">
             <hash>
                <list n="pattern-filters">
-                  <string v="-org/openscience/cdk/isomorphism/"/>
                   <string v="+**"/>
                </list>
                <list n="url-path">
@@ -376,14 +375,6 @@
    </hash>
    <hash n="oracle.jdeveloper.runner.RunConfigurations">
       <hash n="runConfigurationDefinitions">
-         <hash n="Count atoms">
-            <value n="custom" v="false"/>
-            <value n="javaOptions" v=""/>
-            <value n="name" v="Count atoms"/>
-            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
-            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/temp/MyFingerprinter.java"/>
-            <value n="VMName" v="server"/>
-         </hash>
          <hash n="Empty">
             <value n="custom" v="false"/>
             <value n="name" v="Empty"/>
@@ -393,7 +384,8 @@
             <value n="custom" v="false"/>
             <value n="javaOptions" v=""/>
             <value n="name" v="Load Unit test data"/>
-            <value n="programArguments" v="/home/markr/cvs/sourceforge/OrChem/test/step1_compoundtable.mol 1000"/>
+            <value n="programArguments" v="/home/markr/cvs/sourceforge/OrChem/test/step1_compoundtable.queries.mol 0"/>
+            <value n="runActiveFile" v="false"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
             <url n="targetURL" path="src/uk/ac/ebi/orchem/test/LoadCompounds.java"/>
             <value n="VMName" v="server"/>
@@ -403,13 +395,13 @@
             <value n="javaOptions" v=""/>
             <value n="name" v="PubChem Import"/>
             <value n="programArguments" v="09"/>
+            <value n="runActiveFile" v="false"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
             <url n="targetURL" path="src/uk/ac/ebi/orchem/imp/PubChemImport.java"/>
             <value n="VMName" v="server"/>
          </hash>
       </hash>
       <list n="runConfigurationList">
-         <string v="Count atoms"/>
          <string v="Empty"/>
          <string v="Load Unit test data"/>
          <string v="PubChem Import"/>

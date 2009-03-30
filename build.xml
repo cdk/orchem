@@ -44,6 +44,7 @@
         <delete dir="${build.classes}/.tags"  />
         <delete dir="${build.classes}/.wlLibs"/>
         <delete dir="${build.classes}/uk"     />
+        <delete dir="${build.classes}/org"     />
 
         <echo message="Deleting old war file.."/>
         <delete file="${war.dir}/*.war"/>
@@ -85,6 +86,27 @@
         <!-- put the default webXXXxml back in place -->
         <copy file="${web.dir}/WEB-INF/web.jdev11.xml" tofile="${web.dir}/WEB-INF/web.xml" overwrite="true"/>
 
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Unittest substructure searching                                     -->
+    <!-- =================================================================== -->
+    <target name="test.substr" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: substructure searching       "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
+        <junit>
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestSubstructureSearch" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
     </target>
 
 

@@ -1,4 +1,4 @@
-/*  
+/*
  *  $Author$
  *  $Date$
  *  $Revision$
@@ -26,7 +26,6 @@ package uk.ac.ebi.orchem.search;
 import java.io.ObjectInputStream;
 
 import java.sql.Clob;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -41,16 +40,13 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
-import oracle.sql.CLOB;
-
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.isomorphism.IsomorphismSort;
 import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
-import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
-import org.openscience.cdk.isomorphism.matchers.QueryAtomContainerCreator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesParser;
 
@@ -71,8 +67,8 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  */
 
 public class SubstructureSearch {
-    
-    private static SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+
+    private static SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     private static MDLV2000Reader mdlReader = new MDLV2000Reader();
 
 
@@ -83,35 +79,35 @@ public class SubstructureSearch {
      *
      * @param queryMolecule
      * @param topN top N results after which to stop searching
-     * @param debugYN set to Y to see debugging on sql prompt. 
-     * 
+     * @param debugYN set to Y to see debugging on sql prompt.
+     *
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      * @throws Exception
      */
 
-    private static ARRAY search(IAtomContainer queryMolecule, Integer topN, String debugYN ) throws Exception {
-        long start= System.currentTimeMillis();
-        int loopCount=0;
-        int ignoreCount=0;
+    private static ARRAY search(IAtomContainer queryMolecule, IAtomContainer queryClone, Integer topN, String debugYN) throws Exception {
+        long start = System.currentTimeMillis();
+        int loopCount = 0;
+        int ignoreCount = 0;
 
         int compTested = 0;
 
         /* time stamps to debug elapse time through various phases */
-        long timestamp=0;
+        long timestamp = 0;
         long uitTime = 0;
-        long mlTime=0;
-        long prefilterTime=0;
-        long clobTime=0;
+        long mlTime = 0;
+        long prefilterTime = 0;
+        long clobTime = 0;
 
-        boolean debugging=false;
-        if (debugYN.toLowerCase().equals("y")) 
-            debugging=true;
+        boolean debugging = false;
+        if (debugYN.toLowerCase().equals("y"))
+            debugging = true;
 
-        debug("Start",debugging);
+        debug("Start", debugging);
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         //OracleConnection conn = (OracleConnection)new StarliteConnection().getDbConnection();
 
-        debug("Got connection",debugging);
+        debug("Got connection", debugging);
 
         String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
         String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
@@ -119,105 +115,103 @@ public class SubstructureSearch {
 
         conn.setDefaultRowPrefetch(50);
         conn.setReadOnly(true);
-        conn.setAutoCommit (false);
+        conn.setAutoCommit(false);
         Statement stmPreFilter = null;
         ResultSet res = null;
         try {
 
 
-           /**********************************************************************
+            /**********************************************************************
             * Pre-filter query section                                           *
             **********************************************************************/
-           
+
             // sort the atoms of the query molecule
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
-            debug(sortedAtoms.length+" sorted atoms",debugging);
+            debug(sortedAtoms.length + " sorted atoms", debugging);
             queryMolecule.setAtoms(sortedAtoms);
 
-            QueryAtomContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
-            BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(qAtCom);
-            Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(qAtCom);
-            debug("QueryAtomContainer was made",debugging);
+            // QueryAtomContainer does not seem a valid option for isomorphism - our
+            // fingerprinter is very strict, but OrderQueryBond.matches is very lenient..
+            //mContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
+            //BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(qAtCom);
+            //Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(qAtCom);
+
+            BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(queryClone);
+            Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(queryClone);
 
             /* Build up the where clause for the query using the fingerprint one bits */
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
-            
+
             //int bitPos=0;
-            int fpSize=FingerPrinterAgent.FP.getFpSize();
+            int fpSize = FingerPrinterAgent.FP.getFpSize();
 
             for (int i = 0; i < fpSize; i++) {
-                if ((fingerprint.get(i) )){   
+                if ((fingerprint.get(i))) {
                     builtCondition.append(" and bit" + i + "='1'");
                 }
             }
 
             /* Why hint? To prevent a hash join when too few distinctive bits have been set.
              * For example, when queried only for an aromatic hex ring */
-            String hint="/*+ USE_NL(s,c) USE_NL(s,o) */ ";
+            String hint = "/*+ USE_NL(s,c) USE_NL(s,o) */ ";
 
             whereCondition += builtCondition.toString();
             whereCondition = whereCondition.trim();
-            debug("Prefilter where condition built ",debugging);
-            debug(whereCondition,debugging);
+            debug("Prefilter where condition built ", debugging);
+            debug(whereCondition, debugging);
 
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            String preFilterQuery = 
-                " select   " +  hint +
-                "   s.id " + 
-                " , o.single_bond_count " + 
-                " , o.double_bond_count " +
-                " , o.triple_bond_count " + 
-                " , o.aromatic_bond_count " +
-                " , o.saturated_bond_count " + 
-                " , o.s_count " + 
-                " , o.o_count " + 
-                " , o.n_count " +
-                " , o.f_count " + 
-                " , o.cl_count " + 
-                " , o.br_count " + 
-                " , o.i_count " + 
-                " , o.c_count " +
-                " , o.cdk_molecule "+
-                " , nvl(dbms_lob.getlength(o.cdk_molecule),0) blob_length" +
-                " , c."+compoundTableMolfileColumn+
-                "  from " +
-                "   orchem_fingprint_subsearch s" +
-                "  ,orchem_compounds o," + 
-                   compoundTableName +" c "+
-                "  where " +
-                "      s.id = c. " +compoundTablePrimaryKey+
+            String preFilterQuery =
+                " select   " + hint + "   s.id " + " , o.single_bond_count " + " , o.double_bond_count " + " , o.triple_bond_count " + " , o.aromatic_bond_count " +
+                //" , o.saturated_bond_count " +
+                " , o.s_count " + " , o.o_count " + " , o.n_count " + " , o.f_count " + " , o.cl_count " + " , o.br_count " + " , o.i_count " + " , o.c_count " +
+                " , o.cdk_molecule " + " , nvl(dbms_lob.getlength(o.cdk_molecule),0) blob_length" + " , c." + compoundTableMolfileColumn + "  from " +
+                "   orchem_fingprint_subsearch s" + "  ,orchem_compounds o," + compoundTableName + " c " + "  where " + "      s.id = c. " + compoundTablePrimaryKey +
                 "  and s.id=o.id "; // AND .. whereCondition will be concatenated
 
-            timestamp =System.currentTimeMillis();
-            res = stmPreFilter.executeQuery(preFilterQuery + whereCondition); 
-            debug("Pre-filter query took (ms) : " + (System.currentTimeMillis() - timestamp),debugging);
-            prefilterTime=System.currentTimeMillis() - start;
-            
-            
-           /**********************************************************************
+            timestamp = System.currentTimeMillis();
+            res = stmPreFilter.executeQuery(preFilterQuery + whereCondition);
+            debug("Pre-filter query took (ms) : " + (System.currentTimeMillis() - timestamp), debugging);
+            prefilterTime = System.currentTimeMillis() - start;
+
+
+            /**********************************************************************
             * Graph validation section                                           *
             *                                                                    *
             **********************************************************************/
             List compounds = new ArrayList();
-            NNMolecule databaseMolecule=null;
+            NNMolecule databaseMolecule = null;
 
             debug("start loop over pre-filter results", debugging);
-            String molfile=null;
+            String molfile = null;
 
             while (res.next() && compounds.size() < topN) {
-                timestamp =System.currentTimeMillis();
+                timestamp = System.currentTimeMillis();
                 try {
                     loopCount++;
 
                     /*****************************************
                      * Quick filter                          *
                      *****************************************/
+                    debug(res.getString("id") + "______", debugging);
+                    debug(res.getInt("single_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT), debugging);
+                    debug(res.getInt("double_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT), debugging);
+                    debug(res.getInt("triple_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT), debugging);
+                    debug(res.getInt("aromatic_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT), debugging);
+                    debug(res.getInt("s_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT), debugging);
+                    debug(res.getInt("o_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT), debugging);
+                    debug(res.getInt("n_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT), debugging);
+                    debug(res.getInt("f_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT), debugging);
+                    debug(res.getInt("cl_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT), debugging);
+                    debug(res.getInt("br_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT), debugging);
+                    debug(res.getInt("i_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT), debugging);
+                    debug(res.getInt("c_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT), debugging);
+
                     if (res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT) ||
                         res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT) ||
                         res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT) ||
-                        res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT ) ||
-                        res.getInt("saturated_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.SATURATED_COUNT ) ||
+                        res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT) ||
                         res.getInt("s_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT) ||
                         res.getInt("o_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT) ||
                         res.getInt("n_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT) ||
@@ -226,20 +220,20 @@ public class SubstructureSearch {
                         res.getInt("br_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT) ||
                         res.getInt("i_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT) ||
                         res.getInt("c_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT)) {
-        
+
                         /* DO NOTHING - quick scan eliminates the candidate based on attributes */
                         ignoreCount++;
+                        debug("discarded compound " + res.getString("id"), debugging);
 
                     } else {
 
                         /* Create CDK molecule (either in serialized form or through molfileclob->string->molecule */
-                        if (res.getInt("blob_length")!=0 )  {
+                        if (res.getInt("blob_length") != 0) {
                             ObjectInputStream ois = new ObjectInputStream(res.getBlob("cdk_molecule").getBinaryStream());
                             databaseMolecule = (NNMolecule)ois.readObject();
                             ois.close();
-                        }
-                        else {
-                            molfile=res.getString(compoundTableMolfileColumn); 
+                        } else {
+                            molfile = res.getString(compoundTableMolfileColumn);
                             databaseMolecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                         }
                         mlTime += (System.currentTimeMillis() - timestamp);
@@ -247,7 +241,8 @@ public class SubstructureSearch {
 
                         /* Test if the match made is truly a substructure using VF2 algorithm*/
                         SubgraphIsomorphism s =
-                        new SubgraphIsomorphism(databaseMolecule, qAtCom,SubgraphIsomorphism.Algorithm.VF2);
+                            //new SubgraphIsomorphism(databaseMolecule, qAtCom,SubgraphIsomorphism.Algorithm.VF2);
+                            new SubgraphIsomorphism(databaseMolecule, queryMolecule, SubgraphIsomorphism.Algorithm.VF2);
 
                         if (s.matchSingle()) {
                             OrChemCompound c = new OrChemCompound();
@@ -268,17 +263,17 @@ public class SubstructureSearch {
                 output[i] = (OrChemCompound)(compounds.get(i));
             }
             ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor("ORCHEM_COMPOUND_LIST", conn);
-            long overallTime = System.currentTimeMillis()-start;
+            long overallTime = System.currentTimeMillis() - start;
 
             debug("Results list size                      :  " + compounds.size(), debugging);
             debug("Graph isomorphism tests took (ms)      :  " + uitTime, debugging);
             debug("Molecule retrieval/creation took (ms)  :  " + mlTime, debugging);
-            debug("Overall time (ms)"+overallTime+" ("+(prefilterTime+clobTime+uitTime+mlTime)+")", debugging);
-            debug("______",debugging);
+            debug("Overall time (ms)" + overallTime + " (" + (prefilterTime + clobTime + uitTime + mlTime) + ")", debugging);
+            debug("______", debugging);
             debug("Amount of compounds looped             : #" + loopCount, debugging);
             debug("Amount of compounds tested isomorphism : #" + compTested, debugging);
             debug("Amount of candidates ignored           : #" + ignoreCount, debugging);
-            debug("______________________",debugging);
+            debug("______________________", debugging);
             debug("End", debugging);
 
             return new ARRAY(arrayDescriptor, conn, output);
@@ -308,7 +303,13 @@ public class SubstructureSearch {
      * @throws Exception
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
+        //TODO !
+        IAtomContainer dummy = MoleculeCreator.getNNMolecule(mdlReader, mol); // document why this seems necessary.
+        //
+
+        IAtomContainer queryClone = MoleculeCreator.getNNMolecule(mdlReader, mol); //still necessary??
         IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader, mol);
+
         /*
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         PreparedStatement psTEMP = conn.prepareStatement("insert into testmdl values (orchem_sequence_log.nextval,?)");
@@ -322,7 +323,7 @@ public class SubstructureSearch {
         psTEMP.close();
         conn.commit();
         */
-        return search(queryMolecule, topN, debugYN);
+        return search(queryMolecule, queryClone, topN, debugYN);
     }
 
     /**
@@ -344,23 +345,25 @@ public class SubstructureSearch {
      *
      * @throws Exception
      */
-     public static oracle.sql.ARRAY smilesSearch(String smiles, Integer topN, String debugYN) throws Exception {
-         IAtomContainer queryMolecule = sp.parseSmiles(smiles);
-         return search(queryMolecule, topN, debugYN);
-     }
+    public static oracle.sql.ARRAY smilesSearch(String smiles, Integer topN, String debugYN) throws Exception {
+        IAtomContainer queryMolecule = sp.parseSmiles(smiles);
+        IAtomContainer queryClone = sp.parseSmiles(smiles);
 
-     /**
-      * Print debug message to system output. To see this output in Oracle SQL*Plus
-      * use 'set severout on' and 'exec dbms_java.set_output(50000)'
-      *
-      * @param debugMessage
-      * @param debug
-      */
-     private static void debug(String debugMessage, boolean debug) {
-         if (debug) {
-             System.out.println(new java.util.Date() + " debug: " + debugMessage);
-         }
-     }
+        return search(queryMolecule, queryClone, topN, debugYN);
+    }
+
+    /**
+     * Print debug message to system output. To see this output in Oracle SQL*Plus
+     * use 'set severout on' and 'exec dbms_java.set_output(50000)'
+     *
+     * @param debugMessage
+     * @param debug
+     */
+    private static void debug(String debugMessage, boolean debug) {
+        if (debug) {
+            System.out.println(new java.util.Date() + " debug: " + debugMessage);
+        }
+    }
 
 
 }

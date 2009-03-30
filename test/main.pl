@@ -215,7 +215,7 @@ sub processMenuChoice
 
    if ("$menuChoice" eq "5") 
    {
-      system ("cd ../build/citeXPlore ; ant unittest");
+      system ("cd ../ ; ant test.substr");
    }
    if ("$menuChoice" eq "6")
    {

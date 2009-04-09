@@ -210,7 +210,7 @@ sub processMenuChoice
 
    if ("$menuChoice" eq "4") 
    {
-      system ("perl ./step4.pl $username $password $url $tnsName  $cvsDir");
+      system ("cd ../ ; ant test.simsrch");
    }
 
    if ("$menuChoice" eq "5") 

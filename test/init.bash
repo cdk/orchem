@@ -3,6 +3,7 @@
 BASEDIR=`pwd | sed 's/\OrChem\/test.*/OrChem/'`
 JARDIR="$BASEDIR/public_html/WEB-INF/lib"
 CLASSDIR="$BASEDIR/public_html/WEB-INF/classes"
+SRCDIR="$BASEDIR/src"
 
 CLASSPATH=$CLASSDIR
 CLASSPATH=$CLASSPATH:$BASEDIR/public_html/WEB-INF/lib/cdk-1.1.2.ora11proof.fp.jar

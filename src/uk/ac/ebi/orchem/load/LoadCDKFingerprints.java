@@ -225,7 +225,12 @@ public class LoadCDKFingerprints {
 
                         /* Fingerprint the molecule */
                         bef = System.currentTimeMillis();
+                        long beforeFP= System.currentTimeMillis();
                         fpBitset = fingerPrinter.getFingerprint(molecule);
+                        if (System.currentTimeMillis()-beforeFP>1000)  {
+                            logMsg.append("\nFingerprint for "+ res.getString(compoundTablePkColumn) + "took > 1sec. ms=" + (System.currentTimeMillis()-beforeFP) );
+                        }
+
                         byte[] bytes = Utils.toByteArray(fpBitset, fpSize);
                         makeFpTime += (System.currentTimeMillis() - bef);
 

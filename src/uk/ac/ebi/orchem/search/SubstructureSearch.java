@@ -194,6 +194,7 @@ public class SubstructureSearch {
                     /*****************************************
                      * Quick filter                          *
                      *****************************************/
+                    /*
                     debug(res.getString("id") + "______", debugging);
                     debug(res.getInt("single_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT), debugging);
                     debug(res.getInt("double_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT), debugging);
@@ -207,11 +208,19 @@ public class SubstructureSearch {
                     debug(res.getInt("br_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT), debugging);
                     debug(res.getInt("i_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT), debugging);
                     debug(res.getInt("c_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT), debugging);
+                    */
 
-                    if (res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT) ||
-                        res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT) ||
+                    if (
+                        /* Temporary commented out (hopefully):
+                         * the SSSR finder can return inconsistent ring sets, especially on bucky balls
+                         * https://sourceforge.net/mailarchive/forum.php?thread_name=49D4C84E.7060807%40ebi.ac.uk&forum_name=cdk-devel
+                         * Because of this, pre-filtering on bond and aromatiticy can give wrong (inconsistent) results
+                         */
+                        //res.getInt("single_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT) ||
+                        //res.getInt("double_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT) ||
+                        //res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT) ||
+
                         res.getInt("triple_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT) ||
-                        res.getInt("aromatic_bond_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT) ||
                         res.getInt("s_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT) ||
                         res.getInt("o_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT) ||
                         res.getInt("n_count") < (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT) ||

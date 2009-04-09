@@ -113,6 +113,28 @@ public class DbApi {
         return executeOCS(ocs, conn);
     }
 
+    /**
+     * Run a database stored procedure similarity search using a mol file as input
+     *
+     * @param molfile
+     * @param conn
+     * @param topN
+     * @param minScore
+     * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    List<OrChemCompound> similaritySearchMol(String molfile, Connection conn, int topN, float minScore) throws SQLException, ClassNotFoundException {
+        String plsqlCall = "begin ?:=orchem.similarity_search_mol(?,?,?,?); end;";
+        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
+        ocs.registerOutParameter(1, OracleTypes.ARRAY, "ORCHEM_COMPOUND_LIST");
+        ocs.setString(2, molfile);
+        ocs.setFloat(3,minScore);
+        ocs.setInt(4, topN);
+        ocs.setString(5, "N");
+        return executeOCS(ocs, conn);
+    }
+
 
     /**
      * Execute oracle callable statement

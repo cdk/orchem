@@ -181,7 +181,7 @@ public class SimilaritySearch {
 
         try {
             conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //conn = (OracleConnection)new ChemdevConnection().getDbConnection();
+            //conn = (OracleConnection) new UnitTestConnection().getDbConnection();
 
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
             String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
@@ -206,16 +206,18 @@ public class SimilaritySearch {
             heap = new PriorityBuffer(true, heapComparator);
             int bucksSearched=0;
             int loopCount=0;
-            long countor=0;
     
             while (!done) {
-                System.out.println("bucket is "+currBucketNum);
+                //System.out.println("bucket is "+currBucketNum);
                 loopCount++;
                 pstmtFp.setFloat(1, currBucketNum);
                 bucksSearched++;
                 resFp = pstmtFp.executeQuery();
     
                 float bound = 0f;
+                //if (currBucketNum==0 || queryBitCount==0) // avoid division by 0 in next branch
+                //    bound=1;
+                //else 
                 if (currBucketNum < queryBitCount)
                     bound = currBucketNum / queryBitCount;
                 else
@@ -227,8 +229,6 @@ public class SimilaritySearch {
                     debug("bound < cutOff, done",debugging);
                     done = true;
                 }
-                //
-    
 
                 if (!done) {
                     //Algorithm 15-26
@@ -253,7 +253,12 @@ public class SimilaritySearch {
                                 bitsInCommon += BIT_COUNT[bAnd];
                             }
                         }
+                        
+                        //if (queryBitCount + currBucketNum - bitsInCommon==0 )
+                        //    tanimotoCoeff=1;
+                        //else                        
                         tanimotoCoeff = bitsInCommon / (queryBitCount + currBucketNum - bitsInCommon);
+
                         if (tanimotoCoeff >= cutOff) {
                             SimHeapElement elm = new SimHeapElement();
                             elm.setID(resFp.getString("id"));
@@ -300,7 +305,7 @@ public class SimilaritySearch {
                 }
             }
             debug("searched bit_count buckets: "+loopCount,debugging);
-            System.out.println(countor);
+            //System.out.println(countor);
     
 
            /********************************************************************
@@ -343,6 +348,7 @@ public class SimilaritySearch {
                 output[i] = (OrChemCompound) (compounds.get(i));
             }
             ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor("ORCHEM_COMPOUND_LIST", conn);
+            debug("#compounds in result list : "+compounds.size(), debugging);
             debug("ended",debugging);
             return new ARRAY(arrayDescriptor, conn, output);
         }
@@ -430,21 +436,15 @@ public class SimilaritySearch {
     /*
     public static void main(String[] args) throws Exception{
 
-        OracleConnection conn =
-          (OracleConnection)new ChemdevConnection().getDbConnection();
-
+        OracleConnection conn = (OracleConnection) new UnitTestConnection().getDbConnection();
         PreparedStatement stmtQueryCompounds =
-          conn.prepareStatement("select molregno, molfile from compounds where molregno=55888");
-
-        MDLV2000Reader mdlReader = new MDLV2000Reader();
+          conn.prepareStatement("select id, molfile from orchem_compound_sample where id=17");
         ResultSet res = stmtQueryCompounds.executeQuery();
         Clob molFileClob = null;
-        String mdl = "";
-
         while (res.next()) {
-          System.out.println(res.getInt("molregno"));
+          System.out.println(res.getInt("id"));
           molFileClob = res.getClob("molfile");
-          molSearch(molFileClob, 0.85f, 50,"Y");
+          molSearch(molFileClob, 0.25f, 50,"Y");
         }
     }
     */

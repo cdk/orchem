@@ -3,7 +3,8 @@ package uk.ac.ebi.orchem.test;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * Little bean wrapper around IAtomContainer to also store its database id
+ * Bean wrapper around IAtomContainer to also store its database id.<BR>
+ * Only used for Junit testing.
  */
 class MyAtomContainer {
     private IAtomContainer atomContainer;

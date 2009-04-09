@@ -29,6 +29,7 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.openscience.cdk.Molecule;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -49,6 +50,9 @@ public class MoleculeCreator {
      * @param mdlString
      * @return
      * @throws CDKException
+     * 
+     * 
+     * 
      */
     public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString) throws CDKException {
         NNMolecule molecule = null;
@@ -84,7 +88,17 @@ public class MoleculeCreator {
         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
         return nnMolecule;
     }
-
-
-
 }
+
+
+/*
+     //Alternative
+     Object object = reader.next();
+     if (object != null && object instanceof Molecule) {
+         m = (Molecule)object;
+         nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(m));
+         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
+         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
+     }
+ */
+

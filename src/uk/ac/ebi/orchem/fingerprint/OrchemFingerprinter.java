@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -44,6 +45,7 @@ import org.openscience.cdk.ringsearch.SSSRFinder;
 
 import uk.ac.ebi.orchem.fingerprint.bitpos.BitPosApi;
 import uk.ac.ebi.orchem.fingerprint.bitpos.Neighbour;
+import uk.ac.ebi.orchem.scratch.MyAllRingsFinder;
 
 
 /**
@@ -61,10 +63,11 @@ public class OrchemFingerprinter implements IFingerprinter {
         return FINGERPRINT_SIZE;
     }
 
-    public BitSet getFingerprint(IAtomContainer molecule) {
-
+    public BitSet getFingerprint(IAtomContainer molecule)  {
         BitSet fingerprint;
         fingerprint = new BitSet(FINGERPRINT_SIZE); 
+        /* Set a dummy default bit. This prevents compounds with 0 bits set, which in turn makes the similarity search unhappy*/
+        fingerprint.set(0);
 
         carbonTrails(molecule,fingerprint);
 
@@ -73,14 +76,34 @@ public class OrchemFingerprinter implements IFingerprinter {
 
         neighbours(molecule,fingerprint);
 
-        IRingSet ringSet = new SSSRFinder(molecule).findSSSR();
-        rings(ringSet,fingerprint);
+        /* 
+         * Fingerprint ring aspects.
+         * AllRingsFinder or SSSRFinder? The AllRingsFinder is prefered. 
+         * 
+         * This is best illustrated by an example: unittest compound with id=30 would not be regarded a substructure
+         * of compound id=1062 if using SSSR. However AllRingsFinder spots all the rings we want.
+         * Downside of AllRingsFinder is potential slowness; SSSR is used on timeout. Timeouts can happen for
+         * complex 3D compounds like Boron buckyballs (unittest id=1218) 
+         */
 
+        //TODO this is a TEMP class (copy of AllRingsFinder) to user until CDK has new AllRingsFinder (with search depth) 
+        MyAllRingsFinder ringFinder =  new MyAllRingsFinder();
+        ringFinder.setTimeout(3000);
+        IRingSet ringSet=null;
+        try {
+            ringSet = ringFinder.findAllRingsInIsolatedRingSystem(molecule,7); // max depth=7
+        } catch (CDKException e) {
+            /* time out? let SSSR make the rings (fast) */
+            System.out.println("Time out on all rings finder - switch to SSSR");
+            ringSet = new SSSRFinder(molecule).findSSSR();
+        }
+        rings(ringSet,fingerprint);
         List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
         ringSets(rslist,fingerprint);
 
         smartsPatterns(molecule,fingerprint);
         return fingerprint;
+
     }
 
 

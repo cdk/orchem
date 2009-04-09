@@ -40,8 +40,6 @@ public class FingerPrinterAgent {
 
     public static final FingerPrinterAgent FP = new FingerPrinterAgent();
     private IFingerprinter fingerPrinter;
-    //private static int FP_SIZE;
-    //private static int FP_CONDENSED_SIZE;
 
 
     /**
@@ -51,10 +49,6 @@ public class FingerPrinterAgent {
      * performance of {@link uk.ac.ebi.orchem.load.LoadCDKFingerprints}. <BR>
      * */
     private FingerPrinterAgent() {
-        //FP_SIZE=new Integer(576);
-        //FP_CONDENSED_SIZE=new Integer(512);
-
-        //fingerPrinter = new org.openscience.cdk.fingerprint.ExtendedFingerprinter(FP_SIZE,6);
         fingerPrinter = new OrchemFingerprinter();
         System.out.println("Fingerprinter ready ");
 
@@ -67,8 +61,5 @@ public class FingerPrinterAgent {
         return OrchemFingerprinter.FINGERPRINT_SIZE;
     }
 
-    //public int getFpCondensedSize() {
-    //    return FP_CONDENSED_SIZE;
-    //}
 
 }

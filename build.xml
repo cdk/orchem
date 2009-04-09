@@ -109,6 +109,29 @@
         <echo />
     </target>
 
+    <!-- =================================================================== -->
+    <!-- Unittest similarity smurfing                                        -->
+    <!-- =================================================================== -->
+    <target name="test.simsrch" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: similarity searching       "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
+        <junit>
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestSimilaritySearch" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
+
+
 
 
 

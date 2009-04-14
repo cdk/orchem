@@ -143,10 +143,8 @@ public class SubstructureSearch {
             String whereCondition = "";
             StringBuffer builtCondition = new StringBuffer();
 
-            //int bitPos=0;
             int fpSize = FingerPrinterAgent.FP.getFpSize();
-
-            for (int i = 0; i < fpSize; i++) {
+            for (int i = 1; i < fpSize; i++) { // ignore bit 0 of OrchemFingerprinter
                 if ((fingerprint.get(i))) {
                     builtCondition.append(" and bit" + i + "='1'");
                 }

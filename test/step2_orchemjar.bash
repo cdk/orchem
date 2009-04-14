@@ -11,7 +11,7 @@ jar -cvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/shared/AtomsBondsCounter.cla
 
 
 #temp temp temp#
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/scratch/MyAllRingsFinder.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/MyAllRingsFinder.class
 ################
 
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/shared/MoleculeCreator.class

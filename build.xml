@@ -62,7 +62,9 @@
         <javac srcdir="${src.dir}" destdir="${build.classes}">
             <classpath refid="project.classpath"/>
             <include name="**/*.java"/>
-            <!--exclude name="**/submission/**"/-->
+            <exclude name="**/PubChemImport.java"/>
+            <exclude name="**/ImageServlet.java"/>
+            
         </javac>
         <copy file="${project.root}/properties/my_local_copies/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>
         <copy file="${project.root}/properties/my_local_copies/webapp.properties" tofile="${build.classes}/webapp.properties" overwrite="true"/>

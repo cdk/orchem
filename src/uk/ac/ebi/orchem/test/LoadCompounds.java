@@ -2,22 +2,16 @@ package uk.ac.ebi.orchem.test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
 import java.sql.Connection;
-
 import java.sql.DriverManager;
-
 import java.sql.SQLException;
 
 import java.util.Properties;
 
 import oracle.jdbc.OraclePreparedStatement;
-
-import oracle.jdbc.pool.OracleConnectionCacheManager;
-import oracle.jdbc.pool.OracleDataSource;
 
 import oracle.sql.CLOB;
 
@@ -27,9 +21,7 @@ import org.openscience.cdk.io.MDLWriter;
 import org.openscience.cdk.io.iterator.IteratingMDLReader;
 
 import uk.ac.ebi.orchem.Constants;
-import uk.ac.ebi.orchem.PropertyLoader;
-import uk.ac.ebi.orchem.imp.PubChemImport;
-import uk.ac.ebi.orchem.scratch.PubChemConnection;
+
 
 /**
  * Loads test set of compounds into test schema.

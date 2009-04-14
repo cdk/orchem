@@ -45,7 +45,7 @@ import org.openscience.cdk.ringsearch.SSSRFinder;
 
 import uk.ac.ebi.orchem.fingerprint.bitpos.BitPosApi;
 import uk.ac.ebi.orchem.fingerprint.bitpos.Neighbour;
-import uk.ac.ebi.orchem.scratch.MyAllRingsFinder;
+import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
 
 
 /**

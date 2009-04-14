@@ -24,9 +24,13 @@ prompt =====================
          i number;
        begin
          for r_java in (select name from user_java_classes ) loop
-             if
-                r_java.name like 'uk/ac/ebi%' 
+             if  --   r_java.name like 'org/openscience/cdk%'
+                 --or r_java.name like 'javax/vecmath%'
+                 --or r_java.name like 'org/_3pq%'
+                 --or 
+                      r_java.name like 'uk/ac/ebi%'
              then
+
                 begin
                   i:=dbms_java.compile_class (r_java.name);
                   dbms_output.put_line ('Compiled '||r_java.name);

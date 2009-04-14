@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-
+use Cwd;
 
 ################################################################################
 #                                                                              #
@@ -23,6 +23,21 @@
 #                                                                              #
 #                                                                              #
 ################################################################################
+my $os = $^O;
+
+
+&clearScreen;
+
+# linux will retrieve cur dir using 'pwd'. Windows must be helped a bit
+my $dir;
+if ($os =="MSWin32") {
+    $dir = cwd;
+    $dir =~tr/\//\\/;
+    $dir =~s/test//;
+}
+else {
+   $dir="not needed"; 
+}
 
 &printBanner;
 &getProperties;
@@ -31,6 +46,7 @@
 
 while ("$menuChoice" ne "0") 
 {
+   &clearScreen;
    &printBanner;
    &printMenu;	 
    &processMenuChoice;	
@@ -48,7 +64,7 @@ while ("$menuChoice" ne "0")
 #-------------------------------------------------------------------------------
 sub printBanner 
 {
-	system("clear");
+ 
 	print "________________________________________________________________\n\n";
 	print " OrChem unit testing                                            \n";
 	print "________________________________________________________________\n\n";
@@ -59,8 +75,9 @@ sub printBanner
 # sub printMenu : prints menu options
 #-------------------------------------------------------------------------------
 sub printMenu
-{
-   &printConnDetails;
+{ 	
+  print "\n   Oper.syst: $os\n";
+  &printConnDetails;
 
 	print " - Option 1: - drop ALL(!!) user database objects \n               create fresh schema\n               load (query) compounds\n";
 	print " - Option 2: - loadjava \n";
@@ -172,13 +189,13 @@ sub processMenuChoice
    {
 
       $_ = &promptUser("Enter menu option ");
-      if(m/[0-6]/)
+      if(m/[0-5]/)
       {
          $menuChoice=$_;
       }
    }
    
- 	system("clear");
+ 	&clearScreen;
  	print  "Option $menuChoice chosen.\n-----------------\n\n";
 
    if ("$menuChoice" eq "0") 
@@ -194,32 +211,38 @@ sub processMenuChoice
      $confirm = &promptUser("Are you sure? Enter y to proceed and DROP ALL database objects for $username");
      if("$confirm" eq "y" )
      {
-      system ("perl ./step1.pl $username $password $tnsName");
+      system ("perl ./step1.pl $username $password $tnsName $dir $os");
      }
    }
 
    if ("$menuChoice" eq "2") 
    {
-      system ("perl ./step2.pl $username $password $tnsName");
+      system ("perl ./step2.pl $username $password $tnsName $dir $os");
    }
 
    if ("$menuChoice" eq "3") 
    {
-      system ("perl ./step3.pl $username $password $tnsName ");
+      system ("perl ./step3.pl $username $password $tnsName");
    }
 
    if ("$menuChoice" eq "4") 
    {
-      system ("cd ../ ; ant test.simsrch");
+      if ($os =="MSWin32") {
+         system ("ant -f ..\\build.xml test.simsrch");
+      }
+      else {
+         system ("ant -f ../build.xml test.simsrch");
+      }
    }
 
    if ("$menuChoice" eq "5") 
    {
-      system ("cd ../ ; ant test.substr");
-   }
-   if ("$menuChoice" eq "6")
-   {
-      system ("perl ./step6.pl $username $password $tnsName");
+      if ($os =="MSWin32") {
+         system ("ant -f ..\\build.xml test.substr");
+      }
+      else {
+         system ("ant -f ..\build.xml test.substr");
+      }
    }
 
 
@@ -277,5 +300,12 @@ $username =~ tr/a-z/A-Z/;
 
 }
 
-
+sub clearScreen {
+	if ($os =="MSWin32") {
+	  system("cls");
+	}
+  else {
+	  system("clear");
+	}
+}
 

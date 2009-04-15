@@ -30,13 +30,13 @@ my $os = $^O;
 
 # linux will retrieve cur dir using 'pwd'. Windows must be helped a bit
 my $dir;
-if ($os =="MSWin32") {
+if ($os eq "MSWin32") {
     $dir = cwd;
     $dir =~tr/\//\\/;
     $dir =~s/test//;
 }
 else {
-   $dir="not needed"; 
+   $dir="onlyNeededOnWindows"; 
 }
 
 &printBanner;
@@ -227,7 +227,7 @@ sub processMenuChoice
 
    if ("$menuChoice" eq "4") 
    {
-      if ($os =="MSWin32") {
+      if ($os eq "MSWin32") {
          system ("ant -f ..\\build.xml test.simsrch");
       }
       else {
@@ -237,7 +237,7 @@ sub processMenuChoice
 
    if ("$menuChoice" eq "5") 
    {
-      if ($os =="MSWin32") {
+      if ($os eq "MSWin32") {
          system ("ant -f ..\\build.xml test.substr");
       }
       else {
@@ -301,10 +301,10 @@ $username =~ tr/a-z/A-Z/;
 }
 
 sub clearScreen {
-	if ($os =="MSWin32") {
+	if ($os eq "MSWin32") {
 	  system("cls");
 	}
-  else {
+        else {
 	  system("clear");
 	}
 }

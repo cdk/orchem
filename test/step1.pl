@@ -1,14 +1,23 @@
 #!/usr/local/bin/perl
 
+print "1 $ARGV[0]\n"; 
+print "2 $ARGV[1]\n"; 
+print "3 $ARGV[2]\n"; 
+print "4 $ARGV[3]\n"; 
+print "5 $ARGV[4]\n"; 
+
+
 if (@ARGV ne 5){die "Error, wrong number of input arguments ! "};
 
 $username = $ARGV[0]; 
 $password = $ARGV[1];  
 $instance = $ARGV[2]; 
 $dir      = $ARGV[3]; 
-$os       = $ARGV[4]
+$os       = $ARGV[4];
 
-print "$dir\n\n";
+
+
+
 print "----------------------------------------------\n\n";
 print "DROPPING objects in existing schema $username.. \n\n";
 system("sqlplus -S $username/$password\@$instance \@../sql/drop.sql $username ");
@@ -29,7 +38,7 @@ print "----------------------------------------------\n\n";
 print "Loading compound sample from molfile into db \n";
 print "----------------------------------------------\n\n";
 
-if ($os =="MSWin32") {
+if ($os eq "MSWin32") {
   system("step1_compoundload.bat $dir");
 }
 else {

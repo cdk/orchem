@@ -28,4 +28,3 @@ call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\log4j-1.2.15.
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\cdk-1.1.2.ora11proof.fp.jar
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% c:\orchem.jar
 
-del c:\temp\orchem.jar

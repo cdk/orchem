@@ -1,10 +1,10 @@
 #!/usr/local/bin/perl
 
-print "1 $ARGV[0]\n"; 
-print "2 $ARGV[1]\n"; 
-print "3 $ARGV[2]\n"; 
-print "4 $ARGV[3]\n"; 
-print "5 $ARGV[4]\n"; 
+#print "1 $ARGV[0]\n"; 
+#print "2 $ARGV[1]\n"; 
+#print "3 $ARGV[2]\n"; 
+#print "4 $ARGV[3]\n"; 
+#print "5 $ARGV[4]\n"; 
 
 
 if (@ARGV ne 5){die "Error, wrong number of input arguments ! "};

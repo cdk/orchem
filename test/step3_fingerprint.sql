@@ -4,9 +4,6 @@
 prompt deleting current fingerprints
 prompt =============================
 
-prompt delete orchem_compounds
-delete orchem_compounds
-/
 prompt delete orchem_fingprint_subsearch
 delete orchem_fingprint_subsearch
 /

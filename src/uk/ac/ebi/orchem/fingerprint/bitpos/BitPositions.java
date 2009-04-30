@@ -94,6 +94,7 @@ public class BitPositions {
 
     public final String ringNonaromDoubleBond = new String("ringDoubleBondNonArom_");
 
+    public final String otherElem="OtherElement";
 
     /**
      * Constructor sets up the maps with fingerprinting data.
@@ -693,30 +694,6 @@ public class BitPositions {
     elemCntBits.put("Xe1",                                                              582  );
     elemCntBits.put("Yb1",                                                              583  );
     elemCntBits.put("Zr1",                                                              584  );
-
     }
 
-    /**
-     * Private helper method used by constructor for bit sets on ring aspects.
-     * @param ringsize size of the ring
-     * @param bitPos current bitset position
-     * @param count ring count aspect
-     * @return bitPos new value
-     */
-    /*
-    private int setupRings(int ringsize, int bitPos, int count) {
-        ringBits.put(ringsize + ringPrefixRing + ringPrefixAny + count, bitPos++);
-        if (ringsize > 4) { // aromatic rings of size 3 and 4 do not occur
-            ringBits.put(ringsize + ringPrefixRing + ringPrefixArom + count, bitPos++);
-            ringBits.put(ringsize + ringPrefixRing + ringPrefixArom + ringPrefixNitro + count, bitPos++);
-            ringBits.put(ringsize + ringPrefixRing + ringPrefixArom + ringPrefixHetero + count, bitPos++);
-            ringBits.put(ringsize + ringPrefixRing + ringPrefixArom + ringPrefixCarbonOnly + count, bitPos++);
-        }
-        ringBits.put(ringsize + ringPrefixRing + ringPrefixNonArom + count, bitPos++);
-        ringBits.put(ringsize + ringPrefixRing + ringPrefixNonArom + ringPrefixNitro + count, bitPos++);
-        ringBits.put(ringsize + ringPrefixRing + ringPrefixNonArom + ringPrefixHetero + count, bitPos++);
-        ringBits.put(ringsize + ringPrefixRing + ringPrefixNonArom + ringPrefixCarbonOnly + count, bitPos++);
-        return bitPos;
-    }
-    */
 }

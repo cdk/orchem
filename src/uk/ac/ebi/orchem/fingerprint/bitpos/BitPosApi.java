@@ -67,7 +67,7 @@ public class BitPosApi {
             all.put(bit, sb.toString());
         }
 
-        int i=0;
+        int i=1;
         while (true) {
             if (all.containsKey(i)) {
                 String condition = all.get(i);

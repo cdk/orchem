@@ -3,8 +3,8 @@ AS
    --FUNCTION to_hex( p_dec IN NUMBER ) RETURN VARCHAR2;
    --FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;
    --FUNCTION to_oct( p_dec IN NUMBER ) RETURN VARCHAR2;
-   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2, serialize_yn VARCHAR2:='N');
-   PROCEDURE slice_load (p_start_id integer, p_end_id integer,serialize_yn VARCHAR2:='N');
+   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2);
+   PROCEDURE slice_load (p_start_id integer, p_end_id integer);
    FUNCTION  similarity_search_mol (molfile clob, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION  similarity_search_smiles (smiles varchar2, cutoff float, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
    FUNCTION  substructure_search_mol (molfile clob, topn NUMBER, debug_YN VARCHAR2) RETURN orchem_compound_list;
@@ -89,16 +89,17 @@ AS
         RETURN ret;
    END;
    /*    */
-   PROCEDURE cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2,serialize_yn VARCHAR2)
+   PROCEDURE cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2)
    IS LANGUAGE JAVA
-   NAME 'uk.ac.ebi.orchem.load.LoadCDKFingerprints.load (java.lang.String, java.lang.String, java.lang.String)';
-   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2,serialize_yn VARCHAR2:='N')
+   NAME 'uk.ac.ebi.orchem.load.LoadCDKFingerprints.load (java.lang.String, java.lang.String)';
+   /*    */
+   PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2)
    IS 
    BEGIN
-      cdk_fingerprints (start_id, end_id, serialize_yn);
+      cdk_fingerprints (start_id, end_id);
    END;
    /*      */
-   PROCEDURE slice_load (p_start_id integer, p_end_id integer,serialize_yn VARCHAR2:='N')
+   PROCEDURE slice_load (p_start_id integer, p_end_id integer)
    IS  
        slice_size    integer :=9999;
        p_slice_start integer :=-1;
@@ -115,7 +116,7 @@ AS
           p_slice_end:=p_end_id;
         end if;
         --dbms_output.put_line (p_slice_start||'-'|| p_slice_end);
-        cdk_fingerprints (p_slice_start,p_slice_end,serialize_yn);
+        cdk_fingerprints (p_slice_start,p_slice_end);
         exit when p_slice_end=p_end_id;
      END LOOP;
    END;  

@@ -57,6 +57,7 @@ import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
  */
 public class OrchemFingerprinter implements IFingerprinter {
 
+
     public final static int FINGERPRINT_SIZE=640;
 
     public int getSize() {
@@ -94,7 +95,6 @@ public class OrchemFingerprinter implements IFingerprinter {
             ringSet = ringFinder.findAllRingsInIsolatedRingSystem(molecule,7); // max depth=7
         } catch (CDKException e) {
             /* time out? let SSSR make the rings (fast) */
-            System.out.println("Time out on all rings finder - switch to SSSR");
             ringSet = new SSSRFinder(molecule).findSSSR();
         }
         rings(ringSet,fingerprint);
@@ -145,6 +145,7 @@ public class OrchemFingerprinter implements IFingerprinter {
                 }
             }
         }
+
     }
 
 
@@ -247,7 +248,6 @@ public class OrchemFingerprinter implements IFingerprinter {
                             if (!patternAtomMapped)
                                 break;
                             if (allMapped) {
-                                //System.out.println("setting neighbour bit " + bit + " true " + neighbourPatternList + " applied to " + atomPlusNeighbours);
                                 fingerprint.set(bit, true);
                             }
                         }
@@ -621,9 +621,7 @@ public class OrchemFingerprinter implements IFingerprinter {
             for (Iterator<IAtom> iterator = ccBonds.get(idxBond).atoms().iterator(); iterator.hasNext(); ) {
                 IAtom at = iterator.next();
                 uniqueAtoms.put(at, at);
-                //System.out.println(idxBond+" "+at.getPoint2d().getX()+"  "+at.getPoint2d().getY());
             }
-            //System.out.println("-------------");
         }
 
         int series = 0;
@@ -641,7 +639,6 @@ public class OrchemFingerprinter implements IFingerprinter {
                 }
             }
         }
-        //System.out.println("Series = " + series);
 
         for (int len = 12; len <= series; len++) {
             String key = BitPosApi.bp.cTrailPrefix + len;
@@ -679,7 +676,6 @@ public class OrchemFingerprinter implements IFingerprinter {
                     if (nextAtom != null && !atomsPath.contains(nextAtom)) {
                         takenBondsListIdx.add(i);
                         atomsPath.add(nextAtom);
-                        //System.out.println(length+" "+takenBondsListIdx+ " atoms taken "+atomsPath.size());
 
                         int newLen = carbonSeriesCounter(ccBonds, takenBondsListIdx, atomsPath, length + 1);
 

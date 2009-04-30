@@ -15,7 +15,6 @@ Step plan to create the schema
                 jar -cvf orchem.jar org/openscience/cdk/isomorphism/*.class uk/ac/ebi/orchem/Utils.class uk/ac/ebi/orchem/db/OrChemParameters.class uk/ac/ebi/orchem/bean/* uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class uk/ac/ebi/orchem/load/LoadCDKFingerprints.class uk/ac/ebi/orchem/search/*.class
                or..
 
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/shared/AtomsBondsCounter.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/shared/MoleculeCreator.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/Utils.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/SimpleMail.java
@@ -24,13 +23,14 @@ Step plan to create the schema
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElement.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.java
-                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/fingerprint/bitpos/Neighbour.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/fingerprint/bitpos/BitPositions.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/fingerprint/bitpos/BitPosApi.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/fingerprint/OrchemFingerprinter.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/singleton/FingerPrinterAgent.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/load/LoadCDKFingerprints.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SimilaritySearch.java
+                loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/OrchemMoleculeBuilder.java
                 loadjava -resolve -user starlite28p/star uk/ac/ebi/orchem/search/SubstructureSearch.java
 
 
@@ -39,11 +39,10 @@ Step plan to create the schema
          i number;
        begin
          for r_java in (select name from user_java_classes ) loop
-             if
-                    r_java.name like 'org/openscience/cdk%' 
-                 or r_java.name like 'javax/vecmath%' 
-                 or r_java.name like 'org/_3pq%' 
-                 or r_java.name like 'uk/ac/ebi%' 
+             if       r_java.name like 'uk/ac/ebi%' 
+                 --or r_java.name like 'org/openscience/cdk%' 
+                 --or r_java.name like 'javax/vecmath%' 
+                 --or r_java.name like 'org/_3pq%' 
              then
                 begin
                   i:=dbms_java.compile_class (r_java.name);
@@ -65,13 +64,13 @@ Step plan to create the schema
 declare
     i binary_integer;
 begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(5010001,6250000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(6250001,7000000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(7000001,7510000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(7510001,8010000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(8010001,8510000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(8510001,9020000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(9020001,9503785 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(5010001,6250000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(6250001,7000000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(7000001,7510000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(7510001,8010000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(8010001,8510000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(8510001,9020000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(9020001,9503785  );' ,INTERVAL=>null ); 
     commit;
 end;
 
@@ -81,31 +80,26 @@ end;
 declare
     i binary_integer;
 begin
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(     1 ,  70000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load( 70001 , 140000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(140001 , 210000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(210001 , 280000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(280001 , 350000 ,''Y'');' ,INTERVAL=>null ); 
-    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(350001 , 445000 ,''Y'');' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(     1 ,  70000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load( 70001 , 140000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(140001 , 210000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(210001 , 280000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(280001 , 350000  );' ,INTERVAL=>null ); 
+    dbms_job.submit (JOB=>i,WHAT=>'orchem.slice_load(350001 , 445000  );' ,INTERVAL=>null ); 
     commit;
 end;
 
  
  
- - post loader indices: 
-   - primary keys
+ - post loader : 
   
    - statistics
-   analyze table orchem_fingprint_simsearch compute statistics for all columns for all indexes
-   /
-   analyze table orchem_compounds compute statistics for all columns for all indexes
-   /
-
-   exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_compounds',           degree=>4);
+   --exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_compounds',           degree=>4);
    exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_simsearch', degree=>4);
    exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', degree=>4);
+   --exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_atoms', degree=>4);
+   --exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_bonds', degree=>4);
    
-   --exec dbms_stats.GATHER_TABLE_STATS (ownname=> user, tabname=> 'orchem_fingprint_subsearch', estimate_percent=>33, degree=>4);
 
 
 

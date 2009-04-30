@@ -26,6 +26,7 @@ package uk.ac.ebi.orchem.search;
 import java.io.ObjectInputStream;
 
 import java.sql.Clob;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -60,10 +61,10 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 /**
  * Substructure search between a query molecule and the database molecules.<BR>
  * This class is loaded in the database and executed as a java stored procedure, hence the
- * proprietary things like "oracle.sql.ARRAY" and defaultConnection.
- *
+ * proprietary things like "oracle.sql.ARRAY" and OracleDriver().defaultConnection()
  *
  * @author markr@ebi.ac.uk
+ * 
  */
 
 public class SubstructureSearch {
@@ -71,6 +72,30 @@ public class SubstructureSearch {
     private static SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     private static MDLV2000Reader mdlReader = new MDLV2000Reader();
 
+
+    /* Why hint? To prevent a hash join when too few distinctive bits have been set.
+     * For example, when queried only for an aromatic hex ring */
+    //TODO try parallel hint here already ?
+    private static String preFilterQuery =
+            " select /*+ FIRST_ROWS */" +
+            "   s.id " + 
+            " , s.single_bond_count " + 
+            " , s.double_bond_count " + 
+            " , s.triple_bond_count " + 
+            " , s.aromatic_bond_count " +
+            " , s.s_count " + 
+            " , s.o_count " + 
+            " , s.n_count " + 
+            " , s.f_count " + 
+            " , s.cl_count " + 
+            " , s.br_count " + 
+            " , s.i_count " + 
+            " , s.c_count " +
+            " , s.atoms " +
+            " , s.bonds " +
+            "  from  orchem_fingprint_subsearch s" + 
+            "  where 1=1 "; 
+            // AND .. whereCondition will be concatenated down below
 
     /**
      * Performs a substructure search for a query molecule, using a fingerprint based
@@ -92,7 +117,7 @@ public class SubstructureSearch {
 
         int compTested = 0;
 
-        /* time stamps to debug elapse time through various phases */
+        /* Time stamps to debug elapse time through various phases */
         long timestamp = 0;
         long uitTime = 0;
         long mlTime = 0;
@@ -113,28 +138,26 @@ public class SubstructureSearch {
         String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
         String compoundTablePrimaryKey = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
 
-        conn.setDefaultRowPrefetch(50);
+        String molQuery = 
+        "  select c." + compoundTableMolfileColumn + 
+        "  from " + compoundTableName + " c " + 
+        "  where  c." + compoundTablePrimaryKey +" = ?";
+        PreparedStatement psMolQ = conn.prepareStatement(molQuery);
+
+        conn.setDefaultRowPrefetch(20);
         conn.setReadOnly(true);
         conn.setAutoCommit(false);
         Statement stmPreFilter = null;
         ResultSet res = null;
         try {
 
-
             /**********************************************************************
             * Pre-filter query section                                           *
             **********************************************************************/
-
-            // sort the atoms of the query molecule
+            // Sort the atoms of the query molecule
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
             debug(sortedAtoms.length + " sorted atoms", debugging);
             queryMolecule.setAtoms(sortedAtoms);
-
-            // QueryAtomContainer does not seem a valid option for isomorphism - our
-            // fingerprinter is very strict, but OrderQueryBond.matches is very lenient..
-            //mContainer qAtCom = QueryAtomContainerCreator.createBasicQueryContainer(queryMolecule);
-            //BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(qAtCom);
-            //Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(qAtCom);
 
             BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(queryClone);
             Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(queryClone);
@@ -150,23 +173,12 @@ public class SubstructureSearch {
                 }
             }
 
-            /* Why hint? To prevent a hash join when too few distinctive bits have been set.
-             * For example, when queried only for an aromatic hex ring */
-            String hint = "/*+ USE_NL(s,c) USE_NL(s,o) */ ";
-
             whereCondition += builtCondition.toString();
             whereCondition = whereCondition.trim();
             debug("Prefilter where condition built ", debugging);
             debug(whereCondition, debugging);
 
             stmPreFilter = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            String preFilterQuery =
-                " select   " + hint + "   s.id " + " , o.single_bond_count " + " , o.double_bond_count " + " , o.triple_bond_count " + " , o.aromatic_bond_count " +
-                //" , o.saturated_bond_count " +
-                " , o.s_count " + " , o.o_count " + " , o.n_count " + " , o.f_count " + " , o.cl_count " + " , o.br_count " + " , o.i_count " + " , o.c_count " +
-                " , o.cdk_molecule " + " , nvl(dbms_lob.getlength(o.cdk_molecule),0) blob_length" + " , c." + compoundTableMolfileColumn + "  from " +
-                "   orchem_fingprint_subsearch s" + "  ,orchem_compounds o," + compoundTableName + " c " + "  where " + "      s.id = c. " + compoundTablePrimaryKey +
-                "  and s.id=o.id "; // AND .. whereCondition will be concatenated
 
             timestamp = System.currentTimeMillis();
             res = stmPreFilter.executeQuery(preFilterQuery + whereCondition);
@@ -192,21 +204,6 @@ public class SubstructureSearch {
                     /*****************************************
                      * Quick filter                          *
                      *****************************************/
-                    /*
-                    debug(res.getString("id") + "______", debugging);
-                    debug(res.getInt("single_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT), debugging);
-                    debug(res.getInt("double_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT), debugging);
-                    debug(res.getInt("triple_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT), debugging);
-                    debug(res.getInt("aromatic_bond_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.AROMATIC_BOND_COUNT), debugging);
-                    debug(res.getInt("s_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT), debugging);
-                    debug(res.getInt("o_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT), debugging);
-                    debug(res.getInt("n_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT), debugging);
-                    debug(res.getInt("f_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT), debugging);
-                    debug(res.getInt("cl_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT), debugging);
-                    debug(res.getInt("br_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT), debugging);
-                    debug(res.getInt("i_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT), debugging);
-                    debug(res.getInt("c_count") + " " + (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT), debugging);
-                    */
 
                     if (
                         /* Temporary commented out (hopefully):
@@ -234,27 +231,23 @@ public class SubstructureSearch {
 
                     } else {
 
-                        /* Create CDK molecule (either in serialized form or through molfileclob->string->molecule */
-                        if (res.getInt("blob_length") != 0) {
-                            ObjectInputStream ois = new ObjectInputStream(res.getBlob("cdk_molecule").getBinaryStream());
-                            databaseMolecule = (NNMolecule)ois.readObject();
-                            ois.close();
-                        } else {
-                            molfile = res.getString(compoundTableMolfileColumn);
-                            databaseMolecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
-                        }
+                        databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(res.getString("atoms"),res.getString("bonds"));
                         mlTime += (System.currentTimeMillis() - timestamp);
                         timestamp = System.currentTimeMillis();
 
                         /* Test if the match made is truly a substructure using VF2 algorithm*/
                         SubgraphIsomorphism s =
-                            //new SubgraphIsomorphism(databaseMolecule, qAtCom,SubgraphIsomorphism.Algorithm.VF2);
                             new SubgraphIsomorphism(databaseMolecule, queryMolecule, SubgraphIsomorphism.Algorithm.VF2);
 
                         if (s.matchSingle()) {
                             OrChemCompound c = new OrChemCompound();
                             c.setId(res.getString("id"));
-                            c.setMolFileClob(res.getClob(compoundTableMolfileColumn));
+                            psMolQ.setString(1,res.getString("id"));
+                            ResultSet resMol = psMolQ.executeQuery();
+                            if (resMol.next())  {
+                                c.setMolFileClob(resMol.getClob(compoundTableMolfileColumn));
+                            }
+                            resMol.close();
                             compounds.add(c);
                         }
                         uitTime += (System.currentTimeMillis() - timestamp);
@@ -291,6 +284,9 @@ public class SubstructureSearch {
         } finally {
             if (res != null)
                 res.close();
+
+            if (psMolQ != null)
+                psMolQ.close();
 
             if (stmPreFilter != null)
                 res.close();

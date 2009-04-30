@@ -15,18 +15,25 @@ prompt creating table "orchem_log"
       ,when                  date          not null
       ,what                  clob          not null
     )
-    nocache --????? cache nocache....
+    nocache
     /
 
-prompt creating sequence "orchem_sequence_log_id" for "orchem_parameters"    
-    create sequence orchem_sequence_log_id
-    increment by 1 minvalue 1 nocycle nocache
+prompt creating table "orchem_fingprint_simsearch"
+    create table orchem_fingprint_simsearch
+    ( id varchar2(80)         not null
+    , bit_count number(4)     not null 
+    , fp raw(80)              not null
+    )
+    cache -- hm ....
     /
 
+/*
 prompt creating table "orchem_compounds"
     create table orchem_compounds
     (   
       id                     varchar2(80) not null
+     ,atoms                  varchar2(4000)
+     ,bonds                  varchar2(4000)
      ,single_bond_count      number(6)
      ,double_bond_count      number(6)
      ,triple_bond_count      number(6)
@@ -41,24 +48,36 @@ prompt creating table "orchem_compounds"
      ,c_count                number(6)
      ,p_count                number(6)
      ,saturated_bond_count   number(6)
-     ,cdk_molecule           blob       -- to blob or not to blob, that is the question
+     ,                       constraint pk_orchem_compounds primary key (id)
      )
     /
+*/
+
+
+ -- TODO is separate table with CLOBS for overflow
+
    
-prompt creating table "orchem_fingprint_simsearch"
-    create table orchem_fingprint_simsearch
-    ( id varchar2(80)         not null -- PK
-    , bit_count number(4)     not null 
-  --, fp raw(128)             not null
-    , fp raw(80)             not null
-  )
-    cache -- hm ....
-    /
 
 prompt creating table "orchem_fingprint_subsearch"
     create table orchem_fingprint_subsearch
     (   
       id  varchar2(80)  not null
+     ,atoms                  varchar2(4000)
+     ,bonds                  varchar2(4000)
+     ,single_bond_count      number(6)
+     ,double_bond_count      number(6)
+     ,triple_bond_count      number(6)
+     ,aromatic_bond_count    number(6)
+     ,s_count                number(6)
+     ,o_count                number(6)
+     ,n_count                number(6)
+     ,f_count                number(6)
+     ,cl_count               number(6)
+     ,br_count               number(6)
+     ,i_count                number(6)
+     ,c_count                number(6)
+     ,p_count                number(6)
+     ,saturated_bond_count   number(6)
      ,bit0  char(1)
      ,bit1  char(1)
      ,bit2  char(1)
@@ -699,6 +718,7 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit637  char(1)
      ,bit638  char(1)
      ,bit639  char(1)
+     ,constraint pk_orchem_subsrch primary key (id)
     ) 
     /
 

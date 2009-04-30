@@ -31,5 +31,6 @@ jar -uvf c:\orchem.jar uk/ac/ebi/orchem/fingerprint/OrchemFingerprinter.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/load/LoadCDKFingerprints.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SimilaritySearch.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/OrchemMoleculeBuilder.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearch.class
 

@@ -481,6 +481,10 @@
             <value n="id" v="Cdk-1.1.2.ora11proof.fp.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
+         <hash>
+            <value n="id" v="SMSD.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
       </list>
       <hash n="internalDefinitions">
          <list n="libraryDefinitions">
@@ -628,6 +632,15 @@
                <value n="id" v="Cdk-1.1.2.ora11proof.fp.jar"/>
                <value n="locked" v="true"/>
             </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/SMSD.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="SMSD.jar"/>
+               <value n="id" v="SMSD.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
          </list>
       </hash>
       <list n="libraryReferences">
@@ -701,6 +714,10 @@
          </hash>
          <hash>
             <value n="id" v="Cdk-1.1.2.ora11proof.fp.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="SMSD.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

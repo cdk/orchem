@@ -241,7 +241,7 @@ sub processMenuChoice
          system ("ant -f ..\\build.xml test.substr");
       }
       else {
-         system ("ant -f ..\build.xml test.substr");
+         system ("ant -f ../build.xml test.substr");
       }
    }
 

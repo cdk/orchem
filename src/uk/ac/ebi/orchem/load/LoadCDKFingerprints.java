@@ -23,8 +23,6 @@
  */
 package uk.ac.ebi.orchem.load;
 
-//TODO benchmark batch update vs normal update
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,6 +42,7 @@ import oracle.jdbc.OraclePreparedStatement;
 import oracle.sql.CLOB;
 
 import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -97,20 +96,14 @@ public class LoadCDKFingerprints {
             long getClobTime = 0;
             long makeMolTime = 0;
             long makeFpTime = 0;
-            long sqlInsTime =0;
 
             conn = (OracleConnection)new OracleDriver().defaultConnection();
             //conn = (OracleConnection)new UnitTestConnection().getDbConnection();
 
-            /* Commit point is kept low due to big size of prepared statements. Anything much higher will fail; see
-             * the large prepared statements */
-            int COMMIT_POINT=25;
             //http://www.oracle-base.com/articles/10g/Commit_10gR2.php
             Statement sql = conn.createStatement();
             sql.executeUpdate("ALTER SESSION SET COMMIT_WRITE='BATCH' ");
             conn.setAutoCommit(false);
-            int commitCount = 0;
-
 
             MDLV2000Reader mdlReader = new MDLV2000Reader();
             IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
@@ -244,30 +237,26 @@ public class LoadCDKFingerprints {
                                 psInsertSubstrFp.setString(idx, null);
                             }
                         }
-                        psInsertSimiFp.addBatch();
-                        psInsertSubstrFp.addBatch();
-                        commitCount++;
 
-                        if (commitCount >= COMMIT_POINT) {
-                            bef = System.currentTimeMillis();
-                            psInsertSimiFp.executeBatch();
-                            psInsertSubstrFp.executeBatch();
+                        try {
+                            psInsertSimiFp.executeUpdate();
+                            psInsertSubstrFp.executeUpdate();
                             conn.commit();
-                            sqlInsTime += (System.currentTimeMillis() - bef);
-                            commitCount = 0;
+
+                        } catch (SQLException e) {
+                            conn.rollback();
+                            System.err.println("SQL error for " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) + " ="+ e.getMessage());
+                            logMsg.append("\n" + System.currentTimeMillis() + " Loop err " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) + " " + e.getMessage());
+                            //TODO program should terminate on too many SQL errors (perhaps a counter)
                         }
                     }
 
-                } catch (Exception e) {
-                    conn.rollback();
+                } catch (CDKException e) {
                     System.err.println("Loop error for " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) + " ="+ e.getMessage());
                     logMsg.append("\n" +
                             System.currentTimeMillis() + " Loop err " + compoundTablePkColumn + ": " + res.getString(compoundTablePkColumn) + " " + e.getMessage());
                 }
             }
-            psInsertSimiFp.executeBatch();
-            psInsertSubstrFp.executeBatch();
-            conn.commit();
 
             psInsertSimiFp.close();
             psInsertSubstrFp.close();
@@ -281,9 +270,8 @@ public class LoadCDKFingerprints {
             System.out.println("Make molecules    (ms) :" + makeMolTime);
             System.out.println("Make fingerprints (ms) :" + makeFpTime);
 
-
             logMsg.append("\nOverall elapse time (ms) :" + (end - start) + "\nGetting clobs       (ms) :" + getClobTime + "\nMake molecules      (ms) :" + makeMolTime +
-                          "\nMake fingerprints   (ms) :" + makeFpTime+"\nSQL DML             (ms) :" + sqlInsTime);
+                          "\nMake fingerprints   (ms) :" + makeFpTime);
 
             logMsg.append("\nFinished at " + now());
 
@@ -323,9 +311,15 @@ public class LoadCDKFingerprints {
     }
 
     /**
-     *
-     * TODO (if works)
-     *
+     * Method that iterates an atom array and puts the atom symbols in a String, space separated.<br>
+     * The result could look for example like this:<br>
+     *  "N N C N C N C C C C C O C C C C C C"<P>
+     * These strings are persisted in the db and can be used to quickly materialize a molecule
+     * by {@link uk.ac.ebi.orchem.search.OrchemMoleculeBuilder}
+     *  
+     * @param atoms
+     * @return atom String listing the periodic element symbols in the atomcontainer
+     * @throws SQLException
      */
     private static String atomsAsString(IAtom[] atoms) throws SQLException {
         StringBuilder sb = new StringBuilder();
@@ -337,11 +331,23 @@ public class LoadCDKFingerprints {
     }
 
     /**
+     * Method that iterates bonds in an atom container and puts the bond info in a String, space separated.<br>
+     * The result could look for example like this:<br>
+     * " 1 10 S N 0 2 S N 1 3 S Y 0 4 S N 5 14 S N "<br>
+     * Read as follows: 1 10 S N means atoms at atomArray[1] and atomArray[10] have
+     * a single (S) bond that is not (N) aromatic.<br>
+     * This repeats for each group of 4 tokens. Valid values for the third token are S|D|T|Q and 
+     * Y|N for the fourth token.<P>
      * 
-     * TODO
+     * These strings are persisted in the db and can be used to quickly materialize a molecule
+     * by {@link uk.ac.ebi.orchem.search.OrchemMoleculeBuilder}
      * 
+     * @param atomArray the atom array used in {@link #atomsAsString} to create atom String info
+     * @param atContainer
+     * @return
+     * @throws SQLException
      */
-    private static String bondsAsString(IAtom[] orderedAtoms, IAtomContainer atContainer) throws SQLException {
+    private static String bondsAsString(IAtom[] atomArray, IAtomContainer atContainer) throws SQLException {
 
         StringBuilder sb = new StringBuilder();
 
@@ -353,10 +359,10 @@ public class LoadCDKFingerprints {
                 a2 = itr.next();
             }
 
-            for (int i = 0; i < orderedAtoms.length; i++) {
-                if (orderedAtoms[i] == a1)
+            for (int i = 0; i < atomArray.length; i++) {
+                if (atomArray[i] == a1)
                     sb.append(i).append(" ");
-                if (orderedAtoms[i] == a2)
+                if (atomArray[i] == a2)
                     sb.append(i).append(" ");
             }
             if (bond.getOrder() == IBond.Order.SINGLE)

@@ -23,8 +23,6 @@
  */
 package uk.ac.ebi.orchem.search;
 
-import java.io.ObjectInputStream;
-
 import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,7 +39,6 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
-import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -64,7 +61,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  * proprietary things like "oracle.sql.ARRAY" and OracleDriver().defaultConnection()
  *
  * @author markr@ebi.ac.uk
- * 
+ *
  */
 
 public class SubstructureSearch {
@@ -194,7 +191,6 @@ public class SubstructureSearch {
             NNMolecule databaseMolecule = null;
 
             debug("start loop over pre-filter results", debugging);
-            String molfile = null;
 
             while (res.next() && compounds.size() < topN) {
                 timestamp = System.currentTimeMillis();
@@ -306,7 +302,7 @@ public class SubstructureSearch {
      * @throws Exception
      */
     public static oracle.sql.ARRAY molSearch(String mol, Integer topN, String debugYN) throws Exception {
-        //TODO !
+        //TODO ! ?????????????????????????????
         IAtomContainer dummy = MoleculeCreator.getNNMolecule(mdlReader, mol); // document why this seems necessary.
         //
 

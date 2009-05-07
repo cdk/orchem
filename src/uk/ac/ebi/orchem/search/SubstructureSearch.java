@@ -72,7 +72,6 @@ public class SubstructureSearch {
 
     /* Why hint? To prevent a hash join when too few distinctive bits have been set.
      * For example, when queried only for an aromatic hex ring */
-    //TODO try parallel hint here already ?
     private static String preFilterQuery =
             " select /*+ FIRST_ROWS */" +
             "   s.id " + 
@@ -93,6 +92,10 @@ public class SubstructureSearch {
             "  from  orchem_fingprint_subsearch s" + 
             "  where 1=1 "; 
             // AND .. whereCondition will be concatenated down below
+
+    private static String clobQuery =
+            " select atoms, bonds from  orchem_big_molecules where id =?";
+
 
     /**
      * Performs a substructure search for a query molecule, using a fingerprint based
@@ -226,8 +229,25 @@ public class SubstructureSearch {
                         debug("discarded compound " + res.getString("id"), debugging);
 
                     } else {
+                        
+                        String atomString=null, bondString=null;
+                        if (res.getString("atoms")==null)  {
+                            PreparedStatement psClob = conn.prepareStatement(clobQuery);
+                            psClob.setString(1,res.getString("id"));
+                            ResultSet resClob = psClob.executeQuery();
+                            if (resClob.next())  {
+                                atomString = resClob.getString("atoms");
+                                bondString = resClob.getString("bonds");
+                            }
+                            resClob.close();
+                            psClob.close();
+                        }
+                        else {
+                            atomString = res.getString("atoms");
+                            bondString = res.getString("bonds");
+                        }
 
-                        databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(res.getString("atoms"),res.getString("bonds"));
+                        databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(atomString, bondString);
                         mlTime += (System.currentTimeMillis() - timestamp);
                         timestamp = System.currentTimeMillis();
 

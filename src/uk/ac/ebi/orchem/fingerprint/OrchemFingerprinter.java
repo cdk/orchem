@@ -58,7 +58,7 @@ import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
 public class OrchemFingerprinter implements IFingerprinter {
 
 
-    public final static int FINGERPRINT_SIZE=640;
+    public final static int FINGERPRINT_SIZE=704;
 
     public int getSize() {
         return FINGERPRINT_SIZE;
@@ -137,15 +137,22 @@ public class OrchemFingerprinter implements IFingerprinter {
             elemSymbol = (String)it.next();
             int counted = elemCounts.get(elemSymbol);
 
-            for (int cnt = 1; cnt <= counted; cnt++) {
-                String mapKey = elemSymbol + cnt;
-                Integer bitPos = BitPosApi.bp.elemCntBits.get(mapKey);
-                if (bitPos != null) {
-                    fingerprint.set(bitPos, true);
+            // if the element is 'rare' then it will not be in the
+            // map of counts for elements. Instead we set an 'other element' bit
+            if (!BitPosApi.bp.elemFingerprinted.containsKey(elemSymbol) && !elemSymbol.equals("R"))  {
+                Integer bitPos = BitPosApi.bp.elemCntBits.get(BitPosApi.bp.otherElem);
+                fingerprint.set(bitPos, true);
+            }
+            else {
+                for (int cnt = 1; cnt <= counted; cnt++) {
+                    String mapKey = elemSymbol + cnt;
+                    Integer bitPos = BitPosApi.bp.elemCntBits.get(mapKey);
+                    if (bitPos != null) {
+                        fingerprint.set(bitPos, true);
+                    }
                 }
             }
         }
-
     }
 
 
@@ -586,7 +593,7 @@ public class OrchemFingerprinter implements IFingerprinter {
                     results.put(nextSmart, nextSmart);
                 }
 
-                if (atomList.size() != 5) // TODO MAX depth -> doc and make constant
+                if (atomList.size() != 6) // TODO MAX depth -> doc and make constant
                     smartsTraversal(atomList, nextSmart, molecule, results);
 
                 atomList.remove(atomList.size() - 1);

@@ -146,8 +146,6 @@ public class LoadCDKFingerprints {
             "    aromatic_bond_count, s_count, o_count, n_count, f_count, cl_count,  br_count, " +
             "    i_count, c_count, p_count, saturated_bond_count "
             );
-            //TODO ! CLOB escape for long Strings!!!!!! = extra table ffs
-
             for (int idx = 0; idx < fpSize; idx++)
                 sb.append(",bit" + (idx));
             sb.append(") values (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,? ");
@@ -156,6 +154,10 @@ public class LoadCDKFingerprints {
             sb.append(")");
             PreparedStatement psInsertSubstrFp = conn.prepareStatement(sb.toString());
 
+            /* Statement for inserts of atoms and bonds that need to go into a clob (2 large) */
+            OraclePreparedStatement psInsertBigAtomsBonds = (OraclePreparedStatement)conn.prepareStatement(
+            "insert " + "into orchem_big_molecules (id, atoms,bonds) values (?,?,?)");
+
 
             Statement stmtQueryCompounds = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             ResultSet res = stmtQueryCompounds.executeQuery(compoundQuery);
@@ -163,16 +165,15 @@ public class LoadCDKFingerprints {
 
             String molfile = null;
             logMsg.append("\nSet up at " + now());
+            CLOB largeAtomsClob=null;
+            CLOB largeBondsClob=null;
 
             /* Start the main loop over the base compound table */
             while (res.next()) {
                 try {
                     logCurrID = res.getString(compoundTablePkColumn);
 
-                    /* Check if the clob data is over the varchar2 bound of 4000. If not, get it as
-                     * as String (which is much faster) from the resultSet */
                     bef = System.currentTimeMillis();
-
                     molfile = res.getString(compoundTableMolfileColumn);
                     getClobTime += (System.currentTimeMillis() - bef);
 
@@ -206,6 +207,31 @@ public class LoadCDKFingerprints {
                         }
                         String atomString = atomsAsString(atoms);
                         String bondString = bondsAsString(atoms,molecule);
+                        
+                        if (atomString.length()>4000 || bondString.length() > 4000)  {
+                            largeAtomsClob= CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+                            largeBondsClob= CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+
+                            largeAtomsClob.open(CLOB.MODE_READWRITE);
+                            largeBondsClob.open(CLOB.MODE_READWRITE);
+
+                            largeAtomsClob.setString(1, atomString);
+                            largeBondsClob.setString(1, bondString);
+        
+                            psInsertBigAtomsBonds.setString(1,res.getString(compoundTablePkColumn));
+                            psInsertBigAtomsBonds.setCLOB(2, largeAtomsClob);
+                            psInsertBigAtomsBonds.setCLOB(3, largeBondsClob);
+                            psInsertBigAtomsBonds.executeUpdate();
+
+                            largeAtomsClob.close();
+                            largeAtomsClob.freeTemporary();
+
+                            largeBondsClob.close();
+                            largeBondsClob.freeTemporary();
+
+                            atomString=null;
+                            bondString=null;
+                        }
 
                         /* Prepare statement for Substructure search helper table */
                         int idx = 1;
@@ -394,11 +420,12 @@ public class LoadCDKFingerprints {
     public static void load() throws Exception {
         load(null, null);
     }
-    /*
+ 
+    /*   
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
-        l.load("1","50");
-        // begin delete orchem_fingprint_subsearch; delete orchem_fingprint_simsearch; delete orchem_log; commit; end;
+        l.load("1550","1555");
+        // begin delete orchem_fingprint_subsearch; delete orchem_fingprint_simsearch; delete orchem_log; delete orchem_big_molecules; commit; end;
     }
     */
 }

@@ -22,41 +22,20 @@ prompt creating table "orchem_fingprint_simsearch"
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null
     , bit_count number(4)     not null 
-    , fp raw(80)              not null
+    , fp raw(88)              not null --704 possible bits
     )
     cache -- hm ....
     /
 
-/*
-prompt creating table "orchem_compounds"
-    create table orchem_compounds
+prompt creating table "orchem_big_molecules"
+    create table orchem_big_molecules
     (   
-      id                     varchar2(80) not null
-     ,atoms                  varchar2(4000)
-     ,bonds                  varchar2(4000)
-     ,single_bond_count      number(6)
-     ,double_bond_count      number(6)
-     ,triple_bond_count      number(6)
-     ,aromatic_bond_count    number(6)
-     ,s_count                number(6)
-     ,o_count                number(6)
-     ,n_count                number(6)
-     ,f_count                number(6)
-     ,cl_count               number(6)
-     ,br_count               number(6)
-     ,i_count                number(6)
-     ,c_count                number(6)
-     ,p_count                number(6)
-     ,saturated_bond_count   number(6)
-     ,                       constraint pk_orchem_compounds primary key (id)
-     )
-    /
-*/
-
-
- -- TODO is separate table with CLOBS for overflow
-
-   
+      id     varchar2(80)  not null
+     ,atoms  clob
+     ,bonds  clob
+     ,constraint pk_orchem_bigmols primary key (id)
+    )
+/
 
 prompt creating table "orchem_fingprint_subsearch"
     create table orchem_fingprint_subsearch
@@ -718,6 +697,71 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit637  char(1)
      ,bit638  char(1)
      ,bit639  char(1)
+     ,bit640  char(1)
+     ,bit641  char(1)
+     ,bit642  char(1)
+     ,bit643  char(1)
+     ,bit644  char(1)
+     ,bit645  char(1)
+     ,bit646  char(1)
+     ,bit647  char(1)
+     ,bit648  char(1)
+     ,bit649  char(1)
+     ,bit650  char(1)
+     ,bit651  char(1)
+     ,bit652  char(1)
+     ,bit653  char(1)
+     ,bit654  char(1)
+     ,bit655  char(1)
+     ,bit656  char(1)
+     ,bit657  char(1)
+     ,bit658  char(1)
+     ,bit659  char(1)
+     ,bit660  char(1)
+     ,bit661  char(1)
+     ,bit662  char(1)
+     ,bit663  char(1)
+     ,bit664  char(1)
+     ,bit665  char(1)
+     ,bit666  char(1)
+     ,bit667  char(1)
+     ,bit668  char(1)
+     ,bit669  char(1)
+     ,bit670  char(1)
+     ,bit671  char(1)
+     ,bit672  char(1)
+     ,bit673  char(1)
+     ,bit674  char(1)
+     ,bit675  char(1)
+     ,bit676  char(1)
+     ,bit677  char(1)
+     ,bit678  char(1)
+     ,bit679  char(1)
+     ,bit680  char(1)
+     ,bit681  char(1)
+     ,bit682  char(1)
+     ,bit683  char(1)
+     ,bit684  char(1)
+     ,bit685  char(1)
+     ,bit686  char(1)
+     ,bit687  char(1)
+     ,bit688  char(1)
+     ,bit689  char(1)
+     ,bit690  char(1)
+     ,bit691  char(1)
+     ,bit692  char(1)
+     ,bit693  char(1)
+     ,bit694  char(1)
+     ,bit695  char(1)
+     ,bit696  char(1)
+     ,bit697  char(1)
+     ,bit698  char(1)
+     ,bit699  char(1)
+     ,bit700  char(1)
+     ,bit701  char(1)
+     ,bit702  char(1)
+     ,bit703  char(1)
+     ,bit704  char(1)
      ,constraint pk_orchem_subsrch primary key (id)
     ) 
     /

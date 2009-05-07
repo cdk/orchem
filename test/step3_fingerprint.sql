@@ -13,6 +13,9 @@ delete orchem_fingprint_simsearch
 prompt delete orchem_log
 delete orchem_log
 /
+prompt delete orchem_big_molecules 
+delete orchem_big_molecules
+/
 
 
 prompt JIT... please wait

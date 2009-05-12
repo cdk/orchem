@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.struts2.ServletActionContext;
 
 import uk.ac.ebi.orchem.Utils;
+import uk.ac.ebi.orchem.shared.DatabaseAccess;
 
 /**
  * Struts Action class to find a molecule in database
@@ -50,13 +51,13 @@ public class LookupMolfileAction extends SessionAwareAction {
     public String execute() throws Exception {
         try {
             if (getId() != null && !getId().equals("")) {
-                setMolFile(new DbSearchInvoker().getMolfile(getId()));
+                setMolFile(new DatabaseAccess().getMolfile(getId()));
             } else {
                 HttpServletRequest request = ServletActionContext.getRequest();
                 id = (String)(request.getAttribute("id"));
             }
 
-            setMolFile(new DbSearchInvoker().getMolfile(getId()));
+            setMolFile(new DatabaseAccess().getMolfile(getId()));
             return "lookupDone";
         } catch (Exception ex) {
             this.setExceptionMsg(Utils.getErrorString(ex));

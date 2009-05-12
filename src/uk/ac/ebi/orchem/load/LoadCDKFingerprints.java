@@ -347,7 +347,7 @@ public class LoadCDKFingerprints {
      * @return atom String listing the periodic element symbols in the atomcontainer
      * @throws SQLException
      */
-    private static String atomsAsString(IAtom[] atoms) throws SQLException {
+    public static String atomsAsString(IAtom[] atoms) throws SQLException {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < atoms.length; i++) {
             sb.append(atoms[i].getSymbol()).append(" ");
@@ -373,7 +373,7 @@ public class LoadCDKFingerprints {
      * @return
      * @throws SQLException
      */
-    private static String bondsAsString(IAtom[] atomArray, IAtomContainer atContainer) throws SQLException {
+    public static String bondsAsString(IAtom[] atomArray, IAtomContainer atContainer) throws SQLException {
 
         StringBuilder sb = new StringBuilder();
 

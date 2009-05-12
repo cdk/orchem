@@ -1,4 +1,4 @@
-/*
+    /*
  *  $Author$
  *  $Date$
  *  $Revision$
@@ -35,10 +35,14 @@ import java.util.Properties;
 
 import junit.framework.TestCase;
 
+import oracle.jdbc.driver.OracleConnection;
+
 import org.openscience.cdk.exception.CDKException;
 
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
+import uk.ac.ebi.orchem.shared.DatabaseAccess;
+import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
 
 
 /**
@@ -56,18 +60,18 @@ import uk.ac.ebi.orchem.bean.OrChemCompound;
  */
 public class TestSimilaritySearch extends TestCase {
 
-    private DbApi dbApi = new DbApi();
+    private DatabaseAccess dbApi = new DatabaseAccess();
 
-    static Connection conn;
-    static List<MyAtomContainer> targetMolecules;
+    static OracleConnection conn;
+    static List<WrappedAtomContainer> targetMolecules;
     /* connect and suk all the unittest compounds into a working list (for performance)*/
     static {
         try {
             System.out.println("___ static : Begin set up target list (once) ");
             Properties properties = Constants.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-            conn = DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
-            targetMolecules = new DbApi().getAllCompounds(conn);
+            conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
+            targetMolecules = new DatabaseAccess().getAllCompounds(conn);
             System.out.println("___ static : End set up target list");
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,7 +109,7 @@ public class TestSimilaritySearch extends TestCase {
             mdl = (molFileClob.getSubString(1, clobLen));
 
             System.out.println("Similarity search:");
-            similaritySearchResults = dbApi.similaritySearchMol(mdl, conn, 9999999, minScore);
+            similaritySearchResults = dbApi.similaritySearch(mdl, "MOL",conn, minScore,9999999);
             System.out.println("results # : " + similaritySearchResults.size());
 
             Collections.sort(similaritySearchResults);
@@ -156,15 +160,15 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_22() throws Exception {
-        findSelf(similaritySearch(22, 0.9f, 4),22);
+        findSelf(similaritySearch(22, 0.9f, 3),22);
     }
 
     public void testCompoundID_27() throws Exception {
-        findSelf(similaritySearch(27, 0.85f, 8),27);
+        findSelf(similaritySearch(27, 0.85f, 6),27);
     }
 
     public void testCompoundID_31() throws Exception {
-        findSelf(similaritySearch(31, 0.95f, 2),31);
+        findSelf(similaritySearch(31, 0.95f, 4),31);
     }
     // add more if u like
 

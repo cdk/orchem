@@ -23,13 +23,14 @@
  */
 package uk.ac.ebi.orchem.web;
 
-import java.sql.Connection;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import oracle.jdbc.driver.OracleConnection;
+
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.Utils;
+import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 
 
@@ -43,7 +44,7 @@ public class SearchAction extends SessionAwareAction {
 
 
   public String execute() throws Exception {
-    Connection conn = null;
+    OracleConnection conn = null;
 
     try {
 
@@ -59,57 +60,43 @@ public class SearchAction extends SessionAwareAction {
       List compounds = new ArrayList();
       long time = System.currentTimeMillis();
 
-      if (wsr.getSmilesOrMol().equals("mol")) {
-        if (wsr.getStructureSearchMethod().equals("sim")) {
-          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
+      String queryType = null;
+      String query = null;
+        
+        if (wsr.getSmilesOrMol().equals("mol")) {
+            queryType = "MOL";
+            query = wsr.getStructure();
+        }
+        else {
+            queryType = "SMILES";
+            query = wsr.getSmiles();
+        }
+        
+
+      if (wsr.getStructureSearchMethod().equals("sim")) {
+          
+          conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +
                           "<br>Invoking similarity search  .." +
                           new java.util.Date());
           compounds =
-              new DbSearchInvoker().similaritySearchMol(wsr.getStructure(),
-                                                                   conn,
-                                                                   new Float(wsr.getMinTanCoeff()).floatValue(),
-                                                                   new Integer(wsr.getTopN()).intValue());
-        }
-
-        //System.out.println("substructure search\n\n"+wsr.getStructure()+"\n\n");
-        if (wsr.getStructureSearchMethod().equals("sub")) {
-          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
-          debugMsg.append(wsr.getDebugMessage() +
-                          "<br>Invoking substr search using VF2 and bitmap indices .." +
-                          new java.util.Date());
-          compounds =
-              new DbSearchInvoker().substructureSearchMol(wsr.getStructure(),
-                                                                     conn,
-                                                                     new Integer(wsr.getTopN()).intValue());
-        }
+              new DatabaseAccess().similaritySearch(   query,
+                                                       queryType,
+                                                       conn,
+                                                       new Float(wsr.getMinTanCoeff()).floatValue(),
+                                                       new Integer(wsr.getTopN()).intValue());
 
       } else {
-        if (wsr.getStructureSearchMethod().equals("sim")) {
-          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
-          debugMsg.append(wsr.getDebugMessage() +
-                          "<br>Invoking similarity search  .." +
-                          new java.util.Date());
-          compounds =
-              new DbSearchInvoker().similaritySearchSmiles(wsr.getSmiles(),
-                                                                      conn,
-                                                                      new Float(wsr.getMinTanCoeff()).floatValue(),
-                                                                      new Integer(wsr.getTopN()).intValue());
-        }
-
-        if (wsr.getStructureSearchMethod().equals("sub")) {
-          conn = DatabaseAgent.DB_AGENT.getCachedConnection();
+          conn = (OracleConnection) DatabaseAgent.DB_AGENT.getCachedConnection();
           debugMsg.append(wsr.getDebugMessage() +
                           "<br>Invoking substr search using VF2 and bitmap indices .." +
                           new java.util.Date());
           compounds =
-              new DbSearchInvoker().substructureSearchSmiles(wsr.getSmiles(),
-                                                                        conn,
-                                                                        new Integer(wsr.getTopN()).intValue());
-        }
-
+              new DatabaseAccess().substructureSearch(query,
+                                                      queryType,
+                                                      conn,
+                                                      new Integer(wsr.getTopN()).intValue());
       }
-
 
       wsr.setDebugMessage(debugMsg.toString());
       wsr.setSearchResults(compounds);

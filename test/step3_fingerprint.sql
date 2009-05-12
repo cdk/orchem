@@ -49,7 +49,7 @@ prompt =============================
 prompt please wait....
 
 begin
- orchem.LOAD_CDK_FINGERPRINTS(null,null);
+ orchem_fingerprinting.LOAD_CDK_FINGERPRINTS(null,null);
 end;
 /
 

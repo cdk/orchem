@@ -30,5 +30,7 @@ jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/singleton/FingerPrinterAgent
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/load/LoadCDKFingerprints.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SimilaritySearch.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/OrchemMoleculeBuilder.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/UserQueryMolecule.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SubstructureSearch.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SubstructureSearchParallel.class
 

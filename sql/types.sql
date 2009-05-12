@@ -16,8 +16,14 @@ prompt creating type "orchem_compound"
     /
 
 prompt creating type "orchem_compound_list"
+
     CREATE or REPLACE TYPE ORCHEM_COMPOUND_LIST is TABLE OF orchem_compound
     /
-    
+
+
+prompt creating type "compound_id_table"
+    CREATE or REPLACE TYPE compound_id_table is TABLE OF VARCHAR2(80)
+    /
+
     
 exit;

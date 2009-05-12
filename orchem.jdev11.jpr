@@ -358,6 +358,14 @@
                   <url path="properties/my_local_copies/"/>
                </list>
             </hash>
+            <hash>
+               <list n="pattern-filters">
+                  <string v="+**"/>
+               </list>
+               <list n="url-path">
+                  <url path="test/"/>
+               </list>
+            </hash>
          </list>
          <list n="url-path"/>
       </hash>

@@ -37,11 +37,15 @@ import java.util.Properties;
 
 import junit.framework.TestCase;
 
+import oracle.jdbc.driver.OracleConnection;
+
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
 
 import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
+import uk.ac.ebi.orchem.shared.DatabaseAccess;
+import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
 
 
 /**
@@ -60,18 +64,18 @@ import uk.ac.ebi.orchem.bean.OrChemCompound;
 
 public class TestSubstructureSearch extends TestCase {
 
-    private DbApi dbApi = new DbApi();
+    private DatabaseAccess dbApi = new DatabaseAccess();
 
-    static Connection conn;
-    static List<MyAtomContainer> targetMolecules;
+    static OracleConnection conn;
+    static List<WrappedAtomContainer> targetMolecules;
     /* connect and suk all the unittest compounds into a working list (for performance)*/
     static {
         try {
             System.out.println("___ static : Begin set up target list (once) ");
             Properties properties = Constants.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-            conn = DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
-            targetMolecules = new DbApi().getAllCompounds(conn);
+            conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
+            targetMolecules = new DatabaseAccess().getAllCompounds(conn);
             System.out.println("___ static : End set up target list");
 
         } catch (Exception e) {
@@ -112,7 +116,7 @@ public class TestSubstructureSearch extends TestCase {
 
             /* part 1: do a substructure search using the fingerprinter */            
             System.out.println("Fingerprint substructure search:");
-            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearchMol(mdl, conn, 9999999);
+            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(mdl, "MOL", conn, 9999999);
             System.out.println("results # : "+fprintSearchResults.size());
             Collections.sort(fprintSearchResults);
             for (OrChemCompound oc : fprintSearchResults) {
@@ -150,20 +154,20 @@ public class TestSubstructureSearch extends TestCase {
      * @throws CDKException
      * @throws CloneNotSupportedException
      */
-    private List<Integer> fullScan(int id, List<MyAtomContainer> targetMolecules, SubgraphIsomorphism.Algorithm alg, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
+    private List<Integer> fullScan(int id, List<WrappedAtomContainer> targetMolecules, SubgraphIsomorphism.Algorithm alg, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
         List<Integer> result = new ArrayList<Integer>();
 
         System.out.println("+++++++++++++++++++++++++");
         PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id = ?");
         pStmt.setInt(1, id);
 
-        List<MyAtomContainer> queryMol = dbApi.getMols(pStmt);
+        List<WrappedAtomContainer> queryMol = dbApi.getMols(pStmt);
         if (queryMol.size() == 1) {
 
-            MyAtomContainer query = queryMol.get(0);
+            WrappedAtomContainer query = queryMol.get(0);
             //QueryAtomContainer queryAtomContainer = QueryAtomContainerCreator.createBasicQueryContainer(query.getAtomContainer());
 
-            for (MyAtomContainer target : targetMolecules) {
+            for (WrappedAtomContainer target : targetMolecules) {
                 SubgraphIsomorphism s = new SubgraphIsomorphism(target.getAtomContainer(), query.getAtomContainer(), alg);
                 if (s.matchSingle()) {
                     result.add(target.getDbId());

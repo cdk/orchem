@@ -72,15 +72,16 @@ public class ImageServlet extends HttpServlet {
         String mdl = null;
 
         // alternative 1 - refetch from database. why is this necessary anyway...
+        /*
         try {
             mdl = new DbSearchInvoker().getMolfile(id);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        */
         // alternative 1 - ends
 
         // alternative 2 - use session cache
-        /*
         WebSearchResults wsr = (WebSearchResults)(req.getSession().getAttribute(Constants.SESSION_WEB_SEARCH_RESULTS));
         Iterator itr = wsr.getSearchResults().iterator();
         boolean found = false;
@@ -91,7 +92,6 @@ public class ImageServlet extends HttpServlet {
                 found = true;
             }
         }
-        */
         // alternative 2 - ends
 
         byte[] imageData = null;

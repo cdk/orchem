@@ -8,6 +8,7 @@ prompt creating table "orchem_parameters"
     /
     -- example :  insert into orchem_parameters values ('COMPOUNDS','MOLREGNO','MOLFILE')
 
+
 prompt creating table "orchem_log"
     create table orchem_log
     (  log_id                number(10)    not null
@@ -16,15 +17,6 @@ prompt creating table "orchem_log"
       ,what                  clob          not null
     )
     nocache
-    /
-
-prompt creating table "orchem_fingprint_simsearch"
-    create table orchem_fingprint_simsearch
-    ( id varchar2(80)         not null
-    , bit_count number(4)     not null 
-    , fp raw(88)              not null --704 possible bits
-    )
-    cache -- hm ....
     /
 
 prompt creating table "orchem_big_molecules"
@@ -36,6 +28,25 @@ prompt creating table "orchem_big_molecules"
      ,constraint pk_orchem_bigmols primary key (id)
     )
 /
+
+prompt creating table "orchem_user_queries"
+create table orchem_user_queries (
+    id        NUMBER(5) NOT NULL
+  , timestamp DATE      NOT NULL
+  , atoms     CLOB      NOT NULL
+  , bonds     CLOB      NOT NULL
+  ,constraint pk_orchem_user_query primary key (id)
+)
+/
+
+prompt creating table "orchem_fingprint_simsearch"
+    create table orchem_fingprint_simsearch
+    ( id varchar2(80)         not null
+    , bit_count number(4)     not null 
+    , fp raw(88)              not null --704 possible bits
+    )
+    cache -- hm ....
+    /
 
 prompt creating table "orchem_fingprint_subsearch"
     create table orchem_fingprint_subsearch
@@ -766,6 +777,8 @@ prompt creating table "orchem_fingprint_subsearch"
     ) 
     /
 
+alter table orchem_fingprint_subsearch parallel 4
+/
 
 exit; 
 

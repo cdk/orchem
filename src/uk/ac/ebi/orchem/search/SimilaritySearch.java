@@ -368,7 +368,7 @@ public class SimilaritySearch {
     }
 
     /**
-     * Similarity search with molfile Clob as input arg
+     * Similarity search with molfile as input arg
      * @param molfileClob
      * @param cutOff
      * @param topN
@@ -376,32 +376,13 @@ public class SimilaritySearch {
      * @return
      * @throws Exception
      */
-
-    public static oracle.sql.ARRAY  molSearch(Clob molfileClob, Float cutOff, Integer topN,String debugYN) throws Exception {
-        MDLV2000Reader mdlReader = new MDLV2000Reader();
-        int clobLen = new Long(molfileClob.length()).intValue();
-        String molfile = (molfileClob.getSubString(1, clobLen));
-        Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
-        BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
-        return search(fp, cutOff, topN, debugYN);
-    }
-
-
-    /**
-     * Similarity search with molfile String as input arg
-     * @param molfile
-     * @param cutOff
-     * @param topN
-     * @param debugYN
-     * @return
-     * @throws Exception
-     */
-    public static oracle.sql.ARRAY molSearch(String molfile, Float cutOff, Integer topN, String debugYN) throws Exception {
+    private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }
+
 
     /**
      * Similarity search by simplified molecular input line entry specification
@@ -412,12 +393,11 @@ public class SimilaritySearch {
      *
      * @throws Exception
      */
-    public static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN) throws Exception {
+    private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN) throws Exception {
         IAtomContainer molecule = sp.parseSmiles(smiles);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN);
     }
-
 
     /**
      * Print debug massage to system output. To see this output in Oracle SQL*Plus
@@ -432,20 +412,15 @@ public class SimilaritySearch {
         }
     }
 
-    //Standalone testing
-    /*
-    public static void main(String[] args) throws Exception{
 
-        OracleConnection conn = (OracleConnection) new UnitTestConnection().getDbConnection();
-        PreparedStatement stmtQueryCompounds =
-          conn.prepareStatement("select id, molfile from orchem_compound_sample where id=17");
-        ResultSet res = stmtQueryCompounds.executeQuery();
-        Clob molFileClob = null;
-        while (res.next()) {
-          System.out.println(res.getInt("id"));
-          molFileClob = res.getClob("molfile");
-          molSearch(molFileClob, 0.25f, 50,"Y");
-        }
+    public static oracle.sql.ARRAY  search(Clob userQuery, String queryType, Float cutOff, Integer topN,String debugYN) throws Exception {
+        int clobLen = new Long(userQuery.length()).intValue();
+        String query = (userQuery.getSubString(1, clobLen));
+        if (queryType.equals("MOL"))  
+            return molSearch(query, cutOff, topN, debugYN);
+        else if (queryType.equals("SMILES")) 
+            return smilesSearch(query, cutOff, topN, debugYN);
+        else 
+            throw new RuntimeException("Query type not recognized");
     }
-    */
 }

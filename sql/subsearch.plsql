@@ -95,8 +95,7 @@ AS
 
        prefilterQuery:=       
        '            select /*+ FIRST_ROWS */             ' ||
-                       query_key                          ||
-       '             ,'''||input_type||''''                ||  
+                       query_key                           ||
        '             , s.id                              ' ||
        '             , s.single_bond_count               ' ||
        '             , s.double_bond_count               ' ||

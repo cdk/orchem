@@ -29,7 +29,6 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.openscience.cdk.Molecule;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -80,13 +79,55 @@ public class MoleculeCreator {
         }
 
 
-        NNMolecule nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
+        NNMolecule nnMolecule =null;
+        try {
+            nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
+        } catch (NullPointerException e) {
+            throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+        }
+
         if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
-            throw new RuntimeException("Error parsing molfile is null or mol atom count is zero. ");
+            throw new CDKException("Error - molfile is null or mol atom count is zero. ");
 
         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
         return nnMolecule;
+    }
+    
+    
+    
+    
+    
+    public static void main(String[] args) throws CDKException {
+        /*
+        String mol=
+            " \n" +
+            "Marvin  11170523502D\n"+
+            "  \n"+
+            "  1  0  0  0  0  0            999 V2000\n"+
+            "    0.0000    0.0000    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+            "M  END\n";
+        System.out.println(mol);
+        MDLV2000Reader r = new MDLV2000Reader();
+        getNNMolecule(r,mol);        
+        */
+        String mol=
+        " \n" + 
+        "  Marvin  09100521432D\n" + 
+        "  \n" + 
+        "  2  1  0  0  0  0            999 V2000\n" + 
+        "   -1.0938    1.0312    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n" + 
+        "   -0.2688    1.0312    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n" + 
+        "  1  2  1  0  0  0  0\n" + 
+        "M  END\n";
+        System.out.println(mol);
+        MDLV2000Reader r = new MDLV2000Reader();
+        getNNMolecule(r,mol);        
+    
+    
+
+
+
     }
 }
 

@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
+import java.sql.SQLException;
+
 import java.util.Iterator;
 
 import javax.servlet.ServletException;
@@ -44,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
+import uk.ac.ebi.orchem.shared.DatabaseAccess;
 
 
 /**
@@ -71,16 +74,15 @@ public class ImageServlet extends HttpServlet {
         String mdl = null;
 
         // alternative 1 - refetch from database. why is this necessary anyway...
-        /*
         try {
-            mdl = new DbSearchInvoker().getMolfile(id);
+            mdl = new DatabaseAccess().getMolfile(id);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        */
         // alternative 1 - ends
 
         // alternative 2 - use session cache
+        /*
         WebSearchResults wsr = (WebSearchResults)(req.getSession().getAttribute(Utils.SESSION_WEB_SEARCH_RESULTS));
         Iterator itr = wsr.getSearchResults().iterator();
         boolean found = false;
@@ -91,6 +93,7 @@ public class ImageServlet extends HttpServlet {
                 found = true;
             }
         }
+        */
         // alternative 2 - ends
 
         byte[] imageData = null;

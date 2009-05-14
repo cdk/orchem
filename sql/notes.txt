@@ -40,6 +40,20 @@ Step plan to create the schema
             dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(350001 , 445000  );' ,INTERVAL=>null ); 
             commit;
         end;
+
+
+        -- chebi
+        declare
+            i binary_integer;
+        begin
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(     1 ,  25000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load( 70001 , 140000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(140001 , 210000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(210001 , 280000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(280001 , 350000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(350001 , 445000  );' ,INTERVAL=>null ); 
+            commit;
+        end;
   
  - statistics
   

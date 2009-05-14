@@ -102,16 +102,12 @@ public class BitPositions {
      * Constructor sets up the maps with fingerprinting data.
      */
     BitPositions () {
-    // Commented out - bits that are very common (may reconsider)
-    //94%        ringBits.put("6" + ringPrefixRing + ringPrefixAny                            + "1",        512   );
-    //88%        ringBits.put("6" + ringPrefixRing + ringPrefixArom                           + "1",        513   );
-    //83%        ringBits.put("6" + ringPrefixRing + ringPrefixArom + ringPrefixCarbonOnly    + "1",        516   );
-    //80%        neighbourBits.put(                                                                         144   , Arrays.asList(new Neighbour[] { new Neighbour("C",null,false),new Neighbour("C",null,false),new Neighbour("N",null,false)}                                                                              ));
-    //80%        neighbourBits.put(                                                                         145   , Arrays.asList(new Neighbour[] { new Neighbour("C",null,false),new Neighbour("C",null,false),new Neighbour("O",null,false)}                                                                              ));
-    //77%        neighbourBits.put(                                                                         146   , Arrays.asList(new Neighbour[] { new Neighbour("C",null,false),new Neighbour("C",null,false),new Neighbour("C",null,true),new Neighbour("C",null,true)}                                                  ));
-    //77%        ringBits.put("6" + ringPrefixRing + ringPrefixAny                            + "2",        521   );
+       /* 
+        * Position 0 is reserved !
+        * bit0 is ALWAYS set and thus prevents division by zero in the similarity search (weakness of algorithm)
+        * 
+        */
 
-        /* Position 0 is reserved !*/
         neighbourBits.put(                                                                  1    , Arrays.asList(new Neighbour[] { new Neighbour("C",null,null),new Neighbour("O",IBond.Order.DOUBLE,false),new Neighbour("C",IBond.Order.SINGLE,false)}                                                   ));
         ringBits.put("6" + ringPrefixRing + ringPrefixArom                           + "2", 2    );
         elemCntBits.put("O3" ,                                                              3    );
@@ -770,6 +766,152 @@ public class BitPositions {
         atomPairBits.put("Cl-N",                                                            656  );
         ringBits.put("7" + ringPrefixRing + ringPrefixArom + ringPrefixHetero        + "2", 657  );
         ringBits.put("6" + ringPrefixRing + ringPrefixArom + ringPrefixHetero        + "5", 658  );
+       
+        // groups of related and misleadingly rare smiles pattern
+        smartsPatternBits.put("O:C:C-C:C:O" ,                                               659  );
+        smartsPatternBits.put("O:C-O-C-O-C" ,                                               659  );
+        smartsPatternBits.put("O:C-O-C-C=O" ,                                               659  );
+        smartsPatternBits.put("O:C-O-C-C-O" ,                                               659  );
+        smartsPatternBits.put("O:C-O-C-C:C" ,                                               659  );
+        smartsPatternBits.put("O:C-C-O-C-O" ,                                               659  );
+        smartsPatternBits.put("C:C-O-C:C:O" ,                                               659  );
+
+        smartsPatternBits.put("C:C=C-C-O-C" ,                                               660  );
+        smartsPatternBits.put("O:C:C:C:C=C" ,                                               660  );
+        smartsPatternBits.put("O=C-C:C=C-C" ,                                               660  );
+        smartsPatternBits.put("C-O-C:C=C-O" ,                                               660  );
+        smartsPatternBits.put("C:C:C=C-C-O" ,                                               660  );
+        smartsPatternBits.put("C=C:C-C-C-O" ,                                               660  );
+        smartsPatternBits.put("C-C:C:C=C-O" ,                                               660  );
+        smartsPatternBits.put("O:C-C=C-C:O" ,                                               660  );
+        smartsPatternBits.put("O=C-C=C:C-C" ,                                               660  );
+        smartsPatternBits.put("C-C=C:C-C-O" ,                                               660  );
+        smartsPatternBits.put("O-C:C:C=C-O" ,                                               660  );
+
+        smartsPatternBits.put("O-C-C-C=C=C" ,                                               661  );
+        smartsPatternBits.put("C=C=C-C-C=O" ,                                               661  );
+        smartsPatternBits.put("O-O-O-C-C-C" ,                                               661  );
+        smartsPatternBits.put("O-C-C=C=C-C" ,                                               661  );
+
+        smartsPatternBits.put("C-C=C=C=C-C" ,                                               662  );
+        smartsPatternBits.put("C=C=C-C-C=C" ,                                               662  );
+        smartsPatternBits.put("C-C=C-C=C=C" ,                                               662  );
+        smartsPatternBits.put("C-C=C=C-C=C" ,                                               662  );
+
+        smartsPatternBits.put("C-C=C-C:C=C" ,                                               663  );
+        smartsPatternBits.put("C:C-C=C=C=C" ,                                               663  );
+        smartsPatternBits.put("C:C:C-C:C=C" ,                                               663  );
+        smartsPatternBits.put("C:C-C=C:C=C" ,                                               663  );
+        smartsPatternBits.put("C:C-C-C:C=C" ,                                               663  );
+        smartsPatternBits.put("C:C=C-C-C:C" ,                                               663  );
+        smartsPatternBits.put("C-C=C=C-C:C" ,                                               663  );
+        smartsPatternBits.put("C=C-C=C:C-C" ,                                               663  );
+        smartsPatternBits.put("C=C:C:C:C-C" ,                                               663  );
+        smartsPatternBits.put("C-C=C:C=C-C" ,                                               663  );
+        smartsPatternBits.put("C:C-C=C:C-C" ,                                               663  );
+        smartsPatternBits.put("C-C=C:C-C=C" ,                                               663  );
+        smartsPatternBits.put("C-C-C=C:C=C" ,                                               663  );
+        smartsPatternBits.put("C=C:C:C-C=C" ,                                               663  );
+        smartsPatternBits.put("C-C:C-C=C:C" ,                                               663  );
+        smartsPatternBits.put("C-C=C:C-C-C" ,                                               663  );
+        smartsPatternBits.put("C-C:C=C-C-C" ,                                               663  );
+        smartsPatternBits.put("C-C:C:C=C-C" ,                                               663  );
+        smartsPatternBits.put("C-C-C-C=C:C" ,                                               663  );
+
+        smartsPatternBits.put("N-C-C:C=C-C" ,                                               664  );
+        smartsPatternBits.put("N=C:C-N-C-N" ,                                               664  );
+        smartsPatternBits.put("C=C:N:C-C-C" ,                                               664  );
+        smartsPatternBits.put("C=C:C-C-N-C" ,                                               664  );
+        smartsPatternBits.put("C-C-C:C=C-N" ,                                               664  );
+        smartsPatternBits.put("N-C-N=C:C-N" ,                                               664  );
+        smartsPatternBits.put("C=C:C:N:C-C" ,                                               664  );
+        smartsPatternBits.put("N-C-C=C:C-C" ,                                               664  );
+        smartsPatternBits.put("N-C-C-C=C:C" ,                                               664  );
+        smartsPatternBits.put("C-N-C:C=C-C" ,                                               664  );
+        smartsPatternBits.put("C=C-C:N:C=C" ,                                               664  );
+        smartsPatternBits.put("N-C-C=C:C:N" ,                                               664  );
+        smartsPatternBits.put("N-C:C=N-C-C" ,                                               664  );
+
+        smartsPatternBits.put("C-N:C-C:N-N" ,                                               665  );
+        smartsPatternBits.put("N-N-N:C:C:C" ,                                               665  );
+        smartsPatternBits.put("N-N-N:C-C-C" ,                                               665  );
+        smartsPatternBits.put("N-N:C-C-C-N" ,                                               665  );
+        smartsPatternBits.put("N:C-N:C-C:N" ,                                               665  );
+        smartsPatternBits.put("N:C-N-C:N-C" ,                                               665  );
+        smartsPatternBits.put("N:C-C:N-C-N" ,                                               665  );
+        smartsPatternBits.put("N:C-C-C:N-N" ,                                               665  );
+
+        smartsPatternBits.put("C:C-N:N-C:C" ,                                               666  );
+        smartsPatternBits.put("N:C:N:N:N-N" ,                                               666  );
+        smartsPatternBits.put("N-N:N:C:N:N" ,                                               666  );
+        smartsPatternBits.put("C-N:N:C:N-N" ,                                               666  );
+        smartsPatternBits.put("N:C:N:N-N-C" ,                                               666  );
+        smartsPatternBits.put("N:N-C-C-N:N" ,                                               666  );
+        smartsPatternBits.put("C-N:N:N-C-C" ,                                               666  );
+        smartsPatternBits.put("N:N:C-C:N-N" ,                                               666  );
+        smartsPatternBits.put("C-N:N-C-C-N" ,                                               666  );
+        smartsPatternBits.put("C:N:N:N:N:C" ,                                               666  );
+        smartsPatternBits.put("N-N:N:C-C-C" ,                                               666  );
+        smartsPatternBits.put("C:C:N:N:N:N" ,                                               666  );
+        smartsPatternBits.put("N-N:N:N:C-C" ,                                               666  );
+        smartsPatternBits.put("N:N-N-C-C-C" ,                                               666  );
+        smartsPatternBits.put("C-N-N:N:N:C" ,                                               666  );
+        smartsPatternBits.put("C:C:N:N:N-N" ,                                               666  );
+        smartsPatternBits.put("N-N:N-C-C-C" ,                                               666  );
+        smartsPatternBits.put("N:N:N:N:C-O" ,                                               666  );
+
+        smartsPatternBits.put("C-C-C-N=C=N" ,                                               667  );
+        smartsPatternBits.put("C-C-N=C=N-C" ,                                               667  );
+        smartsPatternBits.put("C=C=C-N-C-C" ,                                               667  );
+        smartsPatternBits.put("N=C-C=N-N-N" ,                                               667  );
+
+        smartsPatternBits.put("C-C:C:S:C=N" ,                                               668  );
+        smartsPatternBits.put("S:C:C:S:C:N" ,                                               668  );
+        smartsPatternBits.put("N:S:C:C-S-N" ,                                               668  );
+        smartsPatternBits.put("N:N:N:N-C-N" ,                                               668  );
+        smartsPatternBits.put("N-S-N-S-C:C" ,                                               668  );
+        smartsPatternBits.put("C:S:C:S:C-N" ,                                               668  );
+        smartsPatternBits.put("C-N-C:S:C:S" ,                                               668  );
+        smartsPatternBits.put("C:S:C:S:C:N" ,                                               668  );
+        smartsPatternBits.put("C-N=C:S:C:C" ,                                               668  );
+
+        smartsPatternBits.put("O-C=C-N-C:O" ,                                               669  );
+        smartsPatternBits.put("C-C-N-C=C:O" ,                                               669  );
+        smartsPatternBits.put("O=C-N-C=C:O" ,                                               669  );
+        smartsPatternBits.put("N-C:C:C=C-O" ,                                               669  );
+        smartsPatternBits.put("O-C-N-C=C:O" ,                                               669  );
+        smartsPatternBits.put("C:C:N:C=C-O" ,                                               669  );
+        smartsPatternBits.put("O:C-C=C:C:N" ,                                               669  );
+        smartsPatternBits.put("C=C-C-N-C:O" ,                                               669  );
+
+        smartsPatternBits.put("N-C:O:N:C-O" ,                                               670  );
+        smartsPatternBits.put("C:C-C:O:N-C" ,                                               670  );
+        smartsPatternBits.put("O:C:C:N-C-O" ,                                               670  );
+        smartsPatternBits.put("O:C:N-C-C-C" ,                                               670  );
+        smartsPatternBits.put("O-C:N:N:N-C" ,                                               670  );
+        smartsPatternBits.put("O:C-C-O-C:N" ,                                               670  );
+        smartsPatternBits.put("O:C-O-C-C-N" ,                                               670  );
+        smartsPatternBits.put("O=N-C:C:O:N" ,                                               670  );
+        smartsPatternBits.put("O-C-N-C:O:N" ,                                               670  );
+        smartsPatternBits.put("O:C-N-C-C:O" ,                                               670  );
+        smartsPatternBits.put("C-C-N:C:C:O" ,                                               670  );
+
+        smartsPatternBits.put("C=N-C-N=C-O" ,                                               671  );
+        smartsPatternBits.put("O=C-C-N=C=O" ,                                               671  );
+        smartsPatternBits.put("O-C-C-N=C=O" ,                                               671  );
+
+        smartsPatternBits.put("N:C:S:C:C:O" ,                                               672  );
+        smartsPatternBits.put("O:C-N-S-C:N" ,                                               672  );
+        smartsPatternBits.put("O:C:N:C:S:C" ,                                               672  );
+
+        smartsPatternBits.put("S:C-C:C-C:O" ,                                               673  );
+        smartsPatternBits.put("S-C:S:C:C:O" ,                                               673  );
+        smartsPatternBits.put("O:C-C-C:C:S" ,                                               673  );
+        smartsPatternBits.put("S:C-C-C-C:O" ,                                               673  );
+        smartsPatternBits.put("O-C:S:C-S=O" ,                                               673  );
+
+        smartsPatternBits.put("C-O-S=N-C-C" ,                                               674  );
+        smartsPatternBits.put("C-C-C-N=S-O" ,                                               674  );
 
     
         Iterator<String> iterator = elemCntBits.keySet().iterator();
@@ -780,6 +922,15 @@ public class BitPositions {
         }
         
     }
+
+    // Commented out - bits that are very common (may reconsider)
+    //94%        ringBits.put("6" + ringPrefixRing + ringPrefixAny                            + "1",        512   );
+    //88%        ringBits.put("6" + ringPrefixRing + ringPrefixArom                           + "1",        513   );
+    //83%        ringBits.put("6" + ringPrefixRing + ringPrefixArom + ringPrefixCarbonOnly    + "1",        516   );
+    //80%        neighbourBits.put(                                                                         144   , Arrays.asList(new Neighbour[] { new Neighbour("C",null,false),new Neighbour("C",null,false),new Neighbour("N",null,false)}                                                                              ));
+    //80%        neighbourBits.put(                                                                         145   , Arrays.asList(new Neighbour[] { new Neighbour("C",null,false),new Neighbour("C",null,false),new Neighbour("O",null,false)}                                                                              ));
+    //77%        neighbourBits.put(                                                                         146   , Arrays.asList(new Neighbour[] { new Neighbour("C",null,false),new Neighbour("C",null,false),new Neighbour("C",null,true),new Neighbour("C",null,true)}                                                  ));
+    //77%        ringBits.put("6" + ringPrefixRing + ringPrefixAny                            + "2",        521   );
 
 
 }

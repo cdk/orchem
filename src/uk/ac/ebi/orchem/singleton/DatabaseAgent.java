@@ -31,14 +31,14 @@ import java.util.Properties;
 import oracle.jdbc.pool.OracleConnectionCacheManager;
 import oracle.jdbc.pool.OracleDataSource;
 
-import uk.ac.ebi.orchem.Constants;
+import uk.ac.ebi.orchem.PropertyLoader;
 
 
 /**
- * 
+ *
  * Singleton to manage db connection for the OrChem demo web application.
  * <B>This class is not part of the Java stored procedure set </B>.
- * 
+ *
  * @author markr@ebi.ac.uk
  */
 public class DatabaseAgent extends Thread {
@@ -63,7 +63,7 @@ public class DatabaseAgent extends Thread {
 
             /* Set up an Oracle Connection cache for the demo web application  */
 
-            Properties props = Constants.getWebAppProperties();
+            Properties props = PropertyLoader.getWebAppProperties();
 
             ods = new OracleDataSource();
             ods.setURL(props.getProperty("dbUrl"));

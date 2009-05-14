@@ -177,7 +177,14 @@ public class SimilaritySearch {
         String query = " select bit_count, id, fp from orchem_fingprint_simsearch s where  bit_count = ? ";
 
         float cutOff= _cutOff.floatValue();
-        int topN = _topN.intValue();
+        int topN =-1;
+        if (_topN==null)  {
+            debug("No topN breakout specified.. searching until lower bound reached",debugging);
+        }
+        else {
+            topN = _topN.intValue();
+            debug("topN is "+topN+", result set size limited.",debugging);
+        }
 
         try {
             conn = (OracleConnection)new OracleDriver().defaultConnection();
@@ -208,16 +215,13 @@ public class SimilaritySearch {
             int loopCount=0;
     
             while (!done) {
-                //System.out.println("bucket is "+currBucketNum);
+                debug("bucket is "+currBucketNum, debugging);
                 loopCount++;
                 pstmtFp.setFloat(1, currBucketNum);
                 bucksSearched++;
                 resFp = pstmtFp.executeQuery();
     
                 float bound = 0f;
-                //if (currBucketNum==0 || queryBitCount==0) // avoid division by 0 in next branch
-                //    bound=1;
-                //else 
                 if (currBucketNum < queryBitCount)
                     bound = currBucketNum / queryBitCount;
                 else
@@ -254,9 +258,6 @@ public class SimilaritySearch {
                             }
                         }
                         
-                        //if (queryBitCount + currBucketNum - bitsInCommon==0 )
-                        //    tanimotoCoeff=1;
-                        //else                        
                         tanimotoCoeff = bitsInCommon / (queryBitCount + currBucketNum - bitsInCommon);
 
                         if (tanimotoCoeff >= cutOff) {
@@ -264,15 +265,14 @@ public class SimilaritySearch {
                             elm.setID(resFp.getString("id"));
                             elm.setTanimotoCoeff(new Float(tanimotoCoeff));
     
-                            if (heap.size() < topN) {
+                            if (heap.size() < topN || topN == -1  ) {
                                 heap.add(elm);
-                                //System.out.println("add elem");
+                                debug("add elem "+elm.getID(),debugging);
                                 
                             } else if (tanimotoCoeff > ((SimHeapElement)(heap.get())).getTanimotoCoeff().floatValue()) {
                                 heap.remove();
                                 heap.add(elm);
-                                //System.out.println("remove/add elem");
-    
+                                debug("remove + add elem "+elm.getID() , debugging);
                             }
                         }
                     }
@@ -282,7 +282,8 @@ public class SimilaritySearch {
                      * hits is greater than the current bucket bound, stop.
                      * If not, the next bucket may contain a better score, so go on.
                      */
-                    if (heap.size() >= topN && ((SimHeapElement)(heap.get())).getTanimotoCoeff().floatValue() > bound) {
+                    
+                    if (topN!=-1 && heap.size() >= topN && ((SimHeapElement)(heap.get())).getTanimotoCoeff().floatValue() > bound) {
                         done = true;
                         debug("topN reached, done",debugging);
 
@@ -305,8 +306,7 @@ public class SimilaritySearch {
                 }
             }
             debug("searched bit_count buckets: "+loopCount,debugging);
-            //System.out.println(countor);
-    
+   
 
            /********************************************************************
             * Search completed.                                                *
@@ -316,13 +316,9 @@ public class SimilaritySearch {
             *                                                                  *
             *******************************************************************/
             String lookupCompoundQuery = 
-            " select " +
-                  compoundTableMolfileColumn+
-            " from " +
-            " " +compoundTableName+
-            " where " +
-            " "+compoundTablePkColumn+
-            " =?";
+            " select "     + compoundTableMolfileColumn+
+            " from " + " " + compoundTableName+
+            " where "+ " "+compoundTablePkColumn+" =?";
 
             pstmLookup = conn.prepareStatement(lookupCompoundQuery);
             List compounds = new ArrayList();
@@ -369,7 +365,7 @@ public class SimilaritySearch {
 
     /**
      * Similarity search with molfile as input arg
-     * @param molfileClob
+     * @param molfile
      * @param cutOff
      * @param topN
      * @param debugYN
@@ -416,11 +412,23 @@ public class SimilaritySearch {
     public static oracle.sql.ARRAY  search(Clob userQuery, String queryType, Float cutOff, Integer topN,String debugYN) throws Exception {
         int clobLen = new Long(userQuery.length()).intValue();
         String query = (userQuery.getSubString(1, clobLen));
-        if (queryType.equals("MOL"))  
+        if (queryType.equals(Utils.QUERY_TYPE_MOL))  
             return molSearch(query, cutOff, topN, debugYN);
-        else if (queryType.equals("SMILES")) 
+        else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) 
             return smilesSearch(query, cutOff, topN, debugYN);
         else 
             throw new RuntimeException("Query type not recognized");
     }
+    
+    
+    /*
+    public static void main(String[] args) throws Exception {
+        OracleConnection conn = (OracleConnection) new UnitTestConnection().getDbConnection();
+        CLOB myClob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+        myClob.open(CLOB.MODE_READWRITE);
+        myClob.setString(1, "C:C:C:C:C");
+        search(myClob, Constants.QUERY_TYPE_SMILES, 0.1f, 5,"Y");
+    }
+    */
+
 }

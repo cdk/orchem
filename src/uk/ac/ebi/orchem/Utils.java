@@ -15,9 +15,15 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 
 
 /**
- * Shared utilities for OrChem.
+ * Contains shared utilities for OrChem.<BR>
+ * Contains shared constants.
+ * 
  */
 public class Utils {
+
+    public static final String SESSION_WEB_SEARCH_RESULTS = new String("wsr");
+    public static final String QUERY_TYPE_SMILES = new String("SMILES");
+    public static final String QUERY_TYPE_MOL = new String("MOL");
 
     /**
      * Converts a BitSet into an array of bytes

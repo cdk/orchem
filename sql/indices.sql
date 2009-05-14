@@ -1,3 +1,7 @@
+/*___________________________________________________________________________
+  Index creation for OrChem tables
+  ___________________________________________________________________________*/
+
 prompt Creating bitmap index on similarity search table
 create bitmap index orchem_idx_bmp_simil on orchem_fingprint_simsearch (bit_count)
 /
@@ -182,6 +186,8 @@ bit336,bit337,bit338,bit339,bit340,bit341,bit342,bit343,bit344,bit345,bit346,bit
 /
 
 
+
+
 -- ....... smaller indices by nature of bit sort
 
 create index orchem_btree12
@@ -248,105 +254,20 @@ bit624,bit625,bit626,bit627,bit628,bit629,bit630,bit631,bit632,bit633,bit634,bit
 ) parallel 4 nologging
 /
 
+create index orchem_btree21
+on
+orchem_fingprint_subsearch (
+bit640,bit641,bit642,bit643,bit644,bit645,bit646,bit647,bit648,bit649,bit650,bit651,bit652,bit653,bit654,bit655,
+bit656,bit657,bit658,bit659,bit660,bit661,bit662,bit663,bit664,bit665,bit666,bit667,bit668,bit669,bit670,bit671
+) parallel 4 nologging
+/
+
+create index orchem_btree22
+on
+orchem_fingprint_subsearch (
+bit672,bit673,bit674,bit675,bit676,bit677,bit678,bit679,bit680,bit681,bit682,bit683,bit684,bit685,bit686,bit687,
+bit688,bit689,bit690,bit691,bit692,bit693,bit694,bit695,bit696,bit697,bit698,bit699,bit700,bit701,bit702,bit703
+) parallel 4 nologging
+/
 
 exit;
-
-
-
-----------------------
-
-
--- _____________________________
--- __                                                 __
--- __            Archived scripts                     __
--- __                                                 __
--- _____________________________
-
-/*
-
-create index orchem_btree12a
-on
-orchem_fingprint_subsearch (
-bit337,bit338,bit339,bit340,bit341,bit342,bit343,bit344,bit345,bit346,bit347,bit348,bit349,bit350,bit351,bit352,
-bit353,bit354,bit355,bit356,bit357,bit358,bit359,bit360,bit361,bit362,bit363,bit364,bit365,bit366,bit367,bit368
-) parallel 4 nologging
-/
-
-create index orchem_btree13a
-on
-orchem_fingprint_subsearch (
-bit369,bit370,bit371,bit372,bit373,bit374,bit375,bit376,bit377,bit378,bit379,bit380,bit381,bit382,bit383,bit384,
-bit385,bit386,bit387,bit388,bit389,bit390,bit391,bit392,bit393,bit394,bit395,bit396,bit397,bit398,bit399,bit400
-) parallel 4 nologging
-/
-
-create index orchem_btree14a
-on
-orchem_fingprint_subsearch (
-bit401,bit402,bit403,bit404,bit405,bit406,bit407,bit408,bit409,bit410,bit411,bit412,bit413,bit414,bit415,bit416,
-bit417,bit418,bit419,bit420,bit421,bit422,bit423,bit424,bit425,bit426,bit427,bit428,bit429,bit430,bit431,bit432
-) parallel 4 nologging
-/
-
-create index orchem_btree15a
-on
-orchem_fingprint_subsearch (
-bit433,bit434,bit435,bit436,bit437,bit438,bit439,bit440,bit441,bit442,bit443,bit444,bit445,bit446,bit447,bit448,
-bit449,bit450,bit451,bit452,bit453,bit454,bit455,bit456,bit457,bit458,bit459,bit460,bit461,bit462,bit463,bit464
-) parallel 4 nologging
-/
-
-create index orchem_btree16a
-on
-orchem_fingprint_subsearch (
-bit465,bit466,bit467,bit468,bit469,bit470,bit471,bit472,bit473,bit474,bit475,bit476,bit477,bit478,bit479,bit480,
-bit481,bit482,bit483,bit484,bit485,bit486,bit487,bit488,bit489,bit490,bit491,bit492,bit493,bit494,bit495,bit496
-) parallel 4 nologging
-/
-*/
-
-
-
-/*
-    declare 
-       j binary_integer; 
-       job varchar2(1000);
-    begin 
-      for i in 0..15 loop
-        job:='begin for i in '||((i*32)+1)||' .. '||((i+1)*32)||' loop execute immediate(''create bitmap index orchem_bmp_idx_fp''||i||'' on orchem_fingprint_subsearch (bit''||i||'') parallel 2 nologging'' ); end loop; end;'  ;
-        --dbms_output.put_line(job);
-        dbms_job.submit(j,job,sysdate);
-      end loop;
-      commit; -- must commit to activate dbms job
-    end;
-*/
-
-  /*
-   declare 
-      j binary_integer; 
-      job varchar2(1000);
-   begin 
-      for i in 0..15 loop
-        job:='begin for i in '||((i*32)+1)||' .. '||((i+1)*32)||' loop execute immediate(''create bitmap index orchem_bmp_idx_fp''||i||'' on orchem_fingprint_subsearch (bit''||i||'') parallel 2 nologging'' ); end loop; end;'  ;
-        --dbms_output.put_line(job);
-        dbms_job.submit(j,job,sysdate);
-      end loop;
-      commit; -- must commit to activate dbms job
-   end;
-   */
-
-    -- Archived: Oracle context index. Performance not adequate.
-    /*
-    CREATE INDEX SUBSTR_SEARCH_INDX ON orchem_fp_text (text) INDEXTYPE IS CTXSYS.CONTEXT tablespace crossref_ind
-    /
-    */
-
-    -- Archived: Luciano index. Performance not adequate.
-    /*
-    create index LUCENE_IDX on orchem_fingprint_subsearch (fp_text) 
-    indextype is lucene.LuceneIndex
-    parameters('Analyzer:org.apache.lucene.analysis.standard.StandardAnalyzer')
-    /
-    */
-    
-    

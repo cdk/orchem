@@ -36,21 +36,33 @@ import oracle.jdbc.OraclePreparedStatement;
 
 import oracle.sql.CLOB;
 
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
-import uk.ac.ebi.orchem.load.LoadCDKFingerprints;
-
 
 /**
- *  TODO
+ * Class that provides functionality for performing an OrChem substructure search.<BR>
+ * Extends {@link SubstructureSearch} with extra shit to perform the search in parallel.
+ * Some methods in this class are called from PL/SQL and are wrapped as "Java stored procedures".
+ *
+ * @author markr@ebi.ac.uk, 2009
+ *
  */
+
 public class SubstructureSearchParallel extends SubstructureSearch {
 
     /**
-     * TODO proper doc, proper name etc etc
+     * Stores a user's query structure in database table "orchem_user_queries"
+     * This query can then be retrieved by independent threads when necessary.
+     * 
+     * @param queryKey   id to store query with
+     * @param userQuery  the user query (a string like "O=S=O", or a Mol file)
+     * @param queryType 
+     * @throws Exception
      */
-    public static void storeUserQueryInDB(Integer queryKey, Clob userQuery, String queryType) throws Exception {
+    public static void storeUserQueryInDB(Integer queryKey, Clob userQuery, String queryType) throws SQLException,
+                                                                                                     CDKException {
 
         IAtomContainer atc = translateUserQueryClob(userQuery, queryType);
         int pos=0;
@@ -60,8 +72,8 @@ public class SubstructureSearchParallel extends SubstructureSearch {
             atoms[pos] = atom;
             pos++;
         }
-        String atomString = LoadCDKFingerprints.atomsAsString(atoms); //TODO move somewhere else !!
-        String bondString = LoadCDKFingerprints.bondsAsString(atoms,atc);
+        String atomString = OrchemMoleculeBuilder.atomsAsString(atoms); 
+        String bondString = OrchemMoleculeBuilder.bondsAsString(atoms,atc);
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
 
@@ -94,20 +106,15 @@ public class SubstructureSearchParallel extends SubstructureSearch {
         largeBondsClob.freeTemporary();
 
         psInsertUserQuery.close();
+        conn.commit();
     }
     
     /**
-     * TODO doc TODO too many exceptions !
+     * Using a query key (primary key value) selects a user query structure from the database
      * @param queryKey
+     * @return user query as CDK IAtomContainer
+     * @throws SQLException
      */
-    public static void checkThreadEnvironment (Integer queryKey) throws Exception {
-        if (!queries.containsKey(queryKey))  {
-            IAtomContainer queryMolecule = retrieveQueryAtcontainerFromDB(queryKey);
-            stash(queryKey,queryMolecule);
-        }
-    }
-    
-    /** TODO doc doc */
     private static IAtomContainer retrieveQueryAtcontainerFromDB (Integer queryKey) throws SQLException {
         IAtomContainer atc=null;
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
@@ -122,18 +129,37 @@ public class SubstructureSearchParallel extends SubstructureSearch {
             atc=OrchemMoleculeBuilder.getBasicAtomContainer(atoms,bonds);
         }
         else {
-            throw new RuntimeException("Query key not valid, aborting");
+            throw new RuntimeException("Orchem parallel query issue! Could not find query with key "+queryKey);
         }
         res.close();
         psFindUserQuery.close();
         return atc;
     }
 
+    /**
+     * Run by each thread, verifies the user query is available in the queries Map
+     * @param queryKey
+     * @throws SQLException
+     */
+    public static void checkThreadEnvironment (Integer queryKey) throws SQLException {
+        if (!queries.containsKey(queryKey))  {
+            IAtomContainer queryMolecule = retrieveQueryAtcontainerFromDB(queryKey);
+            stash(queryKey,queryMolecule);
+        }
+    }
 
     /**
-     * TODO proper doc
+     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String)}
+     * <BR>
+     * Method scope=public -> used as Oracle Java stored procedure
+     *
+     * @param queryKey
+     * @param debugYN
+     * @return
+     * @throws CDKException
+     * @throws SQLException
      */
-    public static String getWhereClause(Integer queryKey, String debugYN) throws Exception {
+    public static String getWhereClause(Integer queryKey, String debugYN) throws CDKException, SQLException {
         return whereClauseFromFingerPrint(retrieveQueryAtcontainerFromDB(queryKey), debugYN);
     }
 

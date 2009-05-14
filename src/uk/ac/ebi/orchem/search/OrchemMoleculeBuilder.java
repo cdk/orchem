@@ -24,7 +24,6 @@
 
 package uk.ac.ebi.orchem.search;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
@@ -32,32 +31,29 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import java.util.StringTokenizer;
-
-import oracle.jdbc.OracleConnection;
-import oracle.jdbc.OraclePreparedStatement;
 
 import org.openscience.cdk.Atom;
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.nonotify.NNMolecule;
+
 
 /**
  * This class can be used to quickly materialize half-wit molecules during substructure searching, rather
  * than creating them from scratch from .mol or .cml files every time (=WAY more expensive run-time)<BR>
  * The other alternative, to store these compounds as proper serialized Java classes
  * also turned out to be seriously expensive with regards to time and storage.<P><P>
- * 
+ *
  */
 public class OrchemMoleculeBuilder {
 
     /**
      * Builds a molecule using the atoms and bonds stored as string data for each compound in the database.
-     * See more on these strings at {@link uk.ac.ebi.orchem.load.LoadCDKFingerprints#atomsAsString} and 
-     * {@link uk.ac.ebi.orchem.load.LoadCDKFingerprints#bondsAsString} and 
+     * See more on these strings at {@link #atomsAsString} and {@link #bondsAsString} 
      * @return molecule
      */
     public static NNMolecule getBasicAtomContainer(String atomString, String bondString) {
@@ -129,4 +125,75 @@ public class OrchemMoleculeBuilder {
         return mol;
     }
 
+    /**
+     * Method that iterates an atom array and puts the atom symbols in a String, space separated.<br>
+     * The result could look for example like this:<br>
+     * "N N C N C N C C C C C O C C C C C C"<P>
+     * These strings are persisted in the db and can be used to quickly materialize a molecule
+     * by {@link OrchemMoleculeBuilder}
+     *
+     * @param atoms
+     * @return atom String listing the periodic element symbols in the atomcontainer
+     * @throws SQLException
+     */
+    public static String atomsAsString(IAtom[] atoms) throws SQLException {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < atoms.length; i++) {
+            sb.append(atoms[i].getSymbol()).append(" ");
+        }
+        return sb.toString().trim();
+
+    }
+
+    /**
+     * Method that iterates bonds in an atom container and puts the bond info in a String, space separated.<br>
+     * The result could look for example like this:<br>
+     * " 1 10 S N 0 2 S N 1 3 S Y 0 4 S N 5 14 S N "<br>
+     * Read as follows: 1 10 S N means atoms at atomArray[1] and atomArray[10] have
+     * a single (S) bond that is not (N) aromatic.<br>
+     * This repeats for each group of 4 tokens. Valid values for the third token are S|D|T|Q and
+     * Y|N for the fourth token.<P>
+     *
+     * These strings are persisted in the db and can be used to quickly materialize a molecule
+     * by {@link OrchemMoleculeBuilder}
+     *
+     * @param atomArray the atom array used in {@link #atomsAsString}to create atom String info
+     * @param atContainer
+     * @return
+     * @throws SQLException
+     */
+    public static String bondsAsString(IAtom[] atomArray, IAtomContainer atContainer) throws SQLException {
+
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<IBond> bondItr = atContainer.bonds().iterator(); bondItr.hasNext(); ) {
+            IBond bond = bondItr.next();
+            IAtom a1 = null, a2 = null;
+            for (Iterator<IAtom> itr = bond.atoms().iterator(); itr.hasNext(); ) {
+                a1 = itr.next();
+                a2 = itr.next();
+            }
+
+            for (int i = 0; i < atomArray.length; i++) {
+                if (atomArray[i] == a1)
+                    sb.append(i).append(" ");
+                if (atomArray[i] == a2)
+                    sb.append(i).append(" ");
+            }
+            if (bond.getOrder() == IBond.Order.SINGLE)
+                sb.append("S").append(" ");
+            else if (bond.getOrder() == IBond.Order.DOUBLE)
+                sb.append("D").append(" ");
+            else if (bond.getOrder() == IBond.Order.TRIPLE)
+                sb.append("T").append(" ");
+            else if (bond.getOrder() == IBond.Order.QUADRUPLE)
+                sb.append("Q").append(" ");
+
+            if (bond.getFlag(CDKConstants.ISAROMATIC))
+                sb.append("Y").append(" ");
+            else
+                sb.append("N").append(" ");
+        }
+        return sb.toString();
+    }
 }

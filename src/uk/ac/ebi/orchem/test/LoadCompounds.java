@@ -20,7 +20,7 @@ import org.openscience.cdk.Molecule;
 import org.openscience.cdk.io.MDLWriter;
 import org.openscience.cdk.io.iterator.IteratingMDLReader;
 
-import uk.ac.ebi.orchem.Constants;
+import uk.ac.ebi.orchem.PropertyLoader;
 
 
 /**
@@ -40,7 +40,7 @@ public class LoadCompounds {
         Connection conn = null;
         try {
 
-            Properties properties = Constants.getUnittestProperties();
+            Properties properties = PropertyLoader.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
             conn = DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
             conn.setAutoCommit(false);

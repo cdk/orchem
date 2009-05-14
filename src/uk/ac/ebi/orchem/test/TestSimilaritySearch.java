@@ -23,7 +23,6 @@
 package uk.ac.ebi.orchem.test;
 
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,7 +38,7 @@ import oracle.jdbc.driver.OracleConnection;
 
 import org.openscience.cdk.exception.CDKException;
 
-import uk.ac.ebi.orchem.Constants;
+import uk.ac.ebi.orchem.PropertyLoader;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
@@ -68,7 +67,7 @@ public class TestSimilaritySearch extends TestCase {
     static {
         try {
             System.out.println("___ static : Begin set up target list (once) ");
-            Properties properties = Constants.getUnittestProperties();
+            Properties properties = PropertyLoader.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
             conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
             targetMolecules = new DatabaseAccess().getAllCompounds(conn);

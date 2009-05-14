@@ -34,7 +34,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.sql.SQLException;
 
 import java.util.Iterator;
 
@@ -43,7 +42,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import uk.ac.ebi.orchem.Constants;
+import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 
 
@@ -82,7 +81,7 @@ public class ImageServlet extends HttpServlet {
         // alternative 1 - ends
 
         // alternative 2 - use session cache
-        WebSearchResults wsr = (WebSearchResults)(req.getSession().getAttribute(Constants.SESSION_WEB_SEARCH_RESULTS));
+        WebSearchResults wsr = (WebSearchResults)(req.getSession().getAttribute(Utils.SESSION_WEB_SEARCH_RESULTS));
         Iterator itr = wsr.getSearchResults().iterator();
         boolean found = false;
         while (itr.hasNext() && !found) {

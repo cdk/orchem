@@ -772,7 +772,6 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit701  char(1)
      ,bit702  char(1)
      ,bit703  char(1)
-     ,bit704  char(1)
      ,constraint pk_orchem_subsrch primary key (id)
     ) 
     /

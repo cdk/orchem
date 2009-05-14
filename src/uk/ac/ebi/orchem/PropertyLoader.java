@@ -15,9 +15,12 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 
 public abstract class PropertyLoader {
-   private static final boolean THROW_ON_LOAD_FAILURE = true;
-   private static final boolean LOAD_AS_RESOURCE_BUNDLE = false;
-   private static final String SUFFIX = ".properties";
+    static final Properties webappProperties = PropertyLoader.loadProperties("webapp.properties");
+    static final Properties unittestProperties = PropertyLoader.loadProperties("unittest.properties");
+
+    private static final boolean THROW_ON_LOAD_FAILURE = true;
+    private static final boolean LOAD_AS_RESOURCE_BUNDLE = false;
+    private static final String SUFFIX = ".properties";
 
    /**
     * Looks up a resource named 'name' in the classpath. The resource must map to a file with
@@ -113,4 +116,14 @@ public abstract class PropertyLoader {
    public static Properties loadProperties(final String name) {
       return loadProperties(name, Thread.currentThread().getContextClassLoader());
    }
-} // End of class
+
+
+    public static Properties getWebAppProperties() {
+        return PropertyLoader.webappProperties;
+    }
+
+    public static Properties getUnittestProperties() {
+        return PropertyLoader.unittestProperties;
+    }
+} 
+

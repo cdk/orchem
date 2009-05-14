@@ -24,21 +24,21 @@
 package uk.ac.ebi.orchem.web;
 
 
-import uk.ac.ebi.orchem.Constants;
+import uk.ac.ebi.orchem.Utils;
 
 /**
  * Struts Action to assist paging through a search result set.
  * Part of demo web-application. Not core cartridge functionality.
  * @author markr@ebi.ac.uk
- * 
+ *
  */
 
 public class PageAction extends SessionAwareAction { 
 
     public String execute() throws Exception {
-        WebSearchResults wsr = (WebSearchResults)this.getSession().get(Constants.SESSION_WEB_SEARCH_RESULTS);
+        WebSearchResults wsr = (WebSearchResults)this.getSession().get(Utils.SESSION_WEB_SEARCH_RESULTS);
         wsr.setPageNum(page);
-        getSession().put(Constants.SESSION_WEB_SEARCH_RESULTS, wsr);
+        getSession().put(Utils.SESSION_WEB_SEARCH_RESULTS, wsr);
         return "pagingDone";
     }
     

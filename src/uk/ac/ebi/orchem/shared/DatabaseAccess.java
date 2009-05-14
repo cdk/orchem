@@ -62,7 +62,7 @@ public class DatabaseAccess {
      * Run a database stored procedure similarity search 
      *
      * @param userQuery
-     * @param queryType = "MOL" or "SMILES"
+     * @param queryType see {@link Constants}
      * @param conn
      * @param tanimotoCutoff
      * @param topN
@@ -93,7 +93,7 @@ public class DatabaseAccess {
      * Run a database stored procedure substructure search 
      *
      * @param molfile
-     * @param queryType = "MOL" or "SMILES"
+     * @param queryType see {@link Constants}
      * @param conn
      * @param topN
      * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}

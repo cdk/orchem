@@ -19,7 +19,7 @@ $os       = $ARGV[4];
 
 
 print "----------------------------------------------\n\n";
-print "DROPPING objects in existing schema $username.. \n\n";
+print "Dropping ORCHEM objects in schema $username.. \n\n";
 system("sqlplus -S $username/$password\@$instance \@../sql/drop.sql $username ");
 
 print "----------------------------------------------\n\n";

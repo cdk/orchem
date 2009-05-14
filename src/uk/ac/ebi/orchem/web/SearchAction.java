@@ -28,7 +28,6 @@ import java.util.List;
 
 import oracle.jdbc.driver.OracleConnection;
 
-import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.singleton.DatabaseAgent;
@@ -64,11 +63,11 @@ public class SearchAction extends SessionAwareAction {
       String query = null;
         
         if (wsr.getSmilesOrMol().equals("mol")) {
-            queryType = "MOL";
+            queryType = Utils.QUERY_TYPE_MOL;
             query = wsr.getStructure();
         }
         else {
-            queryType = "SMILES";
+            queryType = Utils.QUERY_TYPE_SMILES;
             query = wsr.getSmiles();
         }
         
@@ -110,7 +109,7 @@ public class SearchAction extends SessionAwareAction {
       debugMsg.append(wsr.getDebugMessage() + "<br>Results : " +
                       compounds.size() + "</B>");
 
-      this.getSession().put(Constants.SESSION_WEB_SEARCH_RESULTS, wsr);
+      this.getSession().put(Utils.SESSION_WEB_SEARCH_RESULTS, wsr);
       return "searchDone";
 
     } catch (Exception ex) {

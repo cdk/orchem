@@ -25,25 +25,21 @@ package uk.ac.ebi.orchem.test;
 
 import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
 import org.openscience.cdk.nonotify.NNMolecule;
 
-import uk.ac.ebi.orchem.Constants;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
+
 
 /**
  *

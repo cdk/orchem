@@ -20,7 +20,7 @@ AS
      ,bonds               clob
      ,debug_yn            varchar2(1)
    );
-
+   PROCEDURE verify_orchem (p_primary_key varchar2);
    FUNCTION to_hex( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_oct( p_dec IN NUMBER ) RETURN VARCHAR2;
@@ -33,6 +33,11 @@ SHOW ERRORS
 
 CREATE OR REPLACE PACKAGE BODY orchem_utils
 AS 
+   PROCEDURE verify_orchem (p_primary_key varchar2)
+   IS LANGUAGE JAVA NAME
+   'uk.ac.ebi.orchem.test.VerifyOrchem.verify(java.lang.String)'
+   ;
+
    /*                 */
    FUNCTION to_base( p_dec in NUMBER, p_base in NUMBER )
    RETURN VARCHAR2
@@ -106,4 +111,4 @@ END;
 /
 SHOW ERRORS
 
-exit;
+ 

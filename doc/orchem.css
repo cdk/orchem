@@ -1,28 +1,30 @@
+body
+{
+	background: url("prweb-sidebar.png") top left fixed no-repeat;
+	font-family: verdana,sans-serif;
+	line-height: 140%;
+	font-size: 9pt;
+	margin: 0 0 1em 5%;
+}
+
+
 li {
     margin-bottom:5pt;
 }
 
 pre {
-  font-family: Courier New;
-  font-size: 8pt;
-  color: #23052F;
+  font-family: Lucida Console,Courier New;
+  font-size: 9pt;
+  color: #00718D;
 }
 
 
 td {
-   font-size: 8pt;
+   font-size: 9pt;
    border:solid 1px #FFC55E;
 }
 
 
-body
-{
-	background: url("prweb-sidebar.png") top left fixed no-repeat;
-	font-family: sans-serif;
-	line-height: 140%;
-	font-size: 8pt;
-	margin: 0 0 1em 5%;
-}
 
 a img
 {
@@ -50,11 +52,17 @@ div.right
 	width: 45%;
 	margin-left: 2%;
 	margin-bottom: 1%;
+}
 
+div.farright
+{
+	float: right;
+	margin-bottom: 1%;
+	margin-right: 150px;
 }
 
 div.main
 {
 	float: left;
-	width: 100%;
+	width: 90%;
 }

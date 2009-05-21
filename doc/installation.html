@@ -7,93 +7,363 @@
   <body>
     <h1>OrChem: installation</h1>
      
-    <span style="font-size: 8pt;">
-      Author:
-      <a href="mailto:mark_rynbeek@users.sourceforge.net">mark_rynbeek@users.sourceforge.net </a>
-    </span>
-
-<h3>
-TODO compound table takes in schema. And mail details.
-
-WARNING
-creating type "orchem_compound"
-    CREATE or REPLACE TYPE orchem_compound AS OBJECT
-*
-ERROR at line 1:
-ORA-00604: error occurred at recursive SQL level 1
-ORA-29538: Java not installed
-
-
-</h3>
-   
-    <p>&nbsp;</p><div class="main">
+    <div class="main">
+      <a href="index.html">Back to main page</a>
       <table width="70%" border="0" cellspacing="10" cellpadding="10">
         <tr>
-          <td style="font-size:9pt">
-            <h3>Before you install</h3>
+          <td>
+            <h3>Installation of OrChem</h3>
+                This page describes how to set up OrChem in an 11g Database.
+                It is assumed that you have some knowledge of Oracle.
+                The installation is a bit low-level - we don't provide a fancy
+                GUI that guides you through it. All the more satisfaction
+                if you do get it to work!
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>Quick requirements</h3>
             <ul>
+              <li>Oracle 11g database</li>
+              <li>A full Oracle client installation (sqlplus, loadjava)</li>
+              <li>A newly created  Oracle database schema (call it "ORCHEM" or something) with 'developer' type privileges (not just CONNECT)</li>
               <li>
-                This page describes how to set up OrChem in an Oracle Database. It is assumed that you have some
-                knowledge of Oracle, that you have a working Oracle client installed (sqlplus, loadjava) and that you
-                have a schema with chemical compounds, including a molfile CLOB for each compound.
-                <br></br>
-                Once installed, OrChem provides similarity and substructure searching against your compound table.
+                A compound table that has a single primary key column and an MDL Clob column. In the near future we'll cater for other types of compound data types.
+                Your "compound table" can also be a view - OrChem will only select from it.
               </li>
-              <li>OrChem has been developed and tested for Oracle Database 11G. Previous versions of the Oracle database
-                  do not support the current CDK's version.</li>
-              <li>The installation of OrChem requires the creation of a dedicated user account (schema).
-                  With the schema in place, OrChem tables can be created, followed by the loading of required JAR files,
-                  and running a Java class to populate the OrChem tables. The installation is partly done through
-                  convenient scripts.</li>
-              <li>The duration of the installation process depends mainly on the size of your compound table and the
-                  speed of your hardware. In house at the EBI, the OrChem installation against the Chembl compound
-                  database (xx compounds) takes about .. hours (using parallel loading)</li>
+              <li>
+                Grant SELECT access to "ORCHEM" so it can see the compound table/view.
+              </li>
+              <li>
+                Orchem jar file, CDK (stripped) jar file and  few depending jar files (<b>LINK</b>)
+              </li>
+              <li>Tablespace: OrChem will be 10-15% in size compared to the compound table (ballpark figure)</li>
             </ul>
-            <a href="index.html">Back to main page</a>
           </td>
         </tr>
         <tr>
-          <td style="font-size:9pt">
-            <h3>Prerequisite DBA tasks (optional)</h3>
-            Create user and privs Java privs
-            Check privs
-          </td>
-        </tr>
-        <tr>
-          <td style="font-size:9pt">
-            <h3>Check list before you start</h3>
-            working ora client with sqlplus, loadjava
-          </td>
-        </tr>
-        <tr>
-          <td style="font-size:9pt">
-            <h3>Installation script</h3>
-            what happens, how long things can take. how to track progress. intermediate steps: check e-mail works
-          </td>
-        </tr>
-        <tr>
-          <td style="font-size:9pt">
-            <h3>Using OrChem</h3>
-            Sample queries. Warm up aspects. What is slow (known) and what should be fast
-          </td>
-        </tr>
-        <tr>
-          <td style="font-size:9pt">
-            <h3>Performance of OrChem</h3>
-            warm up cache tables bla
-          </td>
-        </tr>
-        <tr>
-          <td style="font-size:9pt">
-            <h3>Keeping OrChem in sync with the base data</h3>
-            audit table. schedule the update whenever you like. or recreate the thing from scratch optional feature
+          <td >
+            <h3>Installation step by step </h3>
+              <ul>
+                <li><b>Check your environment</b><p>
+                   <ul>
+                    <li>On a command line, type:<pre>loadjava </pre>
+                    As a result you should see something like:<pre>loadjava: Usage: loadjava [-definer] [-encoding encoding] [-force] ...</pre>
+                    <br>Next, type on the command line:<pre>sqlplus -version</pre>
+                    Now you should see something like:<pre>SQL*Plus: Release 11.1.0.6.0 - Production</pre>
+                    Both sqlplus and loadjava are required. If things don't work, set up a proper Oracle client on your computer.
+                    These client downloads can be found on the <A href="http://www.oracle.com/technology/software/products/database/index.html">Oracle website</a>
+                   </li>
+                   </ul>
+                </li>
+
+                <br></br>
+
+                <li><b>Create an ORCHEM user schema</b><p>
+
+                    It's best to create a new schema for OrChem (although you could install into an existing schema - not recommended).
+                    <br>
+                   <ul>
+                    <li>Create -or let your DBA create- a user (say "ORCHEM") that has privileges to create tables, views, 
+                    procedures, Java and such.</li>
+                   </ul>
+                </li>   
+
+                <br></br>
+
+                <li><b>Verify Oracle Java set up</b><p>
+                    <ul>
+                    <li>Connect to the database with the "ORCHEM" user<br>
+
+                    <li>Test if Java is installed and available to your ORCHEM account. The steps below should 
+                    be completed succesfully. If not and you get some error along the way, check the Java installation.
+                    <br></br>
+                    
+                    (1) Make a little dumb Java class:
+<pre>                    
+CREATE OR REPLACE AND COMPILE JAVA SOURCE NAMED "HelloThere" AS
+package uk.ac.ebi.orchem;
+public class HelloThere
+{
+  public static void hello()
+  {
+    System.out.println("Whatever..");
+  }
+}
+/
+</pre>
+                    (2) Wrap it with PL/SQL:
+
+<pre>                    
+CREATE OR REPLACE PROCEDURE hello_there
+AS LANGUAGE JAVA NAME 'uk.ac.ebi.orchem.HelloThere.hello()';
+/
+</pre>
+                    (3) Test it with SQL*Plus:
+<pre>                    
+set serverout on
+
+exec dbms_java.set_output(10000);
+</pre>
+
+<pre>
+exec hello_there
+Whatever..
+PL/SQL procedure successfully completed.
+</pre>
+                    </li>
+                   </ul>
+                </li>
+
+                <br></br>
+
+                <li>
+                    <b>Download OrChem</b>
+                    <br></br>
+                    The <a href="https://sourceforge.net/project/showfiles.php?group_id=226421">OrChem download page</a> provides 
+                    access to OrChem releases. Find the latest release (tar.gz file) and save it locally. Unzip it and unpack 
+                    the tar file somewhere. The unzipped directory contains a lib directory with jar files that need to be loaded 
+                    into the database, and the sql DDL scripts that create the schema objects in your ORCHEM schema.
+                    </li>
+
+                <br></br>
+
+                <li><b>Loadjava</b><p>
+                    <ul>
+                    <li>Navigate to the unzipped orchem/lib directory and issue the following "loadjava" commands, with
+                    the values for USER, PW and INSTANCE substituted with valid values<br>
+<pre>
+loadjava -verbose -user USER/PW@INSTANCE vecmath.jar
+loadjava -verbose -user USER/PW@INSTANCE commons-collections-3.2.1.jar
+loadjava -verbose -user USER/PW@INSTANCE jgrapht-0.6.0.jar
+loadjava -verbose -user USER/PW@INSTANCE log4j-1.2.15.jar
+loadjava -verbose -user USER/PW@INSTANCE cdk.jar
+loadjava -verbose -user USER/PW@INSTANCE orchem.jar
+
+</pre>
+                You should see output like in the example below:
+<pre style="font-style:italic;color:gray">                
+$ loadjava -verbose -user orchem/orchem@marx vecmath.jar
+arguments: '-user' 'orchem/***@marx' '-verbose' 'vecmath.jar'
+
+creating : resource META-INF/MANIFEST.MF
+loading  : resource META-INF/MANIFEST.MF
+creating : resource META-INF/SUN_MICR.SF
+loading  : resource META-INF/SUN_MICR.RSA
+creating : resource javax/COPYRIGHT.txt
+loading  : resource javax/COPYRIGHT.txt
+creating : resource javax/LICENSE-JDL.txt
+creating : resource javax/LICENSE.txt
+loading  : resource javax/LICENSE.txt
+creating : class javax/vecmath/AxisAngle4d
+loading  : class javax/vecmath/AxisAngle4d
+creating : class javax/vecmath/Color3b
+loading  : class javax/vecmath/Color3b
+creating : class javax/vecmath/Color3f
+.....
+</pre>                
+                    </li>
+                   </ul>
+                </li>
+
+                <br></br>
+
+                <li><b>JIT</b>
+                <br></br>
+                After 'loadjava', just-in-time compilation (JIT) is required for better performance. More on that can be found in the
+                <a href="http://download.oracle.com/docs/cd/B28359_01/java.111/b31225/chnine.htm#BABDCIBH">Oracle® Database Java Developer's Guide</a>. 
+                The chapter on "Oracle Database Java Application Performance" contains useful information regarding Java 
+                performance, so you may want to read this to tweak your own Oracle instance.
+                <br></br>
+                    <ul>
+                    <li>Navigate into the orchem/sql directory.</li>
+                    <li>Connect to the database using SQL*Plus with your ORCHEM account</li>
+                    <li>In SQL*Plus, execute the script <b>jit.sql</b>, located in orchem/sql. This compiles Java classes in the ORCHEM schema. Below you can see what 
+                    it should look like. Note that the compilation can take quite a LONG time (up to an hour or more), so find something else to do. 
+                    Eventually the script should return and prompt messages like below.</li>
+<pre style="font-style:italic;color:gray">                
+> cd orchem/sql/
+
+> sqlplus orchem/orchem@marx
+
+    SQL*Plus: Release 11.1.0.6.0 - Production on Tue May 19 17:48:27 2009
+    Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+    
+    @jit
+
+    Total of 2 methods compiled in 9011 ms.
+    Compiled javax/vecmath/MismatchedSizeException
+    Total of 2 methods compiled in 38 ms.
+    Compiled javax/vecmath/SingularMatrixException
+    Total of 1 methods compiled in 157 ms.
+    Compiled javax/vecmath/VecMathI18N
+    Total of 11 methods compiled in 410 ms.
+    Compiled javax/vecmath/Point2f
+    Total of 40 methods compiled in 743 ms.
+    Compiled javax/vecmath/Tuple2f
+    Total of 21 methods compiled in 459 ms.
+    ............ ... .. .
+    ...
+</pre>
+                    </ul>
+                </li>
+                <br></br>
+
+                <li><b>Create OrChem database objects</b>
+                <br></br>
+                    <ul>
+                        <li>In SQL*Plus, now execute the script <b>setup.sql</b>, located in orchem/sql. This script creates various 
+                        database objects. The script should prompt messages like below. Again, there should be no errors.
+                        <span style="font-style:italic">(If any error occurs, it's probably because you lack some privilege; examine 
+                        the error and fix the cause, then re-run the setup.sql script)</span>
+<pre style="font-style:italic;color:gray">                
+> cd orchem/sql/
+> sqlplus orchem/orchem@marx
+
+    SQL*Plus: Release 11.1.0.6.0 - Production on Tue May 19 17:48:27 2009
+    Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+    
+    @setup
+    
+    PL/SQL procedure successfully completed.
+    creating type "orchem_compound"
+    Type created.
+    creating type "orchem_compound_list"
+    Type created.
+    creating type "compound_id_table"
+    Type created.
+    creating sequence "orchem_sequence_log_id" for "orchem_parameters"
+    Sequence created.
+    .......
+</pre>
+                        </li>
+                    </ul>
+                </li>                
+
+                <br></br>
+
+                <li><b>Populate table ORCHEM_PARAMETERS</b>
+                    <ul>
+                        <li>                
+                            In the previous step you created an empty table ORCHEM_PARAMETERS. You can describe the table in SQL*Plus.
+<pre>                
+SQL> desc orchem_parameters
+ Name                                                                    Null?    Type
+ ----------------------------------------------------------------------- -------- -------------------------------------------------
+ COMP_TAB_NAME                                                           NOT NULL VARCHAR2(30)
+ COMP_TAB_PK_COL                                                         NOT NULL VARCHAR2(30)
+ COMP_TAB_MOLFILE_COL                                                    NOT NULL VARCHAR2(30)
+</pre>
+                        </li>
+                        <li> The table crucially <b>needs ONE row</b>. Column COMP_TAB_NAME must contain your 
+                        compound table name, COMP_TAB_PK_COL the name of the primary key column
+                        of that table, and COMP_TAB_MOLFILE_COL the name of mol file column 
+                        of that table.<br>
+                        Use an insert statement like this one to accomplish this (with proper values substituted), 
+                        and commit the insert to the database. <br>
+<pre>
+insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col) values ('x','y','z');
+</pre>
+                        </li>
+                        <li> Alternatively, for example if your compound data is split over more than 
+                        one table, you can define a VIEW on your compound table(s) and refer to this view  
+                        in ORCHEM_PARAMETERS.
+                        </li>
+
+                        <li>An example is given below, showing the setup for a the ChEMBL schema. The example 
+                        shows insertion of value 'COMPOUNDS','MOLREGNO' and 'MOLFILE', describing correctly the 
+                        ChEMBL objects.
+        
+<pre style="font-style:italic;color:gray">                
+SQL> desc COMPOUNDS
+ Name                            Null?    Type
+ ------------------------------- -------- -------------
+ MOLREGNO                        NOT NULL NUMBER(38)
+ MOLWEIGHT                                NUMBER
+ MOLFORMULA                               VARCHAR2(250)
+ MOLFILE                                  CLOB
+
+SQL>  insert into orchem_parameters  
+                  (comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col) 
+                  values 
+                  ('COMPOUNDS','MOLREGNO','MOLFILE');
+
+1 row created.
+
+SQL> commit;
+Commit complete.
+
+
+SQL> select * from orchem_parameters;
+
+COMP_TAB_NAME                  COMP_TAB_PK_COL                COMP_TAB_MOLFILE_COL
+------------------------------ ------------------------------ ------------------------------
+COMPOUNDS                      MOLREGNO                       MOLFILE
+
+</pre>
+                        </li>
+                        <li> With ORCHEM_PARAMETERS correctly populated, OrChem will now be able to find you compound data.
+                        </li>
+                    </ul>
+                    </li>
+
+                <br></br>
+
+                <li><b>Verify the OrChem installation</b>
+                <br></br>
+                You are now at a point where you can test OrChem. There is a test
+                class that selects a compound by primary key, 
+                creates a CDK molecule, makes a fingerprint and outputs the molecule as a SMILES string.
+                The test class depends on ORCHEM_PARAMETERS being properly populated, and of course all
+                previous steps having completed succesfully.
+                <br></br>
+                    <ul>
+                    <li>Connect to the database using SQL*Plus with your ORCHEM account</li>
+                    <li>Pick a valid primary key value from your compound table, say for example <b>12345</b> </li>
+                    <li>In SQL*Plus, execute the procedure as below to verify OrChem works. You need
+                    to switch on server output first to see anything printed. Note that it make take a while to 
+                    run the procedure for the first time (following runs are done much quicker)</li>
+<pre>                
+SQL> exec dbms_java.set_output(1000000)
+SQL> set serverout on
+
+SQL> exec orchem_utils.verify_orchem(12345)
+</pre>        
+                   <li>See below an example what the output should look like. No errors should be thrown.
+<pre style="font-style:italic;color:gray">                
+SQL> exec dbms_java.set_output(1000000)
+SQL> set serverout on
+SQL> exec orchem_utils.verify_orchem(91001)
+
+OKAY: compound found with primary key 91001
+OKAY: CDK molecule created
+OKAY: Fingerprint made
+OKAY: Smiles generated O=C(C=1C=CC=C(C=1)C(F)(F)F)N4C2=CC=CC=C2C(NC=3C=CC=CC=3)CC4C
+
+PL/SQL procedure successfully completed.
+Elapsed: 00:00:00.17
+
+</pre>
+                    </ul>
+                </li>
+             </ul>
+
+        <a href="index.html">Back to main page</a>
+        <br></br>
+        <span style="font-size: 8pt;">
+          Author:
+          <a href="mailto:mark_rynbeek@users.sourceforge.net">mark_rynbeek@users.sourceforge.net </a>
+        </span>
+
           </td>
         </tr>
       </table>
     </div>
+
+     
+
   </body>
 </html>
-
 
 
 

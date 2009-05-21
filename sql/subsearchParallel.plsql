@@ -205,11 +205,8 @@ AS
                  ,l_candidate.bonds               
                  ,l_candidate.debug_yn            
              );
-             --IF retval IS NOT NULL THEN -- DO NOT UNCOMMENT THIS LINE. 
-                                          -- Left as warning to self.
-                                          -- Checking retval for NULL here 
-                                          -- disables pipe effect somehow !?
-             PIPE ROW (retval);  -- .........just always PIPE ROW
+             --IF retval IS NOT NULL THEN
+               PIPE ROW (retval);
              --END IF;
          END IF;
       END LOOP;

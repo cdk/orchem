@@ -486,11 +486,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk-1.1.2.ora11proof.fp.jar"/>
+            <value n="id" v="SMSD.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="SMSD.jar"/>
+            <value n="id" v="Cdk.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -633,20 +633,20 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/cdk-1.1.2.ora11proof.fp.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Cdk-1.1.2.ora11proof.fp.jar"/>
-               <value n="id" v="Cdk-1.1.2.ora11proof.fp.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
                   <url path="public_html/WEB-INF/lib/SMSD.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
                <value n="description" v="SMSD.jar"/>
                <value n="id" v="SMSD.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/cdk.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Cdk.jar"/>
+               <value n="id" v="Cdk.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
@@ -721,11 +721,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk-1.1.2.ora11proof.fp.jar"/>
+            <value n="id" v="SMSD.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="SMSD.jar"/>
+            <value n="id" v="Cdk.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

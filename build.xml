@@ -5,10 +5,13 @@
     <property name="project.root"  value="."/>
     <property name="src.dir"       value="${project.root}/src"/>
     <property name="web.dir"       value="${project.root}/public_html"/>
-    <property name="test.dir"       value="${project.root}/test"/>
+    <property name="test.dir"      value="${project.root}/test"/>
     <property name="build.classes" value="${web.dir}/WEB-INF/classes"/>
     <property name="lib.dir"       value="${web.dir}/WEB-INF/lib"/>
+    <property name="lib.prefix"    value="public_html/WEB-INF/lib"/>
+
     <property name="war.dir"       value="${project.root}/deploy"/>
+    <property name="dist.dir"      value="${project.root}/dist"/>
 
     <!-- Build working classpath -->
     <path id="project.classpath">
@@ -25,7 +28,7 @@
     <target name="help">
         <echo message="***************************************************************************"/>
         <echo message="The following ANT targets are available in the build.xml:"/>
-	<echo message="clean         - delete all build directories, as well as /build files "/>
+        <echo message="clean         - delete all build directories, as well as /build files "/>
         <echo message="compile       - compile core classes"/>
         <echo message="war           - clean, compile, and create WAR file (tested Tomcat6) "/>
         <echo message="***************************************************************************"/>
@@ -112,7 +115,7 @@
     </target>
 
     <!-- =================================================================== -->
-    <!-- Unittest similarity smurfing                                        -->
+    <!-- Unittest similarity searching                                       -->
     <!-- =================================================================== -->
     <target name="test.simsrch" depends="compile">
 
@@ -132,8 +135,73 @@
         <echo />
     </target>
 
+    <!-- =================================================================== -->
+    <!-- Make a tarball for people to download and install OrChem.           -->
+    <!-- Not all classes are required, just the 'core' set that go into DB   -->
+    <!-- =================================================================== -->
+    <target name="dist" depends="compile">
+      <echo message="Making a distro"/>
+
+      <delete dir="${dist.dir}"/>
+      <mkdir dir="${dist.dir}"/>
+      <mkdir dir="${dist.dir}"/>
+      <mkdir dir="${dist.dir}/sql"/>
 
 
+      <!-- Copy the DDL create scripts we need -->
+      <copy todir="${dist.dir}/sql">
+        <fileset dir="${project.root}/sql">
+           <include name="**/*.sql"/>
+           <include name="**/*.plsql"/>
+           <exclude name="**/drop.sql"/>
+        </fileset>
+      </copy>
+      <!-- For user convenience, remove the sql*plus "exit;" commands (put there for step1.pl in Unit testing) -->
+      <replace dir="${project.root}/sql" token="exit;" value="--">
+        <include name="**/*.sql"/>
+        <include name="**/*.plsql"/>
+      </replace>
+
+      <!-- Put required OrChem classes in a temporary jar -->
+      <jar jarfile="${lib.dir}/${app.name}.jar" basedir="${build.classes}"
+           includes="**/uk/ac/ebi/orchem/bean/* 
+                     **/uk/ac/ebi/orchem/search/*  
+                     **/uk/ac/ebi/orchem/load/*  
+                     **/uk/ac/ebi/orchem/fingerprint/* 
+                     **/uk/ac/ebi/orchem/fingerprint/bitpos/*
+                     **/uk/ac/ebi/orchem/shared/AtomsBondsCounter.class
+                     **/uk/ac/ebi/orchem/temp/MyAllRingsFinder.class
+                     **/uk/ac/ebi/orchem/shared/MoleculeCreator.class
+                     **/uk/ac/ebi/orchem/Utils.class
+                     **/uk/ac/ebi/orchem/test/VerifyOrchem.class
+                     **/uk/ac/ebi/orchem/SimpleMail.class
+                     **/uk/ac/ebi/orchem/db/OrChemParameters.class
+                     **/uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class
+                     " />
+
+      <!-- Put all required jar files and DDL in a tar file -->
+      <tar destfile="${dist.dir}/${app.name}.tar">
+        <tarfileset dir="${lib.dir}" prefix="/orchem/lib/">
+          <include name="vecmath.jar"/>
+          <include name="commons-collections-3.2.1.jar"/>
+          <include name="jgrapht-0.6.0.jar"/>
+          <include name="log4j-1.2.15.jar"/>
+          <include name="cdk.jar"/>
+          <include name="${app.name}.jar"/>
+        </tarfileset>
+        <tarfileset dir="${dist.dir}/sql" prefix="/orchem/sql/">
+          <include name="*.sql"/>
+          <include name="*.plsql"/>
+        </tarfileset>
+      </tar>
+
+      <gzip zipfile="${dist.dir}/${app.name}.tar.gz" src="${dist.dir}/${app.name}.tar" />
+      <!--zip destfile="${dist.dir}/${app.name}.tar.zip" basedir="${dist.dir}" includes="**/*.tar" /-->
+
+      <delete file="${dist.dir}/${app.name}.tar"/> 
+      <delete dir="${dist.dir}/sql"/> 
+
+    </target>
 
 
 

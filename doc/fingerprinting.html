@@ -1,0 +1,158 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>OrChem fingerprinting</title>
+    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+  </head>
+  <body>
+    <h1>OrChem: fingerprinting</h1>               
+
+    <div class="left">
+      <a href="index.html">Back to main page</a>
+      <table width="70%" border="0" cellspacing="10" cellpadding="10">
+        <tr>
+          <td>
+            <h3>Creating  fingerprints </h3>
+                This section assumes you have <a href="installation.html">installed</a> OrChem.
+                It explains the fingerprinting process. Once your compounds have been fingerprinted
+                you can use OrChem for similarity and substructure searching.
+            <hr>
+            <h4>Simple approach</h4>
+            If you have a fairly small compound table, say in the order of tens of thousands of 
+            compounds, you could opt to create the fingerprints in a <b>single process</b>. 
+            If you have a larger compound set, please continue reading the <a href="#par">parallel approach</a>.
+            <br></br>
+            To create fingerprints you need to run procedure "orchem_fingerprinting.load_cdk_fingerprints".
+            This procedure takes two arguments, but in the simple approach they can be set to NULL.
+            So, after logging on to the ORCHEM schema with for example SQL*Plus, invoke the procedure like this:
+<pre>
+begin
+   orchem_fingerprinting.LOAD_CDK_FINGERPRINTS(null,null);
+end;
+</pre>
+            The procedure will populate ORCHEM_FINGPRINT_SIMSEARCH and ORCHEM_FINGPRINT_SUBSEARCH.
+            You can track progress of the procedure by counting the rows in these tables.
+            When the procedure completes, you can
+            see some logged information in a log table called ORCHEM_LOG.<br>
+            After completion, <A href="#idx">create the indexes</a>.
+            <br></br>
+            <hr>
+            <A name="par"/>
+            <h4>Parallel approach</h4>
+            The parallel approach splits the creation of fingerprints into several threads.
+            To do this, you should decide how many parallel threads you want to run. Mind you, too many parallel
+            threads may be counter productive, clogging your database.<br></br>
+            Here is an example. Say we have a table COMPOUNDS that has 1 million compounds in it.
+            In our table, the compounds are neatly distributed with IDs between 1 and
+            1000,000. 
+            We decide to run five parallel threads, each taking care of 200,000 compounds.
+            This is done through DBMS_JOB. Make sure DBMS_JOB is available to you and that 
+            it allows the concurrency you are looking for.
+            In the example, DBMS_JOB can be used as follows:
+<pre>
+declare
+    i binary_integer;
+begin
+    dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(     1 , 200000  );' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(200001 , 400000  );' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(400001 , 600000  );' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(600001 , 800000  );' ,INTERVAL=>null );
+    dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(800001 ,1000000  );' ,INTERVAL=>null );
+    commit;
+end;
+</pre>
+            In the example above, procedure slice_load is invoked for each group of compounds we
+            want to fingerprint. So the first job will take care of fingerprinting the compounds
+            with a primary key between 1 and 200,000. The next job will do primary keys 200,001 to 400,000. And so on.
+            For your particular data, find the right primary key ranges and issue jobs accordingly, with more or
+            fewer jobs, that is up to you.
+            To give you a rough idea on timings, at the EBI we indexed a PubChem snapshot of 3.5 million compounds 
+            in about 7 hours using 5 parallel threads.
+            <br></br>
+            You can check progress of DBMS_JOB by running the query below. See more on DBMS_JOB in the Oracle documentation.
+<pre>
+set lines 200
+col what format a80
+select job, what, failures, this_sec, next_sec from user_jobs
+/
+</pre>
+            You should not spot anything in column "failures". If you do,   
+            remove the DBMS_JOBs and check the error in ORCHEM_LOG. Notify the OrChem developers
+            about the error by sending an <a href="mailto:orchem-devel@lists.sourceforge.net">email</a>.
+            <br></br>
+            When all jobs finish succesfully they will disappear from USER_JOBS. If you wish you can check 
+            the log in table ORCHEM_LOG. Next, <A href="#idx">create the indexes</a>.
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <A name="idx"/>
+            <h3>Creating indexes</h3>
+            <ul>
+                    <li>Connect to the database using SQL*Plus with your ORCHEM account</li>
+                    <li>In SQL*Plus, execute the script <b>@indices.sql</b>, located in orchem/sql. 
+                    This script creates indices on the tables you populated in the previous steps,
+                    ORCHEM_FINGPRINT_SIMSEARCH and ORCHEM_FINGPRINT_SUBSEARCH.
+                    
+<pre style="font-style:italic;color:gray">                
+> cd orchem/sql/
+
+> sqlplus orchem/orchem@marx
+
+    SQL*Plus: Release 11.1.0.6.0 - Production on Tue May 19 17:48:27 2009
+    
+    SQL> @indices
+
+    Creating bitmap index on similarity search table
+    Index created.
+    Creating b*tree indexes on substructure search table
+    Index created.
+    Index created.
+    Index created.
+    ..........
+</pre>
+                    </li>
+            </ul>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <A name="idx"/>
+            <h3>Gathering schema statistics</h3>
+            <ul>
+                    <li>Again using SQL*Plus with your ORCHEM account, run a script - this time
+                    <b>@statistics.sql</b>, again located in orchem/sql. 
+                    This script will gather statistics on the freshly populated tables and indices.
+<pre style="font-style:italic;color:gray">                
+SQL> @statistics
+
+PL/SQL procedure successfully completed.
+PL/SQL procedure successfully completed.
+PL/SQL procedure successfully completed.
+
+</pre>
+                    </li>
+            </ul>
+            This concludes the creation of OrChem fingerprints; you're now ready 
+            to use OrChem for substructure and similarity searching.
+            <br></br>
+            <a href="index.html">Back to main page</a>
+            <br></br>
+            <span style="font-size: 8pt;">
+              Author:
+              <a href="mailto:mark_rynbeek@users.sourceforge.net">mark_rynbeek@users.sourceforge.net </a>
+            </span>
+
+          </td>
+        </tr>
+
+      </table>
+    </div>
+    <div class="farright">
+        <img src="fingerprint.jpg" style="vertical-align:top" />
+    </div>
+  </body>
+</html>

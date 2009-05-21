@@ -270,4 +270,4 @@ bit688,bit689,bit690,bit691,bit692,bit693,bit694,bit695,bit696,bit697,bit698,bit
 ) parallel 4 nologging
 /
 
-exit;
+ 

@@ -35,6 +35,7 @@ jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/OrchemMoleculeBuilder.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/UserQueryMolecule.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearch.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearchParallel.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/test/VerifyOrchem.class
 
 
 

@@ -14,7 +14,7 @@
         <tr>
           <td >
             <h3>Introduction</h3>
-            Queries in Orchem are performed by classes located in package 'uk.ac.ebi.orchem.search':
+            Queries in Orchem are performed by classes located in Java package 'uk.ac.ebi.orchem.search':
             <ul>
                 <li>SimilaritySearch.java</li>
                 <li>SubstructureSearchParallel.java</li>
@@ -23,6 +23,11 @@
             You interact with these classes through PL/SQL packages that 
             wrap the classes as Java stored procedures/functions. These packages will be 
             explained in the following sections and some example queries will be given.
+            
+            <br></br>
+            Note that whenever the database is 'cold' (just been restarted or idle for a while), the 
+            <b>initial OrChem query will be less responsive</b>. The DBMS always needs to time to warm 
+            up the cache a bit. 
             <br></br>
 
             <h3>Similarity searching</h3>
@@ -68,7 +73,7 @@ table(orchem_simsearch.search(
         'O(C=1C=CC=C2C=1CCCC2CN(C)CCC3=CC=C4C(=C3)NCC4)C','SMILES',0.5,5,'Y'))  
 </pre>       
             A bit like the previous one, with different Smiles and cutoff. This time, debugging is switched on and
-            the topN=5, so the search will stop if the 5 best scoring results have been found.
+            topN=5, so the search will stop if the 5 best scoring results have been found.
             By using topN you can make the query more responsive.
             <br></br>
             <hr align="left">
@@ -123,8 +128,8 @@ PROCEDURE SHOW_KEYS
             </ul>     
 
             The substructure search is 'pipelined'. This means that results come back as soon as they are 
-            available. To see this effect, in SQL*plus you should set arraysize to 1. In JDBC, it
-            you can use an OracleConnection and invoke setDefaultRowPrefetch(1);
+            available. To see this effect in SQL*plus you should <span style="font-style:italic">set arraysize 1</span>, or in JDBC 
+            use an OracleConnection and use <span style="font-style:italic">setDefaultRowPrefetch(1);</span>
 <pre>
 SQL> set arraysize 1
 </pre>
@@ -162,99 +167,106 @@ FUNCTION SETUP RETURNS NUMBER(38)
  USER_QUERY                     CLOB                    IN
  QUERY_TYPE                     VARCHAR2                IN
 </pre>
-            For performance reasons a substructure search version that runs in parallel was developed.
-            At first the intention was to make this the only and default way for substructure searching,
-            but the implementation is such that the query needs an extra step. This extra step is 
-            purely for technical reasons and would ideally not be necessary (todo). <br>However,
-            with the implementation using a piped parallel function and parallel Java slave processes
-            the extra 'preparation' step is necessary. The reward is in the performance: the parallel
-            function can run significantly faster, depending on many things.
+            A parallel substructure search can be used as an alternative to the normal substructure
+            search. The resultset of both searches will be the same, but the response time will differ.
+            The parallel implementation is such that the query needs an extra step. This extra step is 
+            purely for technical reasons and would ideally not be necessary (todo). <br>However
+            with the implementation using a piped parallel function and parallel Java slave processes,
+            the extra 'preparation' step is necessary. The reward may be in the performance: the parallel
+            function can run significantly faster, but not always (!) depending on many things.
             <br></br>
             To prepare the query, you use SETUP. This function takes in a query and a query type, and
-            then returns a number (the 'key'). The key is then fed into the parallel search. 
-<pre>            
+            then returns a number (the 'key'). The key is then fed into the parallel search.
+            See the next example, where a parallel search for S:C-O-C-C-C is prepared
+            an then executed with TopN 100. 
+<pre style="font-style:italic;color:gray">
 SQL>exec :key :=orchem_subsearch_par.setup('S:C-O-C-C-C','SMILES')
 SQL>select id from table (orchem_subsearch_par.search(:key,100,'Y') )
 </pre>
-            Below is an example from ChEMBL. First a normal substructure
+            <br>
+            To illustrate performance difference, below is an example using the ChEMBL database. First a normal substructure
             search, then a parallel one. 
 <pre style="font-style:italic;color:gray">                
 
-SQL>select id from table(orchem_subsearch.search('S:C-O-C-C-C','SMILES',100,'Y'))
-  2  /
+SQL> select id from table(orchem_subsearch.search('S:C-O-C','SMILES',25,'N'))
 
 ID
 --------------------------------------------------------------------------------
-221238
-364844
-18311
-95901
-384478
-384479
-167565
-313729
-313549
-313498
-313906
-313364
-38545
-321111
-324839
-45688
-332346
-131114
-201709
+350568
+356676
+350522
+350524
+350523
+282839
+216639
+350249
+350507
+350483
+216722
+215912
+350551
+350354
+350337
+350416
+350226
+350208
+350167
+350440
+369114
+350184
+365728
+369119
+369035
 
-19 rows selected.
+25 rows selected.
+
+Elapsed: 00:00:08.74
 
 
-Elapsed: 00:00:46.38
-
-
-
-
-SQL>exec :key :=orchem_subsearch_par.setup('S:C-O-C-C-C','SMILES')
-
+SQL>exec :key :=orchem_subsearch_par.setup('S:C-O-C','SMILES')
 PL/SQL procedure successfully completed.
+SQL>select id from table (orchem_subsearch_par.search(:key,25,'Y') )
+ID                                                                                    SCORE
+-------------------------------------------------------------------------------- ----------
+350568                                                                                    1
+350522                                                                                    1
+350524                                                                                    1
+350507                                                                                    1
+350523                                                                                    1
+356676                                                                                    1
+282839                                                                                    1
+216639                                                                                    1
+350249                                                                                    1
+215912                                                                                    1
+350483                                                                                    1
+216722                                                                                    1
+365728                                                                                    1
+350551                                                                                    1
+350354                                                                                    1
+350337                                                                                    1
+350416                                                                                    1
+350226                                                                                    1
+350208                                                                                    1
+350167                                                                                    1
+350440                                                                                    1
+350184                                                                                    1
+369120                                                                                    1
+369074                                                                                    1
+369119                                                                                    1
 
-SQL>select id from table (orchem_subsearch_par.search(:key,100,'Y') )
- /
+25 rows selected.
 
-ID
---------------------------------------------------------------------------------
-221238
-364844
-18311
-95901
-167565
-384478
-384479
-313729
-313549
-313498
-313364
-313906
-38545
-321111
-324839
-45688
-332346
-131114
-201709
-
-19 rows selected.
-
-Elapsed: 00:00:28.12
-
+Elapsed: 00:00:05.18
 </pre>
 
-            The results above slowly drip in one by one. 'S:C-O-C-C-C' is a slow query because
-            many false candidates will go through the VF2 algorithm.
+            The results above drip in one by one. 
             This example was run on a simple dual core PC, allowing for a parallel degree of two. You can see
-            the normal search having an elapse time of 46.38 whereas the parallel 
-            search finishes in 28.12 seconds. However, this is not exact science. A beefy server may
-            run the parallel version much faster. And then some different "easy" Smiles query
-            the non parallelized procedures may actually run faster because of the lack of 
+            the normal search has an elapse time of 8.74 whereas the parallel 
+            search finishes in 5.18 seconds. Although done on a dual core PC, the parallel search 
+            is not twice as fast because the parallel query always takes up overhead time. <br>
+            Comparing the different search types is not exact science. A chuncky server with many processors may
+            run the parallel version above faster. At the other hand some different "easy" Smiles query
+            may actually be run faster by the non parallelized procedures because of the lack of 
             parallel query overhead for Oracle.<br></br>
             A final word on the degree of parallelism: you can influence this by issuing
             an ALTER TABLE on ORCHEM_FINGPRINT_SUBSEARCH. For example this ALTER TABLE

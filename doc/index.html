@@ -37,22 +37,23 @@
        <h3>Introduction</h3>
        This page describes
        <b>OrChem</b>, an Oracle chemistry plug-in using the
-       <a href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</a>, an open source Java library for Chemoinformatics and Bioinformatics.
+       <a href="http://apps.sourceforge.net/mediawiki/cdk/"> Chemistry Development Kit</a> (CDK). The CDK is an open source Java library for Chemoinformatics and Bioinformatics.
        OrChem originated in the <a href="http://www.ebi.ac.uk/steinbeck/">chemoinformatics and metabolism team </a> of the European Bioinformatics Institute.
        <br></br>
        Oracle Data cartridges extend the capabilities of the Oracle server. For
-       chemistry databases various commercial cartridges exist that facilitate
+       chemistry various commercial cartridges exist that facilitate
        searching and analyzing chemical data. OrChem also provides 
        functionality like this, but is <span style="font-style:italic">not</span> a cartridge. It doesn't need Oracle's
        extensibility architecture because its Java components run as Java stored procedures inside the Oracle standard JVM (Aurora).
        <br></br>
+        <b> OrChem is suitable for Oracle 11G and onwards</b>.
        Starting with Oracle 11g release 1 (11.1) there is a just-in-time(<a href="http://en.wikipedia.org/wiki/Just-in-time_compilation">JIT</a>) 
        compiler for Oracle JVM environment. A
        <a href="http://download.oracle.com/docs/cd/B28359_01/java.111/b31225/chnine.htm#BABDCIBH">JIT compiler for Oracle JVM</a>
        enables much faster execution because it manages the invalidation,
        recompilation, and storage of code without an external mechanism. This
-       new Oracle feature makes it possible to run CDK classes as well performing Java stored procedures, whereas with earlier Oracle versions
-       performance would have been weak (even when using 'ncomp'). So <b> OrChem is suitable only for Oracle 11G and onwards</b>.
+       new Oracle feature makes it possible to run Java 1.5 classes as well performing Java stored procedures, whereas with earlier Oracle versions
+       performance would have been weaker. 
        <BR></br>
       </td>
      </tr>
@@ -79,8 +80,8 @@
        <img alt="orchem overview" src="orchem_flow.gif"></img>
        <br></br>
        The picture above shows the main components of OrChem in yellow.
-       On the left in gray is the user's table with chemical compounds. This table or
-       view must have a single primary key column and an (MDL) molfile clob. The id and molfile
+       Shown left in gray is the user's table with chemical compounds. This table or
+       view must have a single primary key column and an (MDL) molfile Clob. The id and molfile
        column are mandatory for OrChem to work (additional compound storage types will be added).
        During OrChem
        <a href="installation.html">installation</a>
@@ -92,11 +93,11 @@
        similarity and substructure searching. 
        <br>
        The fingerprinting procedure reads the entire content of user's compound table, and for each 
-       compound creates a CDK molecule and fingerprints it. The amount of time it takes for this procedure to complete
+       compound creates a CDK molecule and fingerprints it. The time it takes for this procedure to complete
        depends on the size of the compound table and the complexity of the compounds. The procedure can/should be
        parallelized, for instance by using DBMS_JOB.
        <br></br>
-       The two (shown) tables ORCHEM_FINGPRINT_SIMSEARCH and ORCHEM_FINGPRINT_SUBSEARCH are the target for the
+       The two shown tables ORCHEM_FINGPRINT_SIMSEARCH and ORCHEM_FINGPRINT_SUBSEARCH are the target for the
        fingerprinting procedure:
        <ul>
         <li>
@@ -116,14 +117,14 @@
          fingerprint shredded into separate columns, each column representing 
          one bit of the fingerprint (null=false, 1=true).
          There are also columns for storing atom and bond information for the compound the row is linked to. If the 
-         compound is big, the atom and bond data may occasionally overflow into clob table ORCHEM_BIG_MOLECULES (not shown)<br>
-         The substructure search requires a query fingerprint to be a subset of
-         any candidate's fingerprint. This is done by a pre-filter query on
-         the heavily indexed columns bit1 .. bitxxx. <br>Atom and bond <span style="font-style:italic;">counts</span> are used to
+         compound is big, the atom and bond data may occasionally overflow into Clobs, table ORCHEM_BIG_MOLECULES (not shown)<br>
+         The substructure search requires a query's fingerprint to be a subset of
+         any candidate's fingerprint. This is implemented by running a pre-filter query on
+         the indexed columns bit1 .. bitxxx. <br>Atom and bond <span style="font-style:italic;">counts</span> are used to
          skip compounds that can never be candidates. For example, a query structure with three oxygen atoms can 
          never be a substructure of a compound with two oxygens or less. 
          Filtered candidates are finally put through a CDK <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.101.5342">
-         VF2 graph matching </a> implementation to check if the query is truly a substructure of the filtered candidate compound.<br></br>
+         VF2 graph matching </a> implementation to check if the query structure really is a substructure of the pre-filtered candidate compound.<br></br>
         </li>
        </ul>
          OrChem substructure searching is generally more expensive and slower than similarity searching because it includes the costly graph matching step. 

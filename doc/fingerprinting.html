@@ -15,7 +15,8 @@
             <h3>Creating  fingerprints </h3>
                 This section assumes you have <a href="installation.html">installed</a> OrChem.
                 It explains the fingerprinting process. Once your compounds have been fingerprinted
-                you can use OrChem for similarity and substructure searching.
+                you can use OrChem for similarity and substructure searching. If you're not interested
+                in OrChem's search features you don't have to fingerprint anything of course.
             <hr>
             <h4>Simple approach</h4>
             If you have a fairly small compound table, say in the order of tens of thousands of 
@@ -47,8 +48,8 @@ end;
             1000,000. 
             We decide to run five parallel threads, each taking care of 200,000 compounds.
             This is done through DBMS_JOB. Make sure DBMS_JOB is available to you and that 
-            it allows the concurrency you are looking for.
-            In the example, DBMS_JOB can be used as follows:
+            it allows the concurrency you are looking for (your DBA can tell you).
+            In the example, DBMS_JOB is used as follows:
 <pre>
 declare
     i binary_integer;
@@ -62,14 +63,15 @@ begin
 end;
 </pre>
             In the example above, procedure slice_load is invoked for each group of compounds we
-            want to fingerprint. So the first job will take care of fingerprinting the compounds
+            want to fingerprint. So the first job will take care of fingerprinting compounds
             with a primary key between 1 and 200,000. The next job will do primary keys 200,001 to 400,000. And so on.
-            For your particular data, find the right primary key ranges and issue jobs accordingly, with more or
-            fewer jobs, that is up to you.
-            To give you a rough idea on timings, at the EBI we indexed a PubChem snapshot of 3.5 million compounds 
+            For your particular data, find the right primary key ranges and issue jobs using more or
+            fewer jobs according to your preferences. <br>
+            For a rough idea on timings, at the EBI we indexed a PubChem snapshot of 3.5 million compounds 
             in about 7 hours using 5 parallel threads.
             <br></br>
-            You can check progress of DBMS_JOB by running the query below. See more on DBMS_JOB in the Oracle documentation.
+            You can check progress of DBMS_JOB by running the query below. See more on DBMS_JOB in the 
+            <a href ="http://www.oracle.com/technology/documentation/index.html">Oracle documentation</a>.
 <pre>
 set lines 200
 col what format a80

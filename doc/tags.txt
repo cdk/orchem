@@ -13,3 +13,6 @@ first tag made, for a working version of Orchem on cdk.1.2
 rel1a
 tag when finally put together again a working copy with various performance
 tweaks
+
+beta01
+tag for first public beta release. has no hashed fingerprints

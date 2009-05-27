@@ -32,7 +32,7 @@
                 Your "compound table" can also be a view - OrChem will only select from it.
               </li>
               <li>
-                Grant SELECT access to "ORCHEM" so it can see the compound table/view.
+                Granted SELECT access to "ORCHEM" so it can see the compound table/view. Perhaps create a synonym for the compound table.
               </li>
               <li>
                 Orchem jar file, CDK (stripped) jar file and  few depending jar files (<b>LINK</b>)
@@ -79,7 +79,7 @@
                     be completed succesfully. If not and you get some error along the way, check the Java installation.
                     <br></br>
                     
-                    (1) Make a little dumb Java class:
+                    (1) On the database command line, create a little Java class:
 <pre>                    
 CREATE OR REPLACE AND COMPILE JAVA SOURCE NAMED "HelloThere" AS
 package uk.ac.ebi.orchem;
@@ -92,14 +92,14 @@ public class HelloThere
 }
 /
 </pre>
-                    (2) Wrap it with PL/SQL:
+                    (2) On the database command line again, wrap it with PL/SQL:
 
 <pre>                    
 CREATE OR REPLACE PROCEDURE hello_there
 AS LANGUAGE JAVA NAME 'uk.ac.ebi.orchem.HelloThere.hello()';
 /
 </pre>
-                    (3) Test it with SQL*Plus:
+                    (3) Test it, for example with with SQL*Plus:
 <pre>                    
 set serverout on
 
@@ -271,7 +271,7 @@ insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col
                         </li>
 
                         <li>An example is given below, showing the setup for a the ChEMBL schema. The example 
-                        shows insertion of value 'COMPOUNDS','MOLREGNO' and 'MOLFILE', describing correctly the 
+                        shows insertion of values 'COMPOUNDS','MOLREGNO' and 'MOLFILE', describing correctly the 
                         ChEMBL objects.
         
 <pre style="font-style:italic;color:gray">                
@@ -319,10 +319,11 @@ COMPOUNDS                      MOLREGNO                       MOLFILE
                 <br></br>
                     <ul>
                     <li>Connect to the database using SQL*Plus with your ORCHEM account</li>
-                    <li>Pick a valid primary key value from your compound table, say for example <b>12345</b> </li>
+                    <li>Pick a <b>valid</b> primary key value from <b>your compound table</b>, say for example 12345 </li>
                     <li>In SQL*Plus, execute the procedure as below to verify OrChem works. You need
                     to switch on server output first to see anything printed. Note that it make take a while to 
-                    run the procedure for the first time (following runs are done much quicker)</li>
+                    run the procedure for the first time, but following runs are done much quicker. <br>Replace 12345 with
+                    a valid primary key value from your database. </li>
 <pre>                
 SQL> exec dbms_java.set_output(1000000)
 SQL> set serverout on

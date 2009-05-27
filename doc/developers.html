@@ -5,16 +5,114 @@
     <link rel="stylesheet" href="orchem.css" type="text/css"></link>
   </head>
   <body>
-    <h1>OrChem development </h1>
+    <h1>OrChem development <img alt="codeMonkey" src="test.jpg" height="110px" align="top" vspace="5"/></h1> 
 
     <div class="main">
       <a href="index.html">Back to main page</a>
       <table width="70%" border="0" cellspacing="10" cellpadding="10">
         <tr>
           <td>
-            <h3>To d0</h3>
+            <h3>Introduction</h3>
+            This page contains pointers for people developing OrChem.
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>Unit testing</h3>
+            OrChem consists of Oracle and Java components;  both need to
+            be part of the unit test process.<br></br>
+            A framework has been set up to 
+            test everything from setting up a new OrChem schema to similarity and 
+            substructure searching. You can run the test suite from the command line. 
+            Both Linux and Windows are supported by the framework.<br>
+            To use the framework, you must have <b>Perl</b> and <b>Ant</b> installed
+            (download and install if necessary before continuing).
+            <br></br>
+            In cvs directory "OrChem/test" you can find the test framework. 
+            The idea is that after making changes to 
+            OrChem, you execute the complete set of test steps.
+            This way, you'll be testing not just Java but also Oracle components and
+            the dependencies between Java and the database.<br>
+            
+            <h5>Setting up the unit test</h5>
+            <ul>
+            <li>
+            Create a blank Oracle schema in a
+            test database. The schema is to be for testing only, we'll populate it
+            later on with disposable data.
+            </li>
+            <li>
+            Navigate to directory OrChem/properties. Copy file "unittest.properties" into 
+            subdirectory "my_local_copies". Navigate to "my_local_copies".
+            The unit test framework will use this particular file
+            for its database connections. Do NOT add this copy to CVS. Just modify the
+            file by providing the correct database details.
+            </li>
+            <li>
+            Navigate to directory "OrChem/test". Type <b>perl main.pl</b><br>
+            You'll see the screen below.
+<pre>
+________________________________________________________________
 
-            <img src="construction.jpg" alt="busy busy" />
+ OrChem unit testing
+________________________________________________________________
+
+Reading file unittest.properties
+
+   username : testuser
+   password : testpw
+   url      : jdbc:oracle:thin:@172.22.69.139:1521:marx
+   tns name : marx
+
+BEFORE YOU PROCEED: realise that step 1 of the test suite DROPS all OrChem objects in this schema!
+Do you want to test with these settings ?
+
+Enter y or n:
+
+</pre>
+            Check that the database connection details are correct. If so, type <b>y</b>.
+            You will then get to the main menu below.<br> 
+            The menu options are listed in logical order. If you run
+            the test for the first time, start with Option 1, then Option 2 etc.
+<pre>
+________________________________________________________________
+
+ OrChem unit testing
+________________________________________________________________
+
+
+   Oper.syst: linux
+   username : TESTUSER
+   password : testpw
+   url      : jdbc:oracle:thin:@172.22.69.139:1521:marx
+   tns name : marx
+
+ - Option 1: - drop ALL(!!) user database objects
+               create fresh schema
+               load (query) compounds
+ - Option 2: - loadjava
+ - Option 3: - fingerprinting
+ - Option 4: - JUnit test similarity search
+ - Option 5: - JUnit test substructure search
+
+
+ - Option 0: - EXIT
+
+________________________________________________________________
+
+Please make a choice from the menu above.
+Enter menu option :
+
+</pre>
+
+
+
+
+            </li>
+
+
+
+            </ul>
           </td>
         </tr>
 

@@ -1,6 +1,6 @@
- /*___________________________________________________________________________
-   Creates sequences needed by OrChem
-   ___________________________________________________________________________*/
+/*___________________________________________________________________________
+  Creates sequences needed by OrChem
+  ___________________________________________________________________________*/
 
 prompt creating sequence "orchem_sequence_log_id" for "orchem_parameters"    
    create sequence orchem_sequence_log_id
@@ -19,6 +19,8 @@ prompt creating sequence "orchem_sequence_querykeys"
    cycle  --!! important -> roll over sequence
    nocache
 /
+
+exit;--end of script
 
 
  

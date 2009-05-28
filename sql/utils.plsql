@@ -111,4 +111,7 @@ END;
 /
 SHOW ERRORS
 
- 
+
+
+
+exit;--end of script

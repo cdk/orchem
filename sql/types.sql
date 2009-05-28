@@ -25,5 +25,5 @@ prompt creating type "compound_id_table"
     CREATE or REPLACE TYPE compound_id_table is TABLE OF VARCHAR2(80)
     /
 
-    
- 
+  
+exit;--end of script 

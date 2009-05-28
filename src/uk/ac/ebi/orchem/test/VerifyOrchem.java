@@ -28,14 +28,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import java.util.BitSet;
-import java.util.Iterator;
 
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.fingerprint.IFingerprinter;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;

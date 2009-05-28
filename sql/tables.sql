@@ -851,6 +851,5 @@ prompt creating table "orchem_fingprint_subsearch"
 alter table orchem_fingprint_subsearch parallel 4
 /
 
-  
 
-    
+exit;--end of script 

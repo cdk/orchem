@@ -31,6 +31,7 @@
         <echo message="clean         - delete all build directories, as well as /build files "/>
         <echo message="compile       - compile core classes"/>
         <echo message="war           - clean, compile, and create WAR file (tested Tomcat6) "/>
+        <echo message="dist          - make a tar.gz for OrChem releases "/>
         <echo message="***************************************************************************"/>
     </target>
 
@@ -157,7 +158,7 @@
         </fileset>
       </copy>
       <!-- For user convenience, remove the sql*plus "exit;" commands (put there for step1.pl in Unit testing) -->
-      <replace dir="${project.root}/sql" token="exit;" value="--">
+      <replace dir="${dist.dir}/sql" token="exit;--end of script" value=" ">
         <include name="**/*.sql"/>
         <include name="**/*.plsql"/>
       </replace>

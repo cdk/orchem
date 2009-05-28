@@ -342,4 +342,5 @@ END;
 /   
 SHOW ERR
 
-exit
+
+exit;--end of script

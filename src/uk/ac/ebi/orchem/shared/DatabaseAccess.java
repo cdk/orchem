@@ -23,6 +23,8 @@
  */
 package uk.ac.ebi.orchem.shared;
 
+import java.io.Writer;
+
 import java.sql.Array;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -37,7 +39,10 @@ import java.util.Map;
 
 import oracle.jdbc.OracleCallableStatement;
 import oracle.jdbc.OracleConnection;
+import oracle.jdbc.OraclePreparedStatement;
 import oracle.jdbc.OracleTypes;
+
+import oracle.sql.CLOB;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -62,7 +67,7 @@ public class DatabaseAccess {
      * Run a database stored procedure similarity search 
      *
      * @param userQuery
-     * @param queryType see {@link Constants}
+     * @param queryType see {@link uk.ac.ebi.orchem.Utils}
      * @param conn
      * @param tanimotoCutoff
      * @param topN
@@ -92,31 +97,26 @@ public class DatabaseAccess {
     /**
      * Run a database stored procedure substructure search 
      *
-     * @param molfile
-     * @param queryType see {@link Constants}
+     * @param userQuery
+     * @param queryType see {@link uk.ac.ebi.orchem.Utils}
      * @param conn
      * @param topN
      * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-     public List<OrChemCompound> substructureSearch(String molfile, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
+     public List substructureSearch(String userQuery, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
 
         conn.setDefaultRowPrefetch(1);
-        String setUp = "begin ?:= orchem_subsearch_par.setup (?,?); end;";
-        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(setUp);
-        ocs.registerOutParameter(1, OracleTypes.INTEGER);
-        ocs.setString(2, molfile);
-        ocs.setString(3, queryType);
-
-        ocs.executeUpdate();
-        int key = ocs.getInt(1);
-        ocs.close();
-
         List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
-        PreparedStatement pstmt = conn.prepareStatement("select id, mol_file from table(orchem_subsearch_par.search(?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-        pstmt.setInt(1,key);
-        pstmt.setInt(2,topN);
+        OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement("select id, mol_file from table(orchem_subsearch.search(?,?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+
+        //pstmt.setString(1, userQuery);  // Do not use setString !
+        //                                // Works for small queries, but ORA-01460 when > 4000
+
+        pstmt.setCLOB(1, getCLOB (userQuery,conn)); 
+        pstmt.setString(2, queryType); 
+        pstmt.setInt(3, topN);
 
         ResultSet res = pstmt.executeQuery();
         while (res.next())  {
@@ -130,6 +130,48 @@ public class DatabaseAccess {
         return compounds;
     }
 
+
+
+    /**
+     * Substructure search in parallel mode (mind the overhead)
+     * @param userQuery
+     * @param queryType see {@link uk.ac.ebi.orchem.Utils}
+     * @param conn
+     * @param topN
+     * @return
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    public List<OrChemCompound> substructureSearchParallel(String userQuery, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
+
+       conn.setDefaultRowPrefetch(1);
+       String setUp = "begin ?:= orchem_subsearch_par.setup (?,?); end;";
+       OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(setUp);
+       ocs.registerOutParameter(1, OracleTypes.INTEGER);
+       //ocs.setString(2, userQuery); // Don't use. MAY cause ORA-01460
+       ocs.setCLOB(2, getCLOB (userQuery,conn));
+       ocs.setString(3, queryType);
+
+       ocs.executeUpdate();
+       int key = ocs.getInt(1);
+       ocs.close();
+
+       List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
+       PreparedStatement pstmt = conn.prepareStatement("select id, mol_file from table(orchem_subsearch_par.search(?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+       pstmt.setInt(1,key);
+       pstmt.setInt(2,topN);
+
+       ResultSet res = pstmt.executeQuery();
+       while (res.next())  {
+          OrChemCompound cmp = new OrChemCompound();
+           cmp.setId(res.getString("id"));
+           cmp.setMolFileClob(res.getClob("mol_file"));
+           compounds.add(cmp);
+       }
+       res.close();
+       pstmt.close();
+       return compounds;
+    }
 
 
 
@@ -214,4 +256,47 @@ public class DatabaseAccess {
     }
 
 
+    /**
+     * Creates CLOB with a String as input
+     * <br>
+     * Taken from<br>
+     * http://www.oracle.com/technology/sample_code/tech/java/codesnippet/jdbc/lob/LobToSP.html
+     * 
+     * @param clobData String input
+     * @param conn ection
+     * @return the String as a Clob
+     * @throws Exception
+     */
+
+    private CLOB getCLOB(String clobData, OracleConnection conn) {
+        CLOB tempClob = null;
+
+        try {
+            //  create a new temporary CLOB
+            tempClob = CLOB.createTemporary(conn, true, CLOB.DURATION_SESSION);
+            // Open the temporary CLOB in readwrite mode to enable writing
+            tempClob.open(CLOB.MODE_READWRITE);
+
+            // Get the output stream to write
+            //deprecated Writer tempClobWriter = tempClob.getCharacterOutputStream();
+            Writer tempClobWriter = tempClob.setCharacterStream(0L);
+
+            // Write the data into the temporary CLOB
+            tempClobWriter.write(clobData);
+            // Flush and close the stream
+            tempClobWriter.flush();
+            tempClobWriter.close();
+            // Close the temporary CLOB
+            tempClob.close();
+        } catch (Exception exp) {
+            // Free CLOB object
+            // do something
+            try {
+                tempClob.freeTemporary();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return tempClob;
+    }
 }

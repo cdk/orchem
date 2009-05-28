@@ -190,7 +190,7 @@ bit768,bit769,bit770,bit771,bit772,bit773,bit774,bit775
 /
 
 
-exit;--end of script
+exit 1;
 
 /*
 

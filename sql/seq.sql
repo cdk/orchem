@@ -20,7 +20,4 @@ prompt creating sequence "orchem_sequence_querykeys"
    nocache
 /
 
-exit;--end of script
-
-
- 
+exit 1;

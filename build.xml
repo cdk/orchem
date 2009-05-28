@@ -158,7 +158,7 @@
         </fileset>
       </copy>
       <!-- For user convenience, remove the sql*plus "exit;" commands (put there for step1.pl in Unit testing) -->
-      <replace dir="${dist.dir}/sql" token="exit;--end of script" value=" ">
+      <replace dir="${dist.dir}/sql" token="exit 1;" value=" ">
         <include name="**/*.sql"/>
         <include name="**/*.plsql"/>
       </replace>

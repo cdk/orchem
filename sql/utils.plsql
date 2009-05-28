@@ -114,4 +114,4 @@ SHOW ERRORS
 
 
 
-exit;--end of script
+exit 1;

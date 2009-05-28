@@ -26,4 +26,4 @@ prompt creating type "compound_id_table"
     /
 
   
-exit;--end of script 
+exit 1;

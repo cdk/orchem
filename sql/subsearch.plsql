@@ -262,4 +262,4 @@ END;
 SHOW ERR
 
 
-exit;--end of script
+exit 1;

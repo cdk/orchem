@@ -67,4 +67,4 @@ END;
 /
 SHOW ERRORS
 
-----end of script 
+exit 1; 

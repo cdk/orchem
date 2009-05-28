@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.StringTokenizer;
+
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
@@ -58,7 +60,8 @@ import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
 public class OrchemFingerprinter implements IFingerprinter {
 
 
-    public final static int FINGERPRINT_SIZE=704;
+    public final static int FINGERPRINT_SIZE=new Integer(776);
+    private int hashModulo = BitPosApi.bp.HASH_OFFSET;
 
     public int getSize() {
         return FINGERPRINT_SIZE;
@@ -532,11 +535,13 @@ public class OrchemFingerprinter implements IFingerprinter {
     private void smartsPatterns(IAtomContainer molecule,BitSet fingerprint) {
         /* Build up result list */
         Map<String, String> results = new HashMap<String, String>();
+        Map<String,String> threeSomes = new HashMap<String,String>();
+
         for (int atomPos = 0; atomPos < molecule.getAtomCount(); atomPos++) {
             List<IAtom> atoms = new ArrayList<IAtom>();
             IAtom at = molecule.getAtom(atomPos);
             atoms.add(at);
-            smartsTraversal(atoms, at.getSymbol(), molecule, results);
+            smartsTraversal(atoms, at.getSymbol(), molecule, results, fingerprint, threeSomes);
         }
 
         /* Loop over result list and set bits where result matches a smarts pattern */
@@ -559,7 +564,7 @@ public class OrchemFingerprinter implements IFingerprinter {
      * @param molecule
      * @param results
      */
-    private void smartsTraversal(List<IAtom> atomList, String smarts, IAtomContainer molecule, Map<String, String> results) {
+    private void smartsTraversal(List<IAtom> atomList, String smarts, IAtomContainer molecule, Map<String, String> results, BitSet fingerprint, Map<String,String> threeSomes) {
 
         IAtom lastAtomInList = atomList.get(atomList.size() - 1);
 
@@ -593,8 +598,12 @@ public class OrchemFingerprinter implements IFingerprinter {
                     results.put(nextSmart, nextSmart);
                 }
 
+                if (atomList.size() == 3 ) {
+                    hashThreeSome(nextSmart,fingerprint, threeSomes);
+                }
+
                 if (atomList.size() != 6) // TODO MAX depth -> doc and make constant
-                    smartsTraversal(atomList, nextSmart, molecule, results);
+                    smartsTraversal(atomList, nextSmart, molecule, results, fingerprint, threeSomes);
 
                 atomList.remove(atomList.size() - 1);
             }
@@ -696,5 +705,71 @@ public class OrchemFingerprinter implements IFingerprinter {
         return ret;
     }
 
+
+    static List<String> commonThreeSomes  = new ArrayList<String>();
+    static {        
+        commonThreeSomes.add("C-C-C");
+        commonThreeSomes.add("C:C:C");
+        commonThreeSomes.add("C-C:C");
+        commonThreeSomes.add("C-C-N");
+        commonThreeSomes.add("C-C-O");
+        commonThreeSomes.add("C-C=O");
+        commonThreeSomes.add("C-N-C");
+        commonThreeSomes.add("C-O-C");
+        commonThreeSomes.add("N:C:N");
+        commonThreeSomes.add("N-C=O");
+        commonThreeSomes.add("C:N:C");
+        commonThreeSomes.add("C:C-N");
+        commonThreeSomes.add("C:C-O");
+        commonThreeSomes.add("O-C=O");
+        commonThreeSomes.add("C:C:N");
+        commonThreeSomes.add("N-C-N");
+    }    
+    /**
+     * The 'hashed' part of the OrChem fingerprint. Each combination of 3 atoms
+     * is hashed to a value modulo a value defined in the class with the bit positions.
+     *
+     * @param threeAtomString something like "O-N=O"
+     * @param fingerprint 
+     * @param threeSomes map of three-atom series already processed. Map is to quickly check and avoid duplicate work here.
+     */
+    private void hashThreeSome (String threeAtomString, BitSet fingerprint, Map threeSomes) {
+        // already done this one ? check..
+        if(!threeSomes.containsKey(threeAtomString)) {
+            
+            // determine reverse string, so for example "C:C-Br" -> "Br-C:C"
+            StringTokenizer s = new StringTokenizer(threeAtomString, ":#-=", true);
+            StringBuilder sb = new StringBuilder();
+            while (s.hasMoreElements()) {
+                String str = s.nextToken();
+                sb.insert(0, str);
+            }
+            String reversedThreeAtomSmiles = sb.toString();
+            
+            /* Pick between the two equivalent Strings the one with the lowest
+               hash code. So either "C:C-Br" or "Br-C:C", not both. They're the same, 
+               so hashing both would be redundant */
+            String choice=null;
+            if (threeAtomString.hashCode() < reversedThreeAtomSmiles.hashCode())
+                choice=threeAtomString; 
+            else
+                choice=reversedThreeAtomSmiles;
+
+            // already done this one ? check again, possible reversed now
+            if (!threeSomes.containsKey(choice))  {
+                threeSomes.put(choice,null);
+
+                /* Now check not to hash the very common threesomes. Like "C:C:C". 
+                 * These would flood the fingerprint for particular hash positions. */
+                if (!commonThreeSomes.contains(choice))  {
+                    int hc = ((choice.hashCode())%hashModulo) + 1;
+                    if (hc<0)  {
+                        hc*=-1;
+                    }
+                    fingerprint.set(hc);
+                }
+            }
+        }
+    }
 }
 

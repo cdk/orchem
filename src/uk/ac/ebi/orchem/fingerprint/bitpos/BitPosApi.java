@@ -68,15 +68,15 @@ public class BitPosApi {
         }
 
         int i=1;
-        while (true) {
+        while (i<1024) {
             if (all.containsKey(i)) {
                 String condition = all.get(i);
                 System.out.println("Bit  " + i + "  " + condition);
-                i++;
             }
-            else
-                break;
+            i++;
+
         }
+        System.out.println(">> first 1024 bits printed");
     }
 
     /**

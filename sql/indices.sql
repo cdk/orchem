@@ -11,21 +11,11 @@ prompt Creating b*tree indexes on substructure search table
 create index orchem_btree1 
 on
 orchem_fingprint_subsearch (
-bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7,bit8,bit9,bit10,bit11,bit12,bit13,bit14,bit15,        
+bit1,bit2,bit3,bit4,bit5,bit6,bit7,bit8,bit9,bit10,bit11,bit12,bit13,bit14,bit15,        
 bit16,bit17,bit18,bit19,bit20,bit21,bit22,bit23,bit24,bit25,bit26,bit27,bit28,bit29,bit30,bit31
 )
 parallel 4 nologging
 /
-
-
-create index orchem_btree2a
-on
-orchem_fingprint_subsearch (
-bit16,bit17,bit18,bit19,bit20,bit21,bit22,bit23,bit24,bit25,bit26,bit27,bit28,bit29,bit30,bit31,
-bit32,bit33,bit34,bit35,bit36,bit37,bit38,bit39,bit40,bit41,bit42,bit43,bit44,bit45,bit46,bit47
-)
-parallel 4 nologging
-/   
 create index orchem_btree2
 on
 orchem_fingprint_subsearch (
@@ -34,31 +24,11 @@ bit48,bit49,bit50,bit51,bit52,bit53,bit54,bit55,bit56,bit57,bit58,bit59,bit60,bi
 )
 parallel 4 nologging
 /   
-
-
-create index orchem_btree3a
-on
-orchem_fingprint_subsearch (
-bit48,bit49,bit50,bit51,bit52,bit53,bit54,bit55,bit56,bit57,bit58,bit59,bit60,bit61,bit62,bit63,
-bit64,bit65,bit66,bit67,bit68,bit69,bit70,bit71,bit72,bit73,bit74,bit75,bit76,bit77,bit78,bit79
-)
-parallel 4 nologging
-/
 create index orchem_btree3
 on
 orchem_fingprint_subsearch (
 bit64,bit65,bit66,bit67,bit68,bit69,bit70,bit71,bit72,bit73,bit74,bit75,bit76,bit77,bit78,bit79,
 bit80,bit81,bit82,bit83,bit84,bit85,bit86,bit87,bit88,bit89,bit90,bit91,bit92,bit93,bit94,bit95
-)
-parallel 4 nologging
-/
-
-
-create index orchem_btree4a
-on
-orchem_fingprint_subsearch (
-bit80,bit81,bit82,bit83,bit84,bit85,bit86,bit87,bit88,bit89,bit90,bit91,bit92,bit93,bit94,bit95,
-bit96,bit97 ,bit98 ,bit99 ,bit100,bit101,bit102,bit103,bit104,bit105,bit106,bit107,bit108,bit109,bit110,bit111
 )
 parallel 4 nologging
 /
@@ -70,17 +40,6 @@ bit112,bit113,bit114,bit115,bit116,bit117,bit118,bit119,bit120,bit121,bit122,bit
 )
 parallel 4 nologging
 /
-
-
-
-create index orchem_btree5a
-on
-orchem_fingprint_subsearch (
-bit112,bit113,bit114,bit115,bit116,bit117,bit118,bit119,bit120,bit121,bit122,bit123,bit124,bit125,bit126,bit127,
-bit128,bit129,bit130,bit131,bit132,bit133,bit134,bit135,bit136,bit137,bit138,bit139,bit140,bit141,bit142,bit143
-) 
-parallel 4 nologging
-/
 create index orchem_btree5
 on
 orchem_fingprint_subsearch (
@@ -89,29 +48,11 @@ bit144,bit145,bit146,bit147,bit148,bit149,bit150,bit151,bit152,bit153,bit154,bit
 ) 
 parallel 4 nologging
 /
-
-
-create index orchem_btree6a
-on
-orchem_fingprint_subsearch (
-bit144,bit145,bit146,bit147,bit148,bit149,bit150,bit151,bit152,bit153,bit154,bit155,bit156,bit157,bit158,bit159,
-bit160,bit161,bit162,bit163,bit164,bit165,bit166,bit167,bit168,bit169,bit170,bit171,bit172,bit173,bit174,bit175
-) parallel 4 nologging
-/
 create index orchem_btree6
 on
 orchem_fingprint_subsearch (
 bit160,bit161,bit162,bit163,bit164,bit165,bit166,bit167,bit168,bit169,bit170,bit171,bit172,bit173,bit174,bit175,
 bit176,bit177,bit178,bit179,bit180,bit181,bit182,bit183,bit184,bit185,bit186,bit187,bit188,bit189,bit190,bit191
-) parallel 4 nologging
-/
-
-
-create index orchem_btree7a
-on
-orchem_fingprint_subsearch (
-bit176,bit177,bit178,bit179,bit180,bit181,bit182,bit183,bit184,bit185,bit186,bit187,bit188,bit189,bit190,bit191,
-bit192,bit193,bit194,bit195,bit196,bit197,bit198,bit199,bit200,bit201,bit202,bit203,bit204,bit205,bit206,bit207
 ) parallel 4 nologging
 /
 create index orchem_btree7
@@ -122,28 +63,11 @@ bit208,bit209,bit210,bit211,bit212,bit213,bit214,bit215,bit216,bit217,bit218,bit
 ) parallel 4 nologging
 /
 
-
-create index orchem_btree8a
-on
-orchem_fingprint_subsearch (
-bit208,bit209,bit210,bit211,bit212,bit213,bit214,bit215,bit216,bit217,bit218,bit219,bit220,bit221,bit222,bit223,
-bit224,bit225,bit226,bit227,bit228,bit229,bit230,bit231,bit232,bit233,bit234,bit235,bit236,bit237,bit238,bit239
-) parallel 4 nologging
-/
 create index orchem_btree8
 on
 orchem_fingprint_subsearch (
 bit224,bit225,bit226,bit227,bit228,bit229,bit230,bit231,bit232,bit233,bit234,bit235,bit236,bit237,bit238,bit239,
 bit240,bit241,bit242,bit243,bit244,bit245,bit246,bit247,bit248,bit249,bit250,bit251,bit252,bit253,bit254,bit255
-) parallel 4 nologging
-/
-
-
-create index orchem_btree9a
-on
-orchem_fingprint_subsearch (
-bit240,bit241,bit242,bit243,bit244,bit245,bit246,bit247,bit248,bit249,bit250,bit251,bit252,bit253,bit254,bit255,
-bit256,bit257,bit258,bit259,bit260,bit261,bit262,bit263,bit264,bit265,bit266,bit267,bit268,bit269,bit270,bit271
 ) parallel 4 nologging
 /
 create index orchem_btree9
@@ -153,28 +77,11 @@ bit256,bit257,bit258,bit259,bit260,bit261,bit262,bit263,bit264,bit265,bit266,bit
 bit272,bit273,bit274,bit275,bit276,bit277,bit278,bit279,bit280,bit281,bit282,bit283,bit284,bit285,bit286,bit287
 ) parallel 4 nologging
 /
-
-create index orchem_btree10a
-on
-orchem_fingprint_subsearch (
-bit272,bit273,bit274,bit275,bit276,bit277,bit278,bit279,bit280,bit281,bit282,bit283,bit284,bit285,bit286,bit287,
-bit288,bit289,bit290,bit291,bit292,bit293,bit294,bit295,bit296,bit297,bit298,bit299,bit300,bit301,bit302,bit303
-) parallel 4 nologging
-/
 create index orchem_btree10
 on
 orchem_fingprint_subsearch (
 bit288,bit289,bit290,bit291,bit292,bit293,bit294,bit295,bit296,bit297,bit298,bit299,bit300,bit301,bit302,bit303,
 bit304,bit305,bit306,bit307,bit308,bit309,bit310,bit311,bit312,bit313,bit314,bit315,bit316,bit317,bit318,bit319
-) parallel 4 nologging
-/
-
-
-create index orchem_btree11a
-on
-orchem_fingprint_subsearch (
-bit304,bit305,bit306,bit307,bit308,bit309,bit310,bit311,bit312,bit313,bit314,bit315,bit316,bit317,bit318,bit319,
-bit320,bit321,bit322,bit323,bit324,bit325,bit326,bit327,bit328,bit329,bit330,bit331,bit332,bit333,bit334,bit335
 ) parallel 4 nologging
 /
 create index orchem_btree11
@@ -184,12 +91,6 @@ bit320,bit321,bit322,bit323,bit324,bit325,bit326,bit327,bit328,bit329,bit330,bit
 bit336,bit337,bit338,bit339,bit340,bit341,bit342,bit343,bit344,bit345,bit346,bit347,bit348,bit349,bit350,bit351
 ) parallel 4 nologging
 /
-
-
-
-
--- ....... smaller indices by nature of bit sort
-
 create index orchem_btree12
 on
 orchem_fingprint_subsearch (
@@ -253,7 +154,6 @@ bit608,bit609,bit610,bit611,bit612,bit613,bit614,bit615,bit616,bit617,bit618,bit
 bit624,bit625,bit626,bit627,bit628,bit629,bit630,bit631,bit632,bit633,bit634,bit635,bit636,bit637,bit638,bit639
 ) parallel 4 nologging
 /
-
 create index orchem_btree21
 on
 orchem_fingprint_subsearch (
@@ -261,7 +161,6 @@ bit640,bit641,bit642,bit643,bit644,bit645,bit646,bit647,bit648,bit649,bit650,bit
 bit656,bit657,bit658,bit659,bit660,bit661,bit662,bit663,bit664,bit665,bit666,bit667,bit668,bit669,bit670,bit671
 ) parallel 4 nologging
 /
-
 create index orchem_btree22
 on
 orchem_fingprint_subsearch (
@@ -269,5 +168,111 @@ bit672,bit673,bit674,bit675,bit676,bit677,bit678,bit679,bit680,bit681,bit682,bit
 bit688,bit689,bit690,bit691,bit692,bit693,bit694,bit695,bit696,bit697,bit698,bit699,bit700,bit701,bit702,bit703
 ) parallel 4 nologging
 /
+create index orchem_btree23
+on
+orchem_fingprint_subsearch (
+bit704,bit705,bit706,bit707,bit708,bit709,bit710,bit711,bit712,bit713,bit714,bit715,bit716,bit717,bit718,bit719,
+bit720,bit721,bit722,bit723,bit724,bit725,bit726,bit727,bit728,bit729,bit730,bit731,bit732,bit733,bit734,bit735
+) parallel 4 nologging
+/
+create index orchem_btree24
+on
+orchem_fingprint_subsearch (
+bit736,bit737,bit738,bit739,bit740,bit741,bit742,bit743,bit744,bit745,bit746,bit747,bit748,bit749,bit750,bit751,
+bit752,bit753,bit754,bit755,bit756,bit757,bit758,bit759,bit760,bit761,bit762,bit763,bit764,bit765,bit766,bit767
+) parallel 4 nologging
+/
+create index orchem_btree25
+on
+orchem_fingprint_subsearch (
+bit768,bit769,bit770,bit771,bit772,bit773,bit774,bit775
+) parallel 4 nologging
+/
 
- 
+
+
+
+
+/*
+
+-- Archived : redundant indices?
+
+create index orchem_btree2a
+on
+orchem_fingprint_subsearch (
+bit16,bit17,bit18,bit19,bit20,bit21,bit22,bit23,bit24,bit25,bit26,bit27,bit28,bit29,bit30,bit31,
+bit32,bit33,bit34,bit35,bit36,bit37,bit38,bit39,bit40,bit41,bit42,bit43,bit44,bit45,bit46,bit47
+)
+parallel 4 nologging
+/   
+
+create index orchem_btree3a
+on
+orchem_fingprint_subsearch (
+bit48,bit49,bit50,bit51,bit52,bit53,bit54,bit55,bit56,bit57,bit58,bit59,bit60,bit61,bit62,bit63,
+bit64,bit65,bit66,bit67,bit68,bit69,bit70,bit71,bit72,bit73,bit74,bit75,bit76,bit77,bit78,bit79
+)
+parallel 4 nologging
+/
+
+create index orchem_btree4a
+on
+orchem_fingprint_subsearch (
+bit80,bit81,bit82,bit83,bit84,bit85,bit86,bit87,bit88,bit89,bit90,bit91,bit92,bit93,bit94,bit95,
+bit96,bit97 ,bit98 ,bit99 ,bit100,bit101,bit102,bit103,bit104,bit105,bit106,bit107,bit108,bit109,bit110,bit111
+)
+parallel 4 nologging
+/
+
+create index orchem_btree5a
+on
+orchem_fingprint_subsearch (
+bit112,bit113,bit114,bit115,bit116,bit117,bit118,bit119,bit120,bit121,bit122,bit123,bit124,bit125,bit126,bit127,
+bit128,bit129,bit130,bit131,bit132,bit133,bit134,bit135,bit136,bit137,bit138,bit139,bit140,bit141,bit142,bit143
+) 
+parallel 4 nologging
+/
+create index orchem_btree6a
+on
+orchem_fingprint_subsearch (
+bit144,bit145,bit146,bit147,bit148,bit149,bit150,bit151,bit152,bit153,bit154,bit155,bit156,bit157,bit158,bit159,
+bit160,bit161,bit162,bit163,bit164,bit165,bit166,bit167,bit168,bit169,bit170,bit171,bit172,bit173,bit174,bit175
+) parallel 4 nologging
+/
+create index orchem_btree7a
+on
+orchem_fingprint_subsearch (
+bit176,bit177,bit178,bit179,bit180,bit181,bit182,bit183,bit184,bit185,bit186,bit187,bit188,bit189,bit190,bit191,
+bit192,bit193,bit194,bit195,bit196,bit197,bit198,bit199,bit200,bit201,bit202,bit203,bit204,bit205,bit206,bit207
+) parallel 4 nologging
+/
+create index orchem_btree8a
+on
+orchem_fingprint_subsearch (
+bit208,bit209,bit210,bit211,bit212,bit213,bit214,bit215,bit216,bit217,bit218,bit219,bit220,bit221,bit222,bit223,
+bit224,bit225,bit226,bit227,bit228,bit229,bit230,bit231,bit232,bit233,bit234,bit235,bit236,bit237,bit238,bit239
+) parallel 4 nologging
+/
+create index orchem_btree9a
+on
+orchem_fingprint_subsearch (
+bit240,bit241,bit242,bit243,bit244,bit245,bit246,bit247,bit248,bit249,bit250,bit251,bit252,bit253,bit254,bit255,
+bit256,bit257,bit258,bit259,bit260,bit261,bit262,bit263,bit264,bit265,bit266,bit267,bit268,bit269,bit270,bit271
+) parallel 4 nologging
+/
+create index orchem_btree10a
+on
+orchem_fingprint_subsearch (
+bit272,bit273,bit274,bit275,bit276,bit277,bit278,bit279,bit280,bit281,bit282,bit283,bit284,bit285,bit286,bit287,
+bit288,bit289,bit290,bit291,bit292,bit293,bit294,bit295,bit296,bit297,bit298,bit299,bit300,bit301,bit302,bit303
+) parallel 4 nologging
+/
+create index orchem_btree11a
+on
+orchem_fingprint_subsearch (
+bit304,bit305,bit306,bit307,bit308,bit309,bit310,bit311,bit312,bit313,bit314,bit315,bit316,bit317,bit318,bit319,
+bit320,bit321,bit322,bit323,bit324,bit325,bit326,bit327,bit328,bit329,bit330,bit331,bit332,bit333,bit334,bit335
+) parallel 4 nologging
+/
+*/
+

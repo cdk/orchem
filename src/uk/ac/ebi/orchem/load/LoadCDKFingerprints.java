@@ -105,6 +105,7 @@ public class LoadCDKFingerprints {
 
             MDLV2000Reader mdlReader = new MDLV2000Reader();
             IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
+            
             BitSet fpBitset;
             final int fpSize = FingerPrinterAgent.FP.getFpSize();
 
@@ -346,11 +347,10 @@ public class LoadCDKFingerprints {
     public static void load() throws Exception {
         load(null, null);
     }
- 
-    /*   
+    /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
-        l.load("1550","1555");
+        l.load("1000","1200");
         // begin delete orchem_fingprint_subsearch; delete orchem_fingprint_simsearch; delete orchem_log; delete orchem_big_molecules; commit; end;
     }
     */

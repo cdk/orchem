@@ -104,7 +104,25 @@ Please make a choice from the menu above.
 Enter menu option :
 
 </pre>
-
+            <ul>
+            <li>Option 1 drops OrChem objects in the test schema and 
+            creates a schema from scratch using the scripts in ./OrChem/sql. 
+            After that some sample data is loaded into
+            the empty test schema, only a few hundred compounds in total.  </li>
+            <li>Option 2 compiles the OrChem classes and selects
+            a number of these to get bundled into an OrChem jar file. This OrChem
+            jar together with more static other jars (cdk jar, log4j etc) are
+            then loaded into the test schema. </li>
+            <li>Option 3 runs the OrChem fingerprinter against the sample
+            data. Tables ORCHEM_FINGPRINT_SIMSEARCH and ORCHEM_FINGPRINT_SUBSEARCH
+            get populated in this process.</li>
+            <li>Option 4 is a JUnit test, testing expected similarity search
+            results against the sample data. So whenever you change the
+            fingerprinter, or add more compounds to the sample, you are likely
+            to have to change the JUnit expected outcome.</li>
+            <li>Option 5, same as Option 4 but now testing substructure
+            searching.</li>
+            </ul>
 
 
 

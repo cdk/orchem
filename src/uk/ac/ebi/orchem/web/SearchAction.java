@@ -62,7 +62,7 @@ public class SearchAction extends SessionAwareAction {
       String queryType = null;
       String query = null;
         
-        if (wsr.getSmilesOrMol().equals("mol")) {
+        if (wsr.getSmilesOrMol().equals("mol") ) {
             queryType = Utils.QUERY_TYPE_MOL;
             query = wsr.getStructure();
         }
@@ -91,7 +91,7 @@ public class SearchAction extends SessionAwareAction {
                           "<br>Invoking substr search using VF2 and bitmap indices .." +
                           new java.util.Date());
           compounds =
-              new DatabaseAccess().substructureSearch(query,
+              new DatabaseAccess().substructureSearchParallel(query,
                                                       queryType,
                                                       conn,
                                                       new Integer(wsr.getTopN()).intValue());

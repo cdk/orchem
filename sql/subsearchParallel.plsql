@@ -262,11 +262,11 @@ AS
 
        --(3)
        prefilterQuery:=       
-       ' select  /*+ NO_QKN_BUFF */ *                    ' ||
+       ' select  *                                       ' ||
        ' from   table                                    ' ||
        '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
        '          ( cursor                               ' ||
-       '           ( select /*+ parallel(s) */           ' ||
+       '           ( select                              ' ||
                        query_key                           ||
        '             , s.id                              ' ||
        '             , s.single_bond_count               ' ||

@@ -350,7 +350,7 @@ public class LoadCDKFingerprints {
     /*
     public static void main(String[] args) throws Exception {
         LoadCDKFingerprints l  = new LoadCDKFingerprints();
-        l.load("1000","1200");
+        l.load("8","8");
         // begin delete orchem_fingprint_subsearch; delete orchem_fingprint_simsearch; delete orchem_log; delete orchem_big_molecules; commit; end;
     }
     */

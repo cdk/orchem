@@ -67,7 +67,7 @@
             <classpath refid="project.classpath"/>
             <include name="**/*.java"/>
             <exclude name="**/PubChemImport.java"/>
-            <exclude name="**/ImageServlet.java"/>
+            <!--exclude name="**/ImageServlet.java"/-->
             
         </javac>
         <copy file="${project.root}/properties/my_local_copies/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>

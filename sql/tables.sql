@@ -43,7 +43,7 @@ prompt creating table "orchem_fingprint_simsearch"
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null
     , bit_count number(4)     not null 
-    , fp raw(97)              not null --corresponds to possible bits in fingerprint
+    , fp raw(100)             not null --corresponds to possible bits in fingerprint
     )
     cache -- hm ....
     /
@@ -844,6 +844,30 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit773  varchar2(1)
      ,bit774  varchar2(1)
      ,bit775  varchar2(1)
+     ,bit776  varchar2(1)
+     ,bit777  varchar2(1)
+     ,bit778  varchar2(1)
+     ,bit779  varchar2(1)
+     ,bit780  varchar2(1)
+     ,bit781  varchar2(1)
+     ,bit782  varchar2(1)
+     ,bit783  varchar2(1)
+     ,bit784  varchar2(1)
+     ,bit785  varchar2(1)
+     ,bit786  varchar2(1)
+     ,bit787  varchar2(1)
+     ,bit788  varchar2(1)
+     ,bit789  varchar2(1)
+     ,bit790  varchar2(1)
+     ,bit791  varchar2(1)
+     ,bit792  varchar2(1)
+     ,bit793  varchar2(1)
+     ,bit794  varchar2(1)
+     ,bit795  varchar2(1)
+     ,bit796  varchar2(1)
+     ,bit797  varchar2(1)
+     ,bit798  varchar2(1)
+     ,bit799  varchar2(1)
      ,constraint pk_orchem_subsrch primary key (id)
     ) 
     /

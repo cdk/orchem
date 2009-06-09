@@ -159,7 +159,7 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_22() throws Exception {
-        findSelf(similaritySearch(22, 0.9f, 3),22);
+        findSelf(similaritySearch(22, 0.8f, 5),22);
     }
 
     public void testCompoundID_27() throws Exception {
@@ -167,8 +167,17 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_31() throws Exception {
-        findSelf(similaritySearch(31, 0.95f, 4),31);
+        findSelf(similaritySearch(31, 0.95f, 3),31);
     }
+
+    public void testCompoundID_34() throws Exception {
+        findSelf(similaritySearch(34, 0.5f, 7),34);
+    }
+
+    public void testCompoundID_35() throws Exception {
+        findSelf(similaritySearch(35, 0.7f, 4),35);
+    }
+
     // add more if u like
 
 }

@@ -27,6 +27,7 @@ package uk.ac.ebi.orchem.fingerprint;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
 public class OrchemFingerprinter implements IFingerprinter {
 
 
-    public final static int FINGERPRINT_SIZE=new Integer(776);
+    public final static int FINGERPRINT_SIZE=new Integer(800);
     private int hashModulo = BitPosApi.bp.HASH_OFFSET;
 
     public int getSize() {
@@ -103,7 +104,8 @@ public class OrchemFingerprinter implements IFingerprinter {
         rings(ringSet,fingerprint);
         List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
         ringSets(rslist,fingerprint);
-
+        ringSetLayout(rslist,fingerprint);
+        
         smartsPatterns(molecule,fingerprint);
         return fingerprint;
 
@@ -771,5 +773,184 @@ public class OrchemFingerprinter implements IFingerprinter {
             }
         }
     }
+    
+    /**
+     * Method to capture how carbon-only ring clusters are laid out (ring sizes 5 or 6).
+     * We look for clusters of three attached rings and fingerprint certain properties.
+     * <br> 
+     * This helps to distinguish rare layouts from more common layouts. For example,
+     * a problem case was to find a straight row of three connected single bond hex-rings (unit test ID 34) 
+     * That layout is very rare but looks to be deceptively common. 
+     * Its rareness will be picked up better by the cluster descriptor below.
+     *
+     * @param rslist
+     * @param fingerprint
+     */
+    private void ringSetLayout (List<IRingSet> rslist,BitSet fingerprint) {
+        for (IRingSet rs : rslist) {
+            List<IAtomContainer> atcList = new ArrayList<IAtomContainer>();
+            Iterator<IAtomContainer> itr = rs.atomContainers().iterator();
+            
+            while (itr.hasNext()) {
+                atcList.add(itr.next());
+            }
+            if (atcList.size() >= 3) {
+                int ringCnt = atcList.size();
+                for (int i = 0; i < ringCnt; i++) {
+                    for (int j = i + 1; j < ringCnt; j++) {
+                        for (int k = j + 1; k < ringCnt; k++) {
+                            if (i != j && i != k && j != k) {
+
+                                IAtomContainer atc1 = atcList.get(i);
+                                int atc1Size = atc1.getAtomCount();
+                                IAtomContainer atc2 = atcList.get(j);
+                                int atc2Size = atc2.getAtomCount();
+                                IAtomContainer atc3 = atcList.get(k);
+                                int atc3Size = atc3.getAtomCount();
+           
+                                /* We only care about pent and hex carbon rings. 
+                                 * Other ring sizes are less rare to begin with */
+                                if ((atc1Size == 5 || atc1Size == 6) && (atc2Size == 5 || atc2Size == 6) &&
+                                    (atc3Size == 5 || atc3Size == 6) && carbonOnly(atc1) && carbonOnly(atc2) && carbonOnly(atc3)) {
+
+                                    boolean threeRingCluster = false;
+                                    if (haveSharedAtoms(atc1, atc2)) {
+                                        if (haveSharedAtoms(atc1, atc3) || haveSharedAtoms(atc2, atc3))
+                                            threeRingCluster = true;
+                                    } else if (haveSharedAtoms(atc1, atc3) && haveSharedAtoms(atc2, atc3))
+                                        threeRingCluster = true;
+
+                                    //Three ring cluster means three rings (pent/hex) somehow connected to each other
+                                    if (threeRingCluster) {
+
+                                        /*
+                                         * Now build a 4 character cluster descriptor
+                                         * Example descriptors: "5DLM", or "6SHH"
+                                         *
+                                         * Pos  Values   Meaning
+                                         * ---  ------   ----------------------------------------------------
+                                         * 1    6,5    : Ring triplet contains strictly 6 rings or otherwise includes (up to 3) 5 rings
+                                         * 2    S,D    : Triplet bond nature : S single bonds only, D double bonds (possibly aromatic) also present
+                                         * 3    L,H    : Connectivity, H=3 (means some atom participates in all 3 rings)
+                                         * 2    L,M,H  : Shared bonds between triplet: Low=0,1,2 Med=3,4 High=5..n
+                                         */
+                                        String fiveSix = "6";
+                                        String singleDouble = "S";
+                                        String connectivity ="L";
+                                        String bondOverlap = "L";
+
+                                        if (atc1Size == 5 || atc2Size == 5 || atc3Size == 5) {
+                                            fiveSix = "5";
+                                        }
+
+                                        Map<IAtom, Integer> sharedAtoms = new HashMap<IAtom, Integer>();
+                                        collectSharedAtoms(atc1, atc2, sharedAtoms);
+                                        collectSharedAtoms(atc1, atc3, sharedAtoms);
+                                        collectSharedAtoms(atc2, atc3, sharedAtoms);
+
+                                        Set<IBond> sharedBonds = new HashSet<IBond>();
+                                        if (detectSharedAndDoubleBonds(atc1, sharedAtoms, sharedBonds))
+                                            singleDouble = "D";
+                                        if (detectSharedAndDoubleBonds(atc2, sharedAtoms, sharedBonds))
+                                            singleDouble = "D";
+                                        if (detectSharedAndDoubleBonds(atc3, sharedAtoms, sharedBonds))
+                                            singleDouble = "D";
+
+                                        Iterator<Integer> iterator = sharedAtoms.values().iterator();
+                                        while (iterator.hasNext()) {
+                                            if (iterator.next() == 3) {
+                                                connectivity = "H";
+                                                break;
+                                            }
+                                        }
+                                        if (sharedBonds.size() >= 5)
+                                            bondOverlap = "H";
+                                        else if (sharedBonds.size() >= 3)
+                                            bondOverlap = "M";
+                                        
+                                        
+                                        
+                                        int bitPos = BitPosApi.bp.ringLayout.get(fiveSix + singleDouble + connectivity +bondOverlap);
+                                        fingerprint.set(bitPos, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Helper method for {@link #ringSetLayout (List,BitSet)}
+     * @param atcA
+     * @return true if all atoms in the container are cabrones
+     */
+    private boolean carbonOnly(IAtomContainer atcA) {
+        for (int i = 0; i < atcA.getAtomCount(); i++) {
+            if (!atcA.getAtom(i).getSymbol().equals("C")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Helper method for {@link #ringSetLayout (List,BitSet)}
+     * @param atcA
+     * @param atcB
+     * @return true if the two containers (rings) are connected ("glued") by atoms 
+     */
+    private boolean haveSharedAtoms(IAtomContainer atcA, IAtomContainer atcB) {
+        for (int i = 0; i < atcA.getAtomCount(); i++) {
+            if (atcB.contains(atcA.getAtom(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Helper method for {@link #ringSetLayout (List,BitSet)}<br>
+     * Find all the atoms shared between two atoms containers (rings)
+     * @param atcA
+     * @param atcB
+     * @param sharedAtoms
+     */
+    private void collectSharedAtoms(IAtomContainer atcA, IAtomContainer atcB, Map<IAtom, Integer> sharedAtoms) {
+        for (int i = 0; i < atcA.getAtomCount(); i++) {
+            IAtom atA = atcA.getAtom(i);
+            if (atcB.contains(atA))
+                if (!sharedAtoms.containsKey(atA)) {
+                    sharedAtoms.put(atA, 1);
+                } else {
+                    sharedAtoms.put(atA, sharedAtoms.get(atA) + 1);
+                }
+        }
+    }
+
+    /**
+     * Method to find bonds between atoms that are shared by rings in a cluster.
+     * Also picks up if there's a double bond in the ring
+     * @param atc
+     * @param sharedAtoms
+     * @param sharedBonds
+     * @return true if there's a double bond somewhere in the atom container
+     */
+    private boolean detectSharedAndDoubleBonds (IAtomContainer atc, Map sharedAtoms, Set sharedBonds) {
+        boolean doubleBondsFound=false;
+        Iterator<IBond> bonds = atc.bonds().iterator();
+        while (bonds.hasNext())  {
+            IBond bond = bonds.next();
+            if (bond.getOrder()==IBond.Order.DOUBLE) 
+                doubleBondsFound=true;
+            if ( sharedAtoms.containsKey(bond.getAtom(0))&& sharedAtoms.containsKey(bond.getAtom(1)))  {
+                    sharedBonds.add(bond);
+            }
+        }
+        return doubleBondsFound;
+    }
+    
 }
 

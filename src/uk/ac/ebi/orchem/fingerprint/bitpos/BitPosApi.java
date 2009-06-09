@@ -57,6 +57,7 @@ public class BitPosApi {
         all.putAll(prepareContentDump(bp.ringBits));
         all.putAll(prepareContentDump(bp.smartsPatternBits));
         all.putAll(prepareContentDump(bp.carbonTrails));
+        all.putAll(prepareContentDump(bp.ringLayout));
 
         for (Iterator<Integer> neighItr = bp.neighbourBits.keySet().iterator(); neighItr.hasNext(); ) {
             int bit = neighItr.next();

@@ -12,8 +12,12 @@ cd %CLASSDIR%
 
 jar -cvf c:\orchem.jar uk/ac/ebi/orchem/shared/AtomsBondsCounter.class
 
-rem TEMP TEMP
+rem TEMP TEMP until available in official cdk release
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/temp/MyAllRingsFinder.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/temp/IsomorphismSort$AtomForIsomorphismSort.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/temp/IsomorphismSort$AtomForIsomorphismSortComparator.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/temp/IsomorphismSort$1.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/temp/IsomorphismSort.class
 rem TEMP TEMP
 
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/shared/MoleculeCreator.class

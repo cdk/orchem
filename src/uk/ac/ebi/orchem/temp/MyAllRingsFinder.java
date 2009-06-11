@@ -18,8 +18,8 @@ import org.openscience.cdk.tools.LoggingTool;
 
 
 /**
- *
- * TEMP CLASS TO PLAY WITH IN ORCHEM
+ * TODO
+ * TEMP CLASS : switch to CDK org/openscience/cdk/ringsearch/AllRingsFinder.java
  *
  *
  */

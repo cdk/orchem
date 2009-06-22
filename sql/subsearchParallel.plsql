@@ -158,7 +158,7 @@ AS
             (p_candidate in orchem_subsearch_par.candidate_type)
    RETURN    compound_id_table 
    PIPELINED
-   PARALLEL_ENABLE (PARTITION p_candidate BY ANY ) -- HASH ( compound_id) )
+   PARALLEL_ENABLE (PARTITION p_candidate BY ANY ) 
    IS
       retval       varchar2(80):=NULL;
       l_candidate  orchem_utils.candidate_rec;
@@ -170,7 +170,6 @@ AS
          -- Extra step:
          -- make sure we have the user's query, initially retrieve it once.
          check_thread_env (l_candidate.query_key);
-
          -- Business as usual:
          IF is_possible_candidate  (
               l_candidate.query_key
@@ -261,12 +260,17 @@ AS
        whereClause := getWhereClause (query_key, debug_YN );       
 
        --(3)
+       /* Note the two hints below. The FULL hint is to force a full table
+          scan, otherwise optimizer MAY bick a btree index. But if a btree
+          is chosen, there will be NO parallelism (you then revert back to
+          the non parallel version essentially). */
+
        prefilterQuery:=       
        ' select  *                                       ' ||
        ' from   table                                    ' ||
        '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
        '          ( cursor                               ' ||
-       '           ( select                              ' ||
+       '           ( select /*+ full(s) parallel(s) */   ' ||
                        query_key                           ||
        '             , s.id                              ' ||
        '             , s.single_bond_count               ' ||
@@ -322,6 +326,7 @@ AS
                   EXIT prefilterloop;
                 END IF;
              else 
+                --pipe row( ORCHEM_COMPOUND (null,null,0 ) );
                 null;
              end if;
 

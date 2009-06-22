@@ -49,9 +49,10 @@
 
     <table width="90%">
         <s:if test="#session.wsr.searchResults.size==0">
-            <H3> No results found ....   
- </H3>
-        </s:if>    
+            <H3> No results found .... </H3>
+        </s:if>
+        <h4>Result set size = <s:property value="%{#session.wsr.searchResults.size}"/> </h4>
+
         <s:iterator  id="res" value="%{#session.wsr.searchResults}" status="res_stat">  
            <s:if test="#res_stat.count <= session.wsr.currDisplayEndIdx ">
               <s:if test="#res_stat.count >= session.wsr.currDisplayStartIdx ">

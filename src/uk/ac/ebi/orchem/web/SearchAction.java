@@ -52,7 +52,7 @@ public class SearchAction extends SessionAwareAction {
 
       //Set some default values if missing ..
       if (wsr.getTopN() == null || wsr.getTopN().equals(""))
-        wsr.setTopN("35");
+        wsr.setTopN("100");
       if (wsr.getMinTanCoeff() == null || wsr.getMinTanCoeff().equals(""))
         wsr.setMinTanCoeff("0.70");
 

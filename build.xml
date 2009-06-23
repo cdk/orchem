@@ -177,7 +177,7 @@
                      **/uk/ac/ebi/orchem/SimpleMail.class
                      **/uk/ac/ebi/orchem/db/OrChemParameters.class
                      **/uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class
-                     **/uk/ac/ebi/orchem/fingerprint/temp/*
+                     **/uk/ac/ebi/orchem/temp/*
                      " />
 
       <!-- Put all required jar files and DDL in a tar file -->

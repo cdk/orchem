@@ -550,8 +550,8 @@ public class OrchemFingerprinter implements IFingerprinter {
         Iterator iterator = results.keySet().iterator();
         while (iterator.hasNext()) {
             String pattern = (String)iterator.next();
-            if (BitPosApi.bp.smartsPatternBits.containsKey(pattern)) {
-                fingerprint.set(BitPosApi.bp.smartsPatternBits.get(pattern), true);
+            if (BitPosApi.bp.smilesPatternBits.containsKey(pattern)) {
+                fingerprint.set(BitPosApi.bp.smilesPatternBits.get(pattern), true);
             }
         }
 

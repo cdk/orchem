@@ -71,6 +71,13 @@ public class IsomorphismSort {
                 bondParticipationCount.put(at,bondParticipationCount.get(at)+1);
             }
         }
+        // Mind the atoms not in any bond (like for chembl compound 295740)
+        for (IAtom atom : iac.atoms()) {
+            if (!bondParticipationCount.containsKey(atom)) {
+                bondParticipationCount.put(atom, 0);
+            }
+        }
+
 
         // we now have to maps that will be used to sort the incoming atom container
         List<AtomForIsomorphismSort> atomList = new ArrayList<AtomForIsomorphismSort>();

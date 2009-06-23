@@ -95,40 +95,6 @@ public class MoleculeCreator {
     }
     
     
-    
-    
-    
-    public static void main(String[] args) throws CDKException {
-        /*
-        String mol=
-            " \n" +
-            "Marvin  11170523502D\n"+
-            "  \n"+
-            "  1  0  0  0  0  0            999 V2000\n"+
-            "    0.0000    0.0000    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n"+
-            "M  END\n";
-        System.out.println(mol);
-        MDLV2000Reader r = new MDLV2000Reader();
-        getNNMolecule(r,mol);        
-        */
-        String mol=
-        " \n" + 
-        "  Marvin  09100521432D\n" + 
-        "  \n" + 
-        "  2  1  0  0  0  0            999 V2000\n" + 
-        "   -1.0938    1.0312    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n" + 
-        "   -0.2688    1.0312    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n" + 
-        "  1  2  1  0  0  0  0\n" + 
-        "M  END\n";
-        System.out.println(mol);
-        MDLV2000Reader r = new MDLV2000Reader();
-        getNNMolecule(r,mol);        
-    
-    
-
-
-
-    }
 }
 
 

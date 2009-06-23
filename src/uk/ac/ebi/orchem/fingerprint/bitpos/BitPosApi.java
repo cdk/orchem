@@ -55,7 +55,7 @@ public class BitPosApi {
         all.putAll(prepareContentDump(bp.atomPairBits));
         all.putAll(prepareContentDump(bp.ringSetBits));
         all.putAll(prepareContentDump(bp.ringBits));
-        all.putAll(prepareContentDump(bp.smartsPatternBits));
+        all.putAll(prepareContentDump(bp.smilesPatternBits));
         all.putAll(prepareContentDump(bp.carbonTrails));
         all.putAll(prepareContentDump(bp.ringLayout));
 

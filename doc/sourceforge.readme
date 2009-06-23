@@ -1,4 +1,4 @@
-Upload the web documentation pages to http://orchem.sourceforge.net/
+﻿Upload the web documentation pages to http://orchem.sourceforge.net/
 ====================================================================
 
 A sample session might look like this for project Toast (UNIX name: toast):
@@ -14,4 +14,13 @@ A sample session might look like this for project Toast (UNIX name: toast):
 Access via scp or rsync are also availible.
 See more instructions on http://alexandria.wiki.sourceforge.net/Project+Web,+Shell,+VHOST+and+Database+Services
 
+
+=====================
+
+Releases
+Doc at : https://sourceforge.net/apps/trac/sourceforge/wiki/SFTP
+
+
+sftp mark_rynbeek@frs.sourceforge.net
+cd uploads
 

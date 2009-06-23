@@ -870,6 +870,7 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit799  varchar2(1)
      ,constraint pk_orchem_subsrch primary key (id)
     ) 
+    cache
     /
 
 alter table orchem_fingprint_subsearch parallel 4

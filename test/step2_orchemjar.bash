@@ -11,11 +11,7 @@ jar -cvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/shared/AtomsBondsCounter.cla
 
 
 #temporary classes, until available in official CDK release #
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/MyAllRingsFinder.class
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/IsomorphismSort\$AtomForIsomorphismSort.class 
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/IsomorphismSort\$AtomForIsomorphismSortComparator.class
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/IsomorphismSort\$1.class
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/IsomorphismSort.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/*.class
 ################
 
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/shared/MoleculeCreator.class

@@ -266,11 +266,11 @@ AS
           the non parallel version essentially). */
 
        prefilterQuery:=       
-       ' select  *                                       ' ||
+       ' select /*+ NO_QKN_BUFF */  *                    ' ||
        ' from   table                                    ' ||
        '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
        '          ( cursor                               ' ||
-       '           ( select /*+ full(s) parallel(s) */   ' ||
+       '           ( select /*+ parallel(s) */   ' ||
                        query_key                           ||
        '             , s.id                              ' ||
        '             , s.single_bond_count               ' ||

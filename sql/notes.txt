@@ -19,8 +19,13 @@ Step plan to create the schema
         declare
             i binary_integer;
         begin
+            -- split out
             dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(5010001,6250000  );' ,INTERVAL=>null ); 
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(6250001,7000000  );' ,INTERVAL=>null ); 
+            
+            -- todo split this one out
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(6250001,7000000  );' ,INTERVAL=>null ); -- this one runs longes by far !
+            
+            
             dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(7000001,7510000  );' ,INTERVAL=>null ); 
             dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(7510001,8010000  );' ,INTERVAL=>null ); 
             dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(8010001,8510000  );' ,INTERVAL=>null ); 

@@ -91,10 +91,17 @@ public class SearchAction extends SessionAwareAction {
                           "<br>Invoking substr search using VF2 and bitmap indices .." +
                           new java.util.Date());
           compounds =
-              new DatabaseAccess().substructureSearchParallel(query,
+             /* 
+             new DatabaseAccess().substructureSearchParallel(query,
                                                       queryType,
                                                       conn,
                                                       new Integer(wsr.getTopN()).intValue());
+             */
+             new DatabaseAccess().substructureSearch(query,
+                                                  queryType,
+                                                  conn,
+                                                  new Integer(wsr.getTopN()).intValue());
+
       }
 
       wsr.setDebugMessage(debugMsg.toString());

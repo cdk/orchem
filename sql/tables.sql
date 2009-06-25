@@ -873,8 +873,9 @@ prompt creating table "orchem_fingprint_subsearch"
     cache
     /
 
-alter table orchem_fingprint_subsearch parallel 4
-/
+/* alter table may be too forceful */
+--alter table orchem_fingprint_subsearch parallel 4
+--/
 
 
 exit 1;

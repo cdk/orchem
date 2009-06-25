@@ -31,7 +31,7 @@ AS
    FUNCTION setup (user_query Clob, query_type varchar2)
    RETURN   integer;
 
-   FUNCTION search (query_key integer, topN integer:=null, debug_YN varchar2:='N' )
+   FUNCTION search (query_key integer, topN integer:=null, debug_YN varchar2:='N', force_full_scan varchar2:=NULL )
    RETURN  orchem_compound_list
    PIPELINED;
 
@@ -233,7 +233,7 @@ AS
    (8)  If topN was set, and number of results==topN, exit wounds
    
    ___________________________________________________________________________*/
-   FUNCTION search (query_key integer, topN integer:=null, debug_YN varchar2:='N' )
+   FUNCTION search (query_key integer, topN integer:=null, debug_YN varchar2:='N', force_full_scan varchar2:=NULL )
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -247,7 +247,9 @@ AS
       moleculeQuery            varchar2(5000);
       prefilterQuery           varchar2(30000);
       molecule                 clob;
-      numOfResults integer:=0; 
+      numOfResults             integer:=0; 
+      full_hint                varchar2(10):='';
+      
 
    BEGIN
 
@@ -265,12 +267,17 @@ AS
           is chosen, there will be NO parallelism (you then revert back to
           the non parallel version essentially). */
 
+       
+       if force_full_scan='Y' then
+         full_hint:='full(s)';
+       end if;
+
        prefilterQuery:=       
        ' select /*+ NO_QKN_BUFF */  *                    ' ||
        ' from   table                                    ' ||
        '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
        '          ( cursor                               ' ||
-       '           ( select /*+ parallel(s) */   ' ||
+       '           ( select /*+  '||full_hint||' parallel(s) */  ' ||  
                        query_key                           ||
        '             , s.id                              ' ||
        '             , s.single_bond_count               ' ||
@@ -295,6 +302,11 @@ AS
        '          )                                      ' ||
        '         ) t                                      ';
 
+
+      -- debug query back
+      -- pipe row(ORCHEM_COMPOUND (0,  prefilterQuery, 1 ));
+      -- return;
+      
        --(4)
        moleculeQuery := ' select '|| compound_tab_molfile_col|| 
                         ' from  ' || compound_tab_name       ||

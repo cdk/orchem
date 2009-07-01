@@ -157,6 +157,7 @@ public class DatabaseAccess {
        ocs.close();
 
        List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
+       //choose FORCE FULL SCAN Y for smaller databases, N for larger ones (millions of compounds)
        PreparedStatement pstmt = conn.prepareStatement("select id, mol_file from table(orchem_subsearch_par.search(?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
        pstmt.setInt(1,key);
        pstmt.setInt(2,topN);

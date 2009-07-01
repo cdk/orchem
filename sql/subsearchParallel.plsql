@@ -31,7 +31,7 @@ AS
    FUNCTION setup (user_query Clob, query_type varchar2)
    RETURN   integer;
 
-   FUNCTION search (query_key integer, topN integer:=null, debug_YN varchar2:='N', force_full_scan varchar2:=NULL )
+   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:=NULL )
    RETURN  orchem_compound_list
    PIPELINED;
 
@@ -160,16 +160,27 @@ AS
    PIPELINED
    PARALLEL_ENABLE (PARTITION p_candidate BY ANY ) 
    IS
-      retval       varchar2(80):=NULL;
-      l_candidate  orchem_utils.candidate_rec;
+      retval                varchar2(80):=NULL;
+      l_candidate           orchem_utils.candidate_rec;
+      parallel_query_hickup EXCEPTION;
+      PRAGMA EXCEPTION_INIT(parallel_query_hickup, -12801);
+      checked               boolean :=false;
    BEGIN
       LOOP
          FETCH p_candidate into l_candidate;
          EXIT WHEN p_candidate%NOTFOUND;
 
-         -- Extra step:
+        -- Extra step:
          -- make sure we have the user's query, initially retrieve it once.
-         check_thread_env (l_candidate.query_key);
+         while not checked loop
+             begin
+                check_thread_env (l_candidate.query_key);
+                checked :=true;
+             exception
+             when others then -- parallel_query_hickup  then 
+                NULL; -- to do log somewhere
+             end;
+         end loop;
          -- Business as usual:
          IF is_possible_candidate  (
               l_candidate.query_key
@@ -186,7 +197,7 @@ AS
              ,l_candidate.br_count            
              ,l_candidate.i_count             
              ,l_candidate.c_count             
-             ,l_candidate.debug_yn            
+             ,'N'            
              ) = 'Y' 
          THEN
              IF l_candidate.atoms IS NULL THEN
@@ -202,7 +213,7 @@ AS
                  ,l_candidate.compound_id         
                  ,l_candidate.atoms               
                  ,l_candidate.bonds               
-                 ,l_candidate.debug_yn            
+                 ,'N'            
              );
              --IF retval IS NOT NULL THEN
                PIPE ROW (retval);
@@ -233,7 +244,7 @@ AS
    (8)  If topN was set, and number of results==topN, exit wounds
    
    ___________________________________________________________________________*/
-   FUNCTION search (query_key integer, topN integer:=null, debug_YN varchar2:='N', force_full_scan varchar2:=NULL )
+   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:=NULL )
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -259,7 +270,7 @@ AS
        FROM   orchem_parameters;
        
        --(2)  
-       whereClause := getWhereClause (query_key, debug_YN );       
+       whereClause := getWhereClause (query_key, 'N' );       
 
        --(3)
        /* Note the two hints below. The FULL hint is to force a full table
@@ -277,7 +288,7 @@ AS
        ' from   table                                    ' ||
        '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
        '          ( cursor                               ' ||
-       '           ( select /*+  '||full_hint||' parallel(s) */  ' ||  
+       '           ( select /*+ '||full_hint||' parallel(s) */  ' ||  
                        query_key                           ||
        '             , s.id                              ' ||
        '             , s.single_bond_count               ' ||
@@ -294,9 +305,9 @@ AS
        '             , s.c_count                         ' ||
        '             , s.atoms                           ' ||
        '             , s.bonds                           ' ||
-       '             ,'''||debug_YN||''''                  ||  
+       '             ,''N'' '                              ||  
        '              from  orchem_fingprint_subsearch s ' ||
-       '              where 1=1                         ' ||
+       '              where 1=1                          ' ||
                      whereClause                           ||
        '           )                                     ' ||
        '          )                                      ' ||
@@ -311,7 +322,6 @@ AS
        moleculeQuery := ' select '|| compound_tab_molfile_col|| 
                         ' from  ' || compound_tab_name       ||
                         ' where  '|| compound_tab_pk_col     ||'=:var01';
-
 
        OPEN myRefCur FOR prefilterQuery;
 

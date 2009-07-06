@@ -67,8 +67,7 @@
             <classpath refid="project.classpath"/>
             <include name="**/*.java"/>
             <exclude name="**/PubChemImport.java"/>
-            <!--exclude name="**/ImageServlet.java"/-->
-            
+            <exclude name="**/ImageServlet.java"/>
         </javac>
         <copy file="${project.root}/properties/my_local_copies/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>
         <copy file="${project.root}/properties/my_local_copies/webapp.properties" tofile="${build.classes}/webapp.properties" overwrite="true"/>
@@ -76,9 +75,23 @@
 
 
     <!-- =================================================================== -->
+    <!-- Compile WAR                                                             -->
+    <!-- =================================================================== -->
+    <target name="compile-war">
+        <!-- compile the Java classes  -->
+        <javac srcdir="${src.dir}" destdir="${build.classes}">
+            <classpath refid="project.classpath"/>
+            <include name="**/*.java"/>
+            <exclude name="**/PubChemImport.java"/>
+        </javac>
+        <copy file="${project.root}/properties/my_local_copies/unittest.properties" tofile="${build.classes}/unittest.properties" overwrite="true"/>
+        <copy file="${project.root}/properties/my_local_copies/webapp.properties" tofile="${build.classes}/webapp.properties" overwrite="true"/>
+    </target>
+
+    <!-- =================================================================== -->
     <!-- Make WAR                                                            -->
     <!-- =================================================================== -->
-    <target name="war" depends="clean,compile">
+    <target name="war" depends="clean,compile-war">
         
         <echo message="Making WAR file"/>
         <mkdir dir="${war.dir}"/>

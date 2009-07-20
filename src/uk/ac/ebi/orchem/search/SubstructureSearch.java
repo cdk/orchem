@@ -37,8 +37,12 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.nonotify.NNMolecule;
+
 import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import org.openscience.cdk.smiles.SmilesParser;
+
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
@@ -80,6 +84,11 @@ public class SubstructureSearch {
         } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
             SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
             atc = sp.parseSmiles(query);
+            try {
+                atc=AtomContainerManipulator.removeHydrogens(atc);
+            } catch (NullPointerException e) {
+                throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+            }
         }
         return atc;
     }

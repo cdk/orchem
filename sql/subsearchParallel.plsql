@@ -31,7 +31,7 @@ AS
    FUNCTION setup (user_query Clob, query_type varchar2)
    RETURN   integer;
 
-   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:=NULL )
+   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:='Y' )
    RETURN  orchem_compound_list
    PIPELINED;
 
@@ -244,7 +244,7 @@ AS
    (8)  If topN was set, and number of results==topN, exit wounds
    
    ___________________________________________________________________________*/
-   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:=NULL )
+   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:='Y' )
    RETURN  orchem_compound_list
    PIPELINED
    AS

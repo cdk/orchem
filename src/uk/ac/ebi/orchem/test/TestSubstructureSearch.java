@@ -40,10 +40,10 @@ import junit.framework.TestCase;
 import oracle.jdbc.driver.OracleConnection;
 
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
 
 import uk.ac.ebi.orchem.PropertyLoader;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
+import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
 
@@ -125,7 +125,7 @@ public class TestSubstructureSearch extends TestCase {
 
             /* part 2: find all substructures by doing a full scan on the data set */            
             System.out.println("\nFull isomorphism test : ");
-            List<Integer> fullScanResults = fullScan(res.getInt("id"), targetMolecules, SubgraphIsomorphism.Algorithm.VF2, conn);
+            List<Integer> fullScanResults = fullScan(res.getInt("id"), targetMolecules, conn);
             Collections.sort(fullScanResults);
             System.out.println("results # : "+fullScanResults.size());
 
@@ -147,14 +147,14 @@ public class TestSubstructureSearch extends TestCase {
      * validate this against the prefilter result from a fingerprinter.
      *
      * @param id query compound database id
-     * @param alg isomorphism algorithm {@link org.openscience.cdk.isomorphism.SubgraphIsomorphism.Algorithm }
+     * @param alg isomorphism algorithm 
      * @param conn database connection
      * @return list of ids of compounds of which compound with arg "id" is a substructure
      * @throws SQLException
      * @throws CDKException
      * @throws CloneNotSupportedException
      */
-    private List<Integer> fullScan(int id, List<WrappedAtomContainer> targetMolecules, SubgraphIsomorphism.Algorithm alg, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
+    private List<Integer> fullScan(int id, List<WrappedAtomContainer> targetMolecules, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
         List<Integer> result = new ArrayList<Integer>();
 
         System.out.println("+++++++++++++++++++++++++");
@@ -168,7 +168,7 @@ public class TestSubstructureSearch extends TestCase {
             //QueryAtomContainer queryAtomContainer = QueryAtomContainerCreator.createBasicQueryContainer(query.getAtomContainer());
 
             for (WrappedAtomContainer target : targetMolecules) {
-                SubgraphIsomorphism s = new SubgraphIsomorphism(target.getAtomContainer(), query.getAtomContainer(), alg);
+                SubgraphIsomorphism s = new SubgraphIsomorphism(target.getAtomContainer(), query.getAtomContainer() );
                 if (s.matchSingle()) {
                     result.add(target.getDbId());
                 }

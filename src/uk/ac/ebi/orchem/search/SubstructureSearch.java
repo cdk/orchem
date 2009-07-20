@@ -37,14 +37,14 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
+import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
-import uk.ac.ebi.orchem.temp.IsomorphismSort;
+import uk.ac.ebi.orchem.isomorphism.IsomorphismSort;
 
 
 /**
@@ -267,7 +267,7 @@ public class SubstructureSearch {
 
             //Invoke the CDK implementation of the VF2 algorithm
             SubgraphIsomorphism s =
-                new SubgraphIsomorphism(databaseMolecule, queryMolecule, SubgraphIsomorphism.Algorithm.VF2);
+                new SubgraphIsomorphism(databaseMolecule, queryMolecule);
 
             if (s.matchSingle()) {
                 retVal = compoundId;

@@ -19,18 +19,13 @@ Step plan to create the schema
         declare
             i binary_integer;
         begin
-            -- split out
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(5010001,6250000  );' ,INTERVAL=>null ); 
-            
-            -- todo split this one out
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(6250001,7000000  );' ,INTERVAL=>null ); -- this one runs longes by far !
-            
-            
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(7000001,7510000  );' ,INTERVAL=>null ); 
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(7510001,8010000  );' ,INTERVAL=>null ); 
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(8010001,8510000  );' ,INTERVAL=>null ); 
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(8510001,9020000  );' ,INTERVAL=>null ); 
-            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(9020001,9503785  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(5010001,6150000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(6150001,6800000  );' ,INTERVAL=>null ); -- this one runs longes by far !
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(6800001,7390000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(7390001,7910000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(7910001,8440000  );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(8440001,8980000 );' ,INTERVAL=>null ); 
+            dbms_job.submit (JOB=>i,WHAT=>'ORCHEM_FINGERPRINTING.slice_load(8980001,9503785  );' ,INTERVAL=>null ); 
             commit;
         end;
         -- starlite

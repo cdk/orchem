@@ -35,9 +35,10 @@ import java.util.List;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.isomorphism.SubgraphIsomorphism;
+
 import org.openscience.cdk.nonotify.NNMolecule;
 
+import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 
@@ -57,7 +58,7 @@ public class CompleteIsomorphismCheck {
         }
     }
 
-    public List<Integer> check(int id,SubgraphIsomorphism.Algorithm alg, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
+    public List<Integer> check(int id, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
 
         List<Integer> result = new ArrayList<Integer>();
         List<MyAtomContainer> queryMoleculeList = getMols(conn,id,id);
@@ -65,7 +66,7 @@ public class CompleteIsomorphismCheck {
             MyAtomContainer query = queryMoleculeList.get(0);
             List<MyAtomContainer> targetMolecules= getMols(conn,0,1000000);
             for(MyAtomContainer mac : targetMolecules ) {
-                   SubgraphIsomorphism s =  new SubgraphIsomorphism(mac.atomContainer, query.atomContainer,alg);
+                   SubgraphIsomorphism s =  new SubgraphIsomorphism(mac.atomContainer, query.atomContainer);
                 if (s.matchSingle()) {
                     result.add(mac.dbId);
                 }

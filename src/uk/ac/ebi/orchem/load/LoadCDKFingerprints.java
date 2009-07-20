@@ -49,6 +49,7 @@ import org.openscience.cdk.nonotify.NNMolecule;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.isomorphism.IsomorphismSort;
 import uk.ac.ebi.orchem.search.OrchemMoleculeBuilder;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
@@ -181,6 +182,11 @@ public class LoadCDKFingerprints {
                         /* Create a CDK molecule from the molfile */
                         NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                         makeMolTime += (System.currentTimeMillis() - bef);
+
+                        /* Sort the container to speed up substructure searches */
+                        IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(molecule));
+                        molecule.setAtoms(sortedAtoms);
+
 
                         /* Fingerprint the molecule */
                         bef = System.currentTimeMillis();

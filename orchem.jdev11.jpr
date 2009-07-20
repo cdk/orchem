@@ -499,6 +499,30 @@
          </hash>
       </list>
       <hash n="internalDefinitions">
+         <list n="jdkDefinitions">
+            <hash>
+               <list n="classPath">
+                  <url path="../../../java/jdk1.5.0_16/jre/lib/rt.jar" jar-entry=""/>
+                  <url path="../../../java/jdk1.5.0_16/jre/lib/i18n.jar/"/>
+                  <url path="../../../java/jdk1.5.0_16/jre/lib/sunrsasign.jar/"/>
+                  <url path="../../../java/jdk1.5.0_16/jre/lib/jsse.jar" jar-entry=""/>
+                  <url path="../../../java/jdk1.5.0_16/jre/lib/jce.jar" jar-entry=""/>
+                  <url path="../../../java/jdk1.5.0_16/jre/lib/charsets.jar" jar-entry=""/>
+                  <url path="../../../java/jdk1.5.0_16/jre/classes/"/>
+               </list>
+               <value n="description" v="1.5.0_16"/>
+               <list n="docPath">
+                  <url protocol="http" host="java.sun.com" path="/j2se/1.5/docs/api/"/>
+               </list>
+               <value n="id" v="1.5.0_16"/>
+               <url n="javaExecutable" path="../../../java/jdk1.5.0_16/bin/java"/>
+               <url n="sdkBinDir" path="../../../java/jdk1.5.0_16/bin/"/>
+               <list n="sourcePath">
+                  <url path="../../../java/jdk1.5.0_16/src.zip" jar-entry=""/>
+               </list>
+               <value n="version" v="1.5.0_16"/>
+            </hash>
+         </list>
          <list n="libraryDefinitions">
             <hash>
                <list n="classPath">

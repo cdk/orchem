@@ -37,6 +37,8 @@ jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearch.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearchParallel.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/test/VerifyOrchem.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/isomorphism/*.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/convert/ConvertMolecule.class
+
 
 
 

@@ -35,3 +35,4 @@ jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SubstructureSearch.cl
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SubstructureSearchParallel.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/test/VerifyOrchem.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/isomorphism/*.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/convert/ConvertMolecule.class

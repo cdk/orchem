@@ -150,6 +150,27 @@
     </target>
 
     <!-- =================================================================== -->
+    <!-- Unittest convert                                                    -->
+    <!-- =================================================================== -->
+    <target name="test.conv" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: convert      "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
+        <junit>
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestConvert" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
+    <!-- =================================================================== -->
     <!-- Make a tarball for people to download and install OrChem.           -->
     <!-- Not all classes are required, just the 'core' set that go into DB   -->
     <!-- =================================================================== -->
@@ -192,6 +213,7 @@
                      **/uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class
                      **/uk/ac/ebi/orchem/temp/*
                      **/uk/ac/ebi/orchem/isomorphism/*
+                     **/uk/ac/ebi/orchem/convert/*
                      " />
 
       <!-- Put all required jar files and DDL in a tar file -->

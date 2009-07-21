@@ -34,6 +34,7 @@ system("sqlplus -S $username/$password\@$instance \@../sql/createfingerprints.pl
 system("sqlplus -S $username/$password\@$instance \@../sql/simsearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearchParallel.plsql");
+system("sqlplus -S $username/$password\@$instance \@../sql/convert.plsql");
 
 system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable.sql");
 

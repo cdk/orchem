@@ -337,7 +337,9 @@ public class SimilaritySearch {
                 resLookup.close();
             }
             pstmLookup.close();
+            long befSort= System.currentTimeMillis();
             Collections.sort(compounds, new OrChemCompoundTanimComparator());
+            debug("sorting time (ms) "+( System.currentTimeMillis()-befSort),debugging);
 
             OrChemCompound[] output = new OrChemCompound[compounds.size()];
             for (int i = 0; i < compounds.size(); i++) {

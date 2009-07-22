@@ -85,7 +85,8 @@ public class DatabaseAccess {
         ocs.setFloat(4, tanimotoCutoff);
         ocs.setInt(5, topN);
         ocs.setString(6, "N");
-        ocs.executeUpdate();
+        //ocs.executeUpdate();
+        ocs.execute();
         Array cARRAY = ocs.getArray(1);
         Map map = conn.getTypeMap();
         map.put("ORCHEM_COMPOUND", Class.forName("uk.ac.ebi.orchem.bean.OrChemCompound",false,Thread.currentThread().getContextClassLoader())); 
@@ -152,7 +153,8 @@ public class DatabaseAccess {
        ocs.setCLOB(2, getCLOB (userQuery,conn));
        ocs.setString(3, queryType);
 
-       ocs.executeUpdate();
+       //ocs.executeUpdate();
+       ocs.execute();
        int key = ocs.getInt(1);
        ocs.close();
 

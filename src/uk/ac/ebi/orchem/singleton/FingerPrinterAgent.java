@@ -61,5 +61,9 @@ public class FingerPrinterAgent {
         return OrchemFingerprinter.FINGERPRINT_SIZE;
     }
 
+    public static int getFpSizeStatic() {
+        return FP.fingerPrinter.getSize();
+    }
+
 
 }

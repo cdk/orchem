@@ -29,9 +29,9 @@ import java.util.List;
 /**
  * Helper class to facilitate the {@link uk.ac.ebi.orchem.isomorphism.VF2State#addPair } and
  * {@link uk.ac.ebi.orchem.isomorphism.VF2State#undoAddPair }operations.<br>
- * This prevents us from having to (expensively) clone a VF2 state into
- * each recursion leven. By working with the same VF2 state and doing/undoing
- * addPair operations, performance is significatnly improved.
+ * This class helps to prevents having to (expensively) clone a VF2 state into
+ * each recursion level. By working with the same VF2 state and doing/undoing
+ * addPair operations, performance is significatnly improved over cloning.
  * <BR>
  * @author: markr@ebi.ac.uk
  */

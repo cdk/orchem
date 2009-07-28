@@ -337,6 +337,7 @@
             </hash>
             <hash>
                <list n="pattern-filters">
+                  <string v="-convert.html"/>
                   <string v="-diary.sxw"/>
                   <string v="-prweb-sidebar.png"/>
                   <string v="-ashReport.html"/>

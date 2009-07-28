@@ -1,0 +1,83 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>OrChem user manual</title>
+    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+  </head>
+  <body>
+    <h1>Convert Utility</h1>
+     
+   <div class="main">
+      <a href="index.html">Back to main page</a>
+
+      <table width="100%" border="0" cellspacing="10" cellpadding="10">
+        <tr>
+          <td >
+            <h3>Introduction</h3>
+            Orchem contains some utility to convert different chemical structures. 
+            In ConvertMolucule.java class are located in Java package 'uk.ac.ebi.orchem.convert'.
+            This class included:
+            <ul>
+                <li>SmilesToMolfile</li>
+                <li>MolfileToSmiles</li>
+            </ul>
+            You interact with these classes through PL/SQL packages that 
+            wrap the classes as Java stored procedures/functions. These packages will be 
+            explained in the following sections and some example queries will be given.
+            
+
+            <br></br>
+            <hr align="left">
+            <h3>Smiles To Molfile </h3>
+            Package orchem_convert.SmilesToMolfile: 
+
+            The function SmilesToMolfile convert a Smiles to Molfile string:
+            <ul>
+                 <li>SMILES (CLOB): a string SMILES string </li> 
+                 <li>RETURN (CLOB): a string MDL mol file converted </li> 
+                 <span style="font-style:italic"> 
+            </ul>     
+            <h5>Examples</h5>
+            <hr align="left">
+<pre>
+select orchem_convert.smilestomolfile('cc1cccc1') as mol from dual
+</pre>
+            <br></br>
+            <hr align="left">
+            <h3>Molfile To Smiles</h3>
+            Package orchem_convert.MolfileToSmiles: 
+
+            The function MolfileToSmiles convert a Molfile to Smiles string:
+            <ul>
+                 <li>MOLFILE (CLOB): a string MDL mol file string </li> 
+                 <li>RETURN (CLOB): a string SMILES converted </li> 
+                 <span style="font-style:italic"> 
+            </ul>     
+            <h5>Examples</h5>
+            <hr align="left">
+<pre>
+select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('cc1cccc1')) as smi from dual
+</pre>
+           
+            <br></br>
+            <a href="index.html">Back to main page</a>
+            <br></br>
+            <span style="font-size: 8pt;">
+              Author:
+              <a href="mailto:federicopaoli@users.sourceforge.net">federicopaoli@users.sourceforge.net </a>
+            </span>
+
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
+
+
+
+
+
+
+

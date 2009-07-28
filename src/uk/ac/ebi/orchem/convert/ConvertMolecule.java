@@ -25,9 +25,11 @@
 package uk.ac.ebi.orchem.convert;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 
+import java.io.StringWriter;
 import java.io.Writer;
 
 import java.sql.SQLException;
@@ -37,10 +39,18 @@ import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 import oracle.sql.CLOB;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
+import org.openscience.cdk.interfaces.IChemObject;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.io.MDLWriter;
+import org.openscience.cdk.io.formats.MDLV2000Format;
+import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
+
+import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
@@ -105,6 +115,50 @@ public class ConvertMolecule {
      return psmiles;
     }
 
+    public static CLOB SmilesToMolfile(CLOB Smiles) throws Exception {
+      CLOB cmolfile=null;
+      OracleConnection conn = null;
+      conn = (OracleConnection)new OracleDriver().defaultConnection();
+      try {
+          StringBuffer smiles=new StringBuffer();
+          Reader clobReader = Smiles.getCharacterStream( );
+          char[] buffer = new char[ Smiles.getBufferSize( ) ];
+          int read = 0;
+          int bufflen = buffer.length;
+          while( (read = clobReader.read(buffer,0,bufflen)) > 0 ) {
+            smiles.append(new String( buffer, 0, read ));
+          }
+          clobReader.close( );
+          if (smiles.toString() != null) {
+            if (!smiles.toString().trim().equals("")) {
+              SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+              StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+              IMolecule molecule=sp.parseSmiles(smiles.toString());
+              StringWriter out = new StringWriter();
+              sdg.setMolecule(molecule);
+              sdg.generateCoordinates();
+              molecule = sdg.getMolecule(); 
+              MDLWriter mdlWriter = new MDLWriter(out);
+              mdlWriter.setWriter(out);
+              mdlWriter.write(molecule);
+              mdlWriter.close();
+              cmolfile=CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+              cmolfile.open(CLOB.MODE_READWRITE);
+              cmolfile.setString(1, out.toString());
+              cmolfile.close();
+              out.close();
+            }
+          }
+      } catch (Exception e) {
+          cmolfile=null;
+          System.out.println(Utils.getErrorString(e));
+      }
+      finally {
+        conn.close();
+      }
+      return cmolfile;
+    }
+  
 
     private static void fixCarbonHCount(Molecule mol) {
         double bondCount = 0;

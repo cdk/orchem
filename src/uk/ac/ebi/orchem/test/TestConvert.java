@@ -94,20 +94,55 @@ public class TestConvert extends TestCase {
         res.close();
         pStmt.close();
     }
+
+    public static void Smilestomolfile(int id) throws SQLException, ClassNotFoundException {
+      PreparedStatement pStmt = conn.prepareStatement("select id, orchem_convert.smilestomolfile(orchem_convert.molfiletosmiles(molfile)) as smiles from orchem_compound_sample where id = ?");
+      pStmt.setInt(1, id);
+      ResultSet res = pStmt.executeQuery();
+      Clob smilesClob = null;
+      int clobLen = 0; 
+      String mdl = null;
+      if (res.next()) {
+          System.out.println("\n______________________________________________");
+          System.out.println("db id is " + res.getInt("id"));
+          smilesClob = res.getClob("smiles");
+          clobLen = new Long(smilesClob.length()).intValue();
+          mdl = (smilesClob.getSubString(1, clobLen));
+          System.out.println("results # : " + mdl);
+          System.out.println("length # : " + clobLen);
+      }
+      assertTrue("Result test:",resultlen(clobLen));
+
+      res.close();
+      pStmt.close();
+    }
   
     private static boolean resultlen(int hcloblen) {
       if (hcloblen>0) { return true; } else {return false;}
     }
     
-    public void testCompoundID_1() throws Exception {
+    public void testCompoundID_1_1() throws Exception {
      Molfiletosmiles(1);
     }
 
-    public void testCompoundID_2() throws Exception {
+    public void testCompoundID_1_2() throws Exception {
      Molfiletosmiles(2);
     }
 
-    public void testCompoundID_3() throws Exception {
+    public void testCompoundID_1_3() throws Exception {
      Molfiletosmiles(3);
     }
+
+    public void testCompoundID_2_1() throws Exception {
+     Smilestomolfile(1);
+    }
+
+    public void testCompoundID_2_2() throws Exception {
+      Smilestomolfile(2);
+    }
+
+    public void testCompoundID_2_3() throws Exception {
+      Smilestomolfile(3);
+    }
+
 }

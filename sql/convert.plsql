@@ -13,6 +13,9 @@ AS
    FUNCTION MolfileToSmiles (molfile clob)
    RETURN CLOB;
 
+   FUNCTION SmilesToMolfile (smiles clob)
+   RETURN CLOB;
+
 END;
 /
 SHOW ERRORS
@@ -30,6 +33,11 @@ AS
    RETURN CLOB
    IS LANGUAGE JAVA NAME 
    'uk.ac.ebi.orchem.convert.ConvertMolecule.MolfileToSmiles(oracle.sql.CLOB) return oracle.sql.CLOB ';
+
+   FUNCTION SmilesToMolfile (smiles clob)
+   RETURN CLOB
+   IS LANGUAGE JAVA NAME 
+   'uk.ac.ebi.orchem.convert.ConvertMolecule.SmilesToMolfile(oracle.sql.CLOB) return oracle.sql.CLOB ';
 
 END;  
 /   

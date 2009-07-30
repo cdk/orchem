@@ -346,6 +346,12 @@ public class TestSubstructureSearch extends TestCase {
     public void testCompoundID_40() throws Exception {
         fingerprintVersusFullScan(40);
     }
+    public void testCompoundID_41() throws Exception {
+        fingerprintVersusFullScan(41);
+    }
+    public void testCompoundID_42() throws Exception {
+        fingerprintVersusFullScan(42);
+    }
 
 
 

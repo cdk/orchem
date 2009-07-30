@@ -57,6 +57,8 @@ public abstract class State {
 
     protected abstract IAtomContainer getTargetMolecule();
     protected abstract IAtomContainer getQueryMolecule();
+    protected boolean strictStereoIsomorphism;
+
 
     /**
      * Checks whether the two nodes can be added to the state.
@@ -111,6 +113,12 @@ public abstract class State {
 
         // if the aromaticity flags for the two bonds differ, no chance
         if (aFlag != tbond.getFlag(CDKConstants.ISAROMATIC)) return false;
+
+        // if the strict on stereo isometry and stereo indicators differ, no match
+        if (strictStereoIsomorphism && aBond.getStereo()!=tbond.getStereo()) {
+            //System.out.println("nope ... "+aBond.getStereo()+" and "+ tbond.getStereo());
+            return false;
+        }
 
         // next we check bond order, but only if bonds were not aromatic. This is because
         // bond order may be 1 or 2 which does not indicate aromaticity. Also we only

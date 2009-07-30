@@ -108,7 +108,7 @@ public class DatabaseAccess {
      */
      public List substructureSearch(String userQuery, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
 
-        conn.setDefaultRowPrefetch(1);
+        conn.setDefaultRowPrefetch(1); //?? todo necessary?
         List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
         OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement("select id, mol_file from table(orchem_subsearch.search(?,?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
@@ -145,7 +145,7 @@ public class DatabaseAccess {
      */
     public List<OrChemCompound> substructureSearchParallel(String userQuery, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
 
-       conn.setDefaultRowPrefetch(1);
+       conn.setDefaultRowPrefetch(25);
        String setUp = "begin ?:= orchem_subsearch_par.setup (?,?); end;";
        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(setUp);
        ocs.registerOutParameter(1, OracleTypes.INTEGER);

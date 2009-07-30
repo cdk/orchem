@@ -26,14 +26,26 @@ package uk.ac.ebi.orchem.shared;
 
 import java.io.StringReader;
 
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import oracle.jdbc.OracleConnection;
+import oracle.jdbc.OracleDriver;
 
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
+import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 
 
 /**
@@ -49,11 +61,8 @@ public class MoleculeCreator {
      * @param mdlString
      * @return
      * @throws CDKException
-     * 
-     * 
-     * 
      */
-    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString) throws CDKException {
+    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString, boolean removeHydrogens) throws CDKException {
         NNMolecule molecule = null;
         mdlReader.setReader(new StringReader(mdlString));
         molecule = new NNMolecule();
@@ -77,25 +86,72 @@ public class MoleculeCreator {
             molecule = new NNMolecule();
             molecule = (NNMolecule)mdlReader.read(molecule);
         }
-
-
-        NNMolecule nnMolecule =null;
-        try {
-            nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
-        } catch (NullPointerException e) {
-            throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+        
+        NNMolecule nnMolecule = null;
+        
+        if (removeHydrogens)  {
+            try {
+                nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
+            } catch (NullPointerException e) {
+                throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+            }
+            if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
+                throw new CDKException("Error - molfile is null or mol atom count is zero. ");
         }
-
-        if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
-            throw new CDKException("Error - molfile is null or mol atom count is zero. ");
+        else {
+            nnMolecule = new NNMolecule(molecule);
+        }
 
         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
         return nnMolecule;
     }
-    
-    
+
+    /**
+     * Overload for {@link # getNNMolecule(MDLV2000Reader, String, boolean}
+     */
+    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString) throws CDKException {
+        return getNNMolecule(mdlReader, mdlString, true) ;
+    }
+
+    /**
+     * Gets a moleule from the database for a given id. <B>To be used as stored procedure</B>
+     * @param id
+     * @return CDK molecule
+     * @throws SQLException
+     */
+    public static NNMolecule getMolecule(String id, boolean removeHydrogens) throws SQLException, CDKException {
+        String molfile = null;
+        NNMolecule result = null;
+        OracleConnection conn = null;
+        conn = (OracleConnection)new OracleDriver().defaultConnection();
+
+
+        String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
+        String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
+        String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
+
+        String query =
+            " select " + compoundTableMolfileColumn + 
+            " from " + compoundTableName + 
+            " where " + compoundTablePkColumn + "=? ";
+
+        PreparedStatement psst = conn.prepareStatement(query);
+        psst.setString(1, id);
+        ResultSet res = psst.executeQuery();
+        if (res.next() && res.getClob(compoundTableMolfileColumn) != null) {
+            molfile = res.getString(1);
+        }
+        res.close();
+        psst.close();
+        result = getNNMolecule(new MDLV2000Reader(), molfile,removeHydrogens);
+        return result;
+    }
+
 }
+
+
+
 
 
 /*

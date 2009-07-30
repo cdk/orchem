@@ -399,6 +399,18 @@
             <url n="targetURL" path="src/uk/ac/ebi/orchem/test/LoadCompounds.java"/>
             <value n="VMName" v="server"/>
          </hash>
+         <hash n="non-parallel benchmark">
+            <value n="custom" v="false"/>
+            <value n="name" v="non-parallel benchmark"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/BenchMarkSubs2.java"/>
+            <value n="VMName" v="server"/>
+         </hash>
+         <hash n="parallel benchmark">
+            <value n="custom" v="false"/>
+            <value n="name" v="parallel benchmark"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/BenchmarkSubsearchForPaper.java"/>
+            <value n="VMName" v="server"/>
+         </hash>
          <hash n="PubChem Import">
             <value n="custom" v="false"/>
             <value n="javaOptions" v=""/>
@@ -414,6 +426,8 @@
          <string v="Empty"/>
          <string v="Load Unit test data"/>
          <string v="PubChem Import"/>
+         <string v="non-parallel benchmark"/>
+         <string v="parallel benchmark"/>
       </list>
    </hash>
    <hash n="oracle.jdevimpl.config.JProjectLibraries">

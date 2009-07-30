@@ -80,7 +80,10 @@ public class VF2State extends State {
      * @param target
      * @param query
      */
-    public VF2State(IAtomContainer target, IAtomContainer query) {
+    public VF2State(IAtomContainer target, IAtomContainer query, String strictStereoIsomrph) {
+        
+        strictStereoIsomorphism = strictStereoIsomrph.equals("Y") ? true: false;
+        //System.out.println("strictStereoIsomorphism "+strictStereoIsomorphism);
         queryAtomContainer = query;
         targetAtomContainer = target;
         queryAtomCount = queryAtomContainer.getAtomCount();

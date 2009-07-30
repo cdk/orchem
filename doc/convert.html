@@ -14,9 +14,9 @@
         <tr>
           <td >
             <h3>Introduction</h3>
-            Orchem contains some utility to convert different chemical structures. 
-            In ConvertMolucule.java class are located in Java package 'uk.ac.ebi.orchem.convert'.
-            This class included:
+            Orchem contains functionality to convert between different chemical notations. 
+            It uses the the ConvertMolucule.java class located in Java package 'uk.ac.ebi.orchem.convert'.
+            This class includes:
             <ul>
                 <li>SmilesToMolfile</li>
                 <li>MolfileToSmiles</li>
@@ -24,14 +24,11 @@
             You interact with these classes through PL/SQL packages that 
             wrap the classes as Java stored procedures/functions. These packages will be 
             explained in the following sections and some example queries will be given.
-            
-
             <br></br>
             <hr align="left">
             <h3>Smiles To Molfile </h3>
             Package orchem_convert.SmilesToMolfile: 
-
-            The function SmilesToMolfile convert a Smiles to Molfile string:
+            The function SmilesToMolfile converts a Smiles to Molfile string:
             <ul>
                  <li>SMILES (CLOB): a string SMILES string </li> 
                  <li>RETURN (CLOB): a string MDL mol file converted </li> 
@@ -47,7 +44,7 @@ select orchem_convert.smilestomolfile('cc1cccc1') as mol from dual
             <h3>Molfile To Smiles</h3>
             Package orchem_convert.MolfileToSmiles: 
 
-            The function MolfileToSmiles convert a Molfile to Smiles string:
+            The function MolfileToSmiles converts a Molfile to Smiles string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL mol file string </li> 
                  <li>RETURN (CLOB): a string SMILES converted </li> 

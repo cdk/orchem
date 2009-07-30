@@ -60,22 +60,33 @@ import org.openscience.cdk.interfaces.IAtomContainer;
  */
 public class SubgraphIsomorphism {
 
-    private IAtomContainer target = null;
-    private IAtomContainer query = null;
     private VF2State vf2 = null;
     List<NodePair[]> mappings = new ArrayList<NodePair[]>();
 
     /**
      * Constructs class to verify if query is a subgraph of target.
      *
-     * @param  target  target molecule. Must not be an IQueryAtomContainer.
-     * @param  query  query molecule. May be an IQueryAtomContainer.
-     * @throws org.openscience.cdk.exception.CDKException if an invalid target molecule is specified
+     * @param  target  target molecule. 
+     * @param  query  query molecule. 
+     * @param  strictStereoIsomorphismYN indicates if matching should be strict with regards to stereo isometry
+     * @throws CDKException
+     */
+    public SubgraphIsomorphism(IAtomContainer target, IAtomContainer query, String strictStereoIsomorphismYN) throws CDKException {
+        this.vf2 = new VF2State(target, query, strictStereoIsomorphismYN );
+    }
+
+    /**
+     * Overloaded constructor<br>
+     * Constructs class to verify if query is a subgraph of target.
+     *
+     * @param  target  target molecule. 
+     * @param  query  query molecule. 
+     * @throws CDKException
      */
     public SubgraphIsomorphism(IAtomContainer target, IAtomContainer query) throws CDKException {
-        this.target = target;
-        this.query = query;        
+        this.vf2 = new VF2State(target, query, "N" );
     }
+
 
     /**
      * Get the detected mappings.
@@ -87,41 +98,6 @@ public class SubgraphIsomorphism {
     }
 
 
-    private void initialize(IAtomContainer target, IAtomContainer query) {
-        this.vf2 = new VF2State(target, query);
-    }
-
-    /**
-     * Get the target molecule.
-     * @return the target molecule
-     */
-    public IAtomContainer getTarget() {
-        return target;
-    }
-
-    /**
-     * Set the target molecule.
-     * @param target the target IAtomContainer
-     */
-    public void setTarget(IAtomContainer target)  {
-        this.target = target;
-    }
-
-    /**
-     * Get the query molecule.
-     * @return the query molecule
-     */
-    public IAtomContainer getQuery() {
-        return query;
-    }
-
-    /**
-     * Set the query molecule.
-     * @param query the target IAtomContainer
-     */
-    public void setQuery(IAtomContainer query) {
-        this.query = query;
-    }
 
     /**
      * Check whether the query is a subgraph of the target graph.
@@ -132,8 +108,6 @@ public class SubgraphIsomorphism {
      * @throws org.openscience.cdk.exception.CDKException if target or query molecules have not been set
      */
     public boolean matchSingle() throws CloneNotSupportedException, CDKException {
-        if (target == null || query == null) throw new CDKException("Must set target and query molecules");
-        initialize(target, query);
         mappings.clear();
         return singleMatch();
     }

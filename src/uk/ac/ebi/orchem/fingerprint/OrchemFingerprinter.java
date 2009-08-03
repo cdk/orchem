@@ -871,6 +871,7 @@ public class OrchemFingerprinter implements IFingerprinter {
                                         
                                         
                                         int bitPos = BitPosApi.bp.ringLayout.get(fiveSix + singleDouble + connectivity +bondOverlap);
+                                        //System.out.println(fiveSix + singleDouble + connectivity +bondOverlap);
                                         fingerprint.set(bitPos, true);
                                     }
                                 }

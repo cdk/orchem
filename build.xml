@@ -214,6 +214,9 @@
                      **/uk/ac/ebi/orchem/temp/*
                      **/uk/ac/ebi/orchem/isomorphism/*
                      **/uk/ac/ebi/orchem/convert/*
+                     **/uk/ac/ebi/orchem/convert/*
+                     **/uk/ac/ebi/orchem/isomorphism/*
+                     **/uk/ac/ebi/orchem/convert/*
                      " />
 
       <!-- Put all required jar files and DDL in a tar file -->

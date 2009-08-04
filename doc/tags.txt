@@ -16,3 +16,6 @@ tweaks
 
 beta01
 tag for first public beta release. has no hashed fingerprints
+
+public1.0
+public release 1.0

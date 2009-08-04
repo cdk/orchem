@@ -29,6 +29,7 @@
             <b>initial OrChem query will be less responsive</b>. The DBMS always needs to time to warm 
             up the cache a bit. 
             <br></br>
+            <br></br>
 
             <h3>Similarity searching</h3>
             Package orchem_simsearch : 
@@ -101,9 +102,12 @@ select orchem_simsearch.search(MOLFILE,'MOL',0.75,50,'N') from COMPOUNDS where M
 <pre>
         select * from table( select orchem_simsearch.search(molfile,'MOL',0.7,5,'N') from compounds where molregno=666)  
 </pre>
-            <br></br>
             <hr align="left">
+            <br></br>
+            <br></br>
 
+	    
+	    
             <h3>Substructure searching</h3>
             Package orchem_subsearch : 
 <pre>
@@ -151,7 +155,7 @@ select orchem_subsearch.search(molfile,'MOL',50,'Y') from compounds where molreg
             <br></br>
             <hr align="left">
 
-            <!--h3>Parallel substructure searching</h3>
+<h3>Parallel substructure searching</h3>
             Package orchem_subsearch_par: 
 <pre>
 FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
@@ -159,123 +163,38 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  ------------------------------ ----------------------- ------ --------
  QUERY_KEY                      NUMBER(38)              IN
  TOPN                           NUMBER(38)              IN     DEFAULT
- DEBUG_YN                       VARCHAR2                IN     DEFAULT
-
+ FORCE_FULL_SCAN                VARCHAR2                IN     DEFAULT
 FUNCTION SETUP RETURNS NUMBER(38)
  Argument Name                  Type                    In/Out Default?
  ------------------------------ ----------------------- ------ --------
  USER_QUERY                     CLOB                    IN
  QUERY_TYPE                     VARCHAR2                IN
+
 </pre>
             A parallel substructure search can be used as an alternative to the normal substructure
             search. The resultset of both searches will be the same, but the response time will differ.
             The parallel implementation is such that the query needs an extra step. This extra step is 
-            purely for technical reasons and would ideally not be necessary (todo). <br>However
-            with the implementation using a piped parallel function and parallel Java slave processes,
+            purely for technical reasons: with the implementation using a piped parallel function and parallel Java slave processes,
             the extra 'preparation' step is necessary. The reward may be in the performance: the parallel
             function can run significantly faster, but not always (!) depending on many things.
-            <br></br>
-            To prepare the query, you use SETUP. This function takes in a query and a query type, and
+<h5>Examples</h5>
+            <hr align="left">
+
+	    To prepare the query, you use SETUP. This function takes in a query and a query type, and
             then returns a number (the 'key'). The key is then fed into the parallel search.
             See the next example, where a parallel search for S:C-O-C-C-C is prepared
             an then executed with TopN 100. 
-<pre style="font-style:italic;color:gray">
-SQL>exec :key :=orchem_subsearch_par.setup('S:C-O-C-C-C','SMILES')
-SQL>select id from table (orchem_subsearch_par.search(:key,100,'Y') )
-</pre>
-            <br>
-            To illustrate performance difference, below is an example using the ChEMBL database. First a normal substructure
-            search, then a parallel one. 
-<pre style="font-style:italic;color:gray">                
-
-SQL> select id from table(orchem_subsearch.search('S:C-O-C','SMILES',25,'N'))
-
-ID
---------------------------------------------------------------------------------
-350568
-356676
-350522
-350524
-350523
-282839
-216639
-350249
-350507
-350483
-216722
-215912
-350551
-350354
-350337
-350416
-350226
-350208
-350167
-350440
-369114
-350184
-365728
-369119
-369035
-
-25 rows selected.
-
-Elapsed: 00:00:08.74
-
-
-SQL>exec :key :=orchem_subsearch_par.setup('S:C-O-C','SMILES')
-PL/SQL procedure successfully completed.
-SQL>select id from table (orchem_subsearch_par.search(:key,25,'Y') )
-ID                                                                                    SCORE
--------------------------------------------------------------------------------- ----------
-350568                                                                                    1
-350522                                                                                    1
-350524                                                                                    1
-350507                                                                                    1
-350523                                                                                    1
-356676                                                                                    1
-282839                                                                                    1
-216639                                                                                    1
-350249                                                                                    1
-215912                                                                                    1
-350483                                                                                    1
-216722                                                                                    1
-365728                                                                                    1
-350551                                                                                    1
-350354                                                                                    1
-350337                                                                                    1
-350416                                                                                    1
-350226                                                                                    1
-350208                                                                                    1
-350167                                                                                    1
-350440                                                                                    1
-350184                                                                                    1
-369120                                                                                    1
-369074                                                                                    1
-369119                                                                                    1
-
-25 rows selected.
-
-Elapsed: 00:00:05.18
-</pre>
-
-            The results above drip in one by one. 
-            This example was run on a simple dual core PC, allowing for a parallel degree of two. You can see
-            the normal search has an elapse time of 8.74 whereas the parallel 
-            search finishes in 5.18 seconds. Although done on a dual core PC, the parallel search 
-            is not twice as fast because the parallel query always takes up overhead time. <br>
-            Comparing the different search types is not exact science. A chuncky server with many processors may
-            run the parallel version above faster. At the other hand some different "easy" Smiles query
-            may actually be run faster by the non parallelized procedures because of the lack of 
-            parallel query overhead for Oracle.<br></br>
-            A final word on the degree of parallelism: you can influence this by issuing
-            an ALTER TABLE on ORCHEM_FINGPRINT_SUBSEARCH. For example this ALTER TABLE
-            statement will allow for a parallel degree of six for the substructure search. Of course
-            your hardware must allow for this to see it actually work.
-            
 <pre>
-alter table orchem_fingprint_subsearch parallel 6
-</pre-->
+SQL> var key number;
+
+SQL> exec :key :=orchem_subsearch_par.setup('S:C-O-C-C-C','SMILES')
+
+SQL> select id from table (orchem_subsearch_par.search(:key,100) )
+</pre>
+<hr align="left">
+            <br></br>
+            <br></br>
+
 
             <h3>JDBC examples</h3>
             Please refer to the OrChem CVS repository to find Java classes that
@@ -284,40 +203,41 @@ alter table orchem_fingprint_subsearch parallel 6
 <pre>
 
         // similarity search from JDBC
-        String plsqlCall = "begin ?:=orchem_simsearch.search(?,?,?,?,?); end;";
-        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
-        ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
-        ocs.setString(2, userQuery);
-        ocs.setString(3, queryType);
-        ocs.setFloat(4, tanimotoCutoff);
-        ocs.setInt(5, topN);
-        ocs.setString(6, "N");
-        ocs.executeUpdate();
-        Array cARRAY = ocs.getArray(1);
-        Map map = conn.getTypeMap();
-        map.put("ORCHEM_COMPOUND", Class.forName("uk.ac.ebi.orchem.bean.OrChemCompound",
-        false,Thread.currentThread().getContextClassLoader())); 
-        Object[] compoundArray = (Object[])cARRAY.getArray();
-        return Arrays.asList(compoundArray);
+        public List similaritySearch(String userQuery, String queryType, OracleConnection conn, 
+	float tanimotoCutoff, int topN) throws SQLException,ClassNotFoundException {
+         String plsqlCall = "begin ?:=orchem_simsearch.search(?,?,?,?,?); end;";
+         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
+         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
+         ocs.setString(2, userQuery);
+         ocs.setString(3, queryType);
+         ocs.setFloat(4, tanimotoCutoff);
+         ocs.setInt(5, topN);
+         ocs.setString(6, "N");
+         ocs.execute();
+         Array cARRAY = ocs.getArray(1);
+         Map map = conn.getTypeMap();
+         map.put("ORCHEM_COMPOUND", Class.forName("uk.ac.ebi.orchem.bean.OrChemCompound",
+	 false,Thread.currentThread().getContextClassLoader())); 
+         Object[] compoundArray = (Object[])cARRAY.getArray();
+         return Arrays.asList(compoundArray);
+       }
 
 
 
         //substructure search from JDBC
-           conn.setDefaultRowPrefetch(1);
-        String setUp = "begin ?:= orchem_subsearch_par.setup (?,?); end;";
-        OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(setUp);
-        ocs.registerOutParameter(1, OracleTypes.INTEGER);
-        ocs.setString(2, molfile);
-        ocs.setString(3, queryType);
-        ocs.executeUpdate();
-        int key = ocs.getInt(1);
-        ocs.close();
+       public List substructureSearch(String userQuery, String queryType, 
+       OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
+
+        conn.setDefaultRowPrefetch(1); 
         List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
-        PreparedStatement pstmt = conn.prepareStatement
-        ("select id, mol_file from table(orchem_subsearch_par.search(?,?,'N'))   ",
-        ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-        pstmt.setInt(1,key);
-        pstmt.setInt(2,topN);
+        OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement
+	("select id, mol_file from table(orchem_subsearch.search(?,?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, 
+	ResultSet.CONCUR_READ_ONLY);
+
+        pstmt.setCLOB(1, getCLOB (userQuery,conn)); 
+        pstmt.setString(2, queryType); 
+        pstmt.setInt(3, topN);
+
         ResultSet res = pstmt.executeQuery();
         while (res.next())  {
            OrChemCompound cmp = new OrChemCompound();
@@ -327,7 +247,8 @@ alter table orchem_fingprint_subsearch parallel 6
         }
         res.close();
         pstmt.close();
-        return compounds;    
+        return compounds;
+    }
 </pre>
             
             

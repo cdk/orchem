@@ -3,7 +3,7 @@
  *  $Date$
  *  $Revision$
  *
- *  Copyright (C) 2008-2009  OrChem project
+ *  Copyright (C) 2008-2009  Mark Rijnbeek
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -163,7 +163,7 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_27() throws Exception {
-        findSelf(similaritySearch(27, 0.85f, 6),27);
+        findSelf(similaritySearch(27, 0.85f, 8),27);
     }
 
     public void testCompoundID_31() throws Exception {

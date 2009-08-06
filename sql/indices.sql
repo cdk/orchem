@@ -1,6 +1,7 @@
 /*___________________________________________________________________________
   Index creation for OrChem tables
-  ___________________________________________________________________________*/
+  copyright: Mark Rijnbeek, markr@ebi.ac.uk 2009
+___________________________________________________________________________*/
 
 prompt Creating bitmap index on similarity search table
 create bitmap index orchem_idx_bmp_simil on orchem_fingprint_simsearch (bit_count)

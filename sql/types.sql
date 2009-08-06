@@ -1,3 +1,12 @@
+/*
+________________________________________________________________________________
+
+Creates types for OrChem
+
+copyright: Mark Rijnbeek, markr@ebi.ac.uk 2009
+________________________________________________________________________________
+*/
+
 
 prompt creating type "orchem_compound"
 

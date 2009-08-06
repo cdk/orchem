@@ -2,7 +2,8 @@
 ________________________________________________________________________________
 
 Substructure searching, non parallelized style
-author: markr@ebi.ac.uk, 2009
+copyright: Mark Rijnbeek, markr@ebi.ac.uk 2009
+
 
 Note: to enable the effect of PIPEd functions, 
 - in sql*plus: set arraysize=1
@@ -227,10 +228,14 @@ AS
                  )) IS NOT NULL
                 THEN
                    --(12)
+                    BEGIN
                     execute immediate moleculeQuery into molecule using l_candidate.compound_id;
                     pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );
                     numOfResults:=numOfResults+1;
-
+                    EXCEPTION
+                    WHEN TOO_MANY_ROWS THEN
+                       raise_application_error (-20001, 'Query in compound table/view with id '||l_candidate.compound_id||' gave more than one row. Aborting!');
+                    END;
                    --(13)
                     IF (topN is not null AND numOfResults >= topN) THEN
                       CLOSE myRefcur;  

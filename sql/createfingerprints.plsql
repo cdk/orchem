@@ -2,13 +2,15 @@
 ________________________________________________________________________________
 
  Chemical fingerprinting
-
+ copyright: Mark Rijnbeek, markr@ebi.ac.uk 2009
 ________________________________________________________________________________
 */
 
 CREATE OR REPLACE PACKAGE orchem_fingerprinting
 AS 
    PROCEDURE load_cdk_fingerprints (start_id VARCHAR2, end_id VARCHAR2);
+   PROCEDURE synchronize_cdk_fingerprints;
+
    PROCEDURE slice_load (p_start_id integer, p_end_id integer);
 END;
 /
@@ -20,13 +22,29 @@ CREATE OR REPLACE PACKAGE BODY orchem_fingerprinting
 AS 
 
  /*___________________________________________________________________________
+
+   Synchronize fingerprints with base compound data.
+   
    Java stored procedure to invoke calculation of chemical fingerprints and
-   storing these in OrChem search tables. 
+   storing these in OrChem search tables 
+   ___________________________________________________________________________*/
+   PROCEDURE synchronize_cdk_fingerprints 
+   IS LANGUAGE JAVA NAME 
+   'uk.ac.ebi.orchem.load.FingerprintSynchronization.synchronize ()';
+
+
+
+ /*___________________________________________________________________________
+   
+   Bulk load fingerprints  (initial load)
+   Java stored procedure to invoke calculation of chemical fingerprints and
+   storing these in OrChem search tables.
+   
    ___________________________________________________________________________*/
    PROCEDURE load_cdk_fingerprints 
              (start_id VARCHAR2, end_id VARCHAR2)
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.load.LoadCDKFingerprints.load (java.lang.String, java.lang.String)';
+   'uk.ac.ebi.orchem.load.FingerprintBulkLoad.bulkLoad (java.lang.String, java.lang.String)';
 
 
 

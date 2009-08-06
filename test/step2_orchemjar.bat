@@ -29,7 +29,6 @@ jar -uvf c:\orchem.jar uk/ac/ebi/orchem/fingerprint/bitpos/BitPositions.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/fingerprint/bitpos/BitPosApi.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/fingerprint/OrchemFingerprinter.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class
-jar -uvf c:\orchem.jar uk/ac/ebi/orchem/load/LoadCDKFingerprints.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SimilaritySearch.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/OrchemMoleculeBuilder.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/UserQueryMolecule.class
@@ -37,6 +36,7 @@ jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearch.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/search/SubstructureSearchParallel.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/test/VerifyOrchem.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/isomorphism/*.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/load/*.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/convert/ConvertMolecule.class
 
 

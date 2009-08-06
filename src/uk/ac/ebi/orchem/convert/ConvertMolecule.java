@@ -3,7 +3,7 @@
  *  $Date$
  *  $Revision$
  *
- *  Copyright (C) 2008-2009  OrChem project
+ *  Copyright (C) 2008-2009  Federico Paoli
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -24,32 +24,22 @@
 
 package uk.ac.ebi.orchem.convert;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Reader;
-import java.io.StringReader;
-
 import java.io.StringWriter;
-import java.io.Writer;
-
-import java.sql.SQLException;
-
 
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
+
 import oracle.sql.CLOB;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
-import org.openscience.cdk.interfaces.IChemObject;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.MDLWriter;
-import org.openscience.cdk.io.formats.MDLV2000Format;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
-
 import org.openscience.cdk.smiles.SmilesParser;
 
 import uk.ac.ebi.orchem.Utils;
@@ -57,7 +47,7 @@ import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 
 /**
- * To be used as java stored procedure, 
+ * To be used as java stored procedure,
  */
 
 public class ConvertMolecule {

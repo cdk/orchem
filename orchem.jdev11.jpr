@@ -477,10 +477,6 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Oracle JDBC"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Xwork-2.0.5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
@@ -510,6 +506,10 @@
          </hash>
          <hash>
             <value n="id" v="Mx-1.0-beta1.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Ojdbc5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -701,6 +701,15 @@
                <value n="id" v="Mx-1.0-beta1.jar"/>
                <value n="locked" v="true"/>
             </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="../../../oracle/base/db11g/jdbc/lib/ojdbc5.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Ojdbc5.jar"/>
+               <value n="id" v="Ojdbc5.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
          </list>
       </hash>
       <list n="libraryReferences">
@@ -749,10 +758,6 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Oracle JDBC"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Xwork-2.0.5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
@@ -782,6 +787,10 @@
          </hash>
          <hash>
             <value n="id" v="Mx-1.0-beta1.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Ojdbc5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

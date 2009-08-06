@@ -1,3 +1,14 @@
+/*
+________________________________________________________________________________
+
+Creates tables for OrChem
+
+copyright: Mark Rijnbeek, markr@ebi.ac.uk 2009
+________________________________________________________________________________
+*/
+
+
+
 prompt creating table "orchem_parameters"
     create table orchem_parameters
     (  comp_tab_name         varchar2(30) not null

@@ -14,20 +14,132 @@
           <td>
             <h3>Keeping fingerprints in sync with your compound data</h3>
 
-            <img src="construction.jpg" alt="busy busy" />
+            After installing OrChem and creating the initial fingerprints, 
+            these fingerprints will get out of date over time if your
+            compound data changes after inserts, deletes and updates.
+            OrChem provides a simple mechanism that can be used to periodically
+            synchronize the compounds with the fingerprint, the details are
+            described on this page.
+          </td>
+        </tr>
+
+       <tr>
+          <td>
+            <h3>Set up</h3>
+
+            The synchronization concept is pretty straightforward: a CRUD trigger is created on
+            your compound base table and each change is then logged in an audit table
+            specifically for OrChem. Periodically (at the interval you want), you then
+            schedule an OrChem procedure to inspect the audit table, update the fingerprints
+            based on the audit table content and remove processed audit data.
+            <BR>
+            This differs a little bit from the general installation that was done 
+            in its own "ORCHEM" schema. The trigger and audit table must be 
+            installed in the 'master' schema that owns the compound table.
+            <P>
+            <UL>
+            <li>Navigate into the orchem/sql directory where you unzipped OrChem</li>
+            <li>Connect to the database using SQL*Plus with your account that <b>owns the compound table.</b></li>
+            <li>In SQL*Plus, execute the script <b>synchronization.sql</b>, located in orchem/sql. 
+                This script first creates the audit table and then asks you for the compound table name and the name 
+                of the primary key column. It then creates a trigger on your compound table.<br>
+                Example below, where a trigger is created on compound table 'ORCHEM_COMPOUND_SAMPLE' which
+                has a primary key column called 'ID'.
+<pre>
+        SQL> @synchronization
+        
+        drop table orchem_audit_compound_changes (if exists)
+        Table dropped.
+        
+        creating table orchem_audit_compound_changes
+        Table created.
+
+        
+        creating trigger 'orchem_trg_compound_changes'
+
+        Enter value for your_compound_table: ORCHEM_COMPOUND_SAMPLE
+        Enter value for your_primary_key: ID
+        
+        Trigger created.
+        
+        No errors.
+
+        SQL>
+        SQL>
+</pre>
+
+            </li>
+            <li>With the creation of the trigger, changes on the compound table will be logged in 
+            a new audit table called "orchem_audit_compound_changes".
+            The OrChem user needs to be given privileges in order to use this audit table.
+            The privilege is given with a GRANT command. <br><br>
+            Like the previous script, the GRANT needs to run by the account that <b>owns</b> the compound table (and the
+            newly created audit table). You can copy/paste/execute the example below, assuming your OrChem account is 
+            actually called "ORCHEM"; otherwise you have to change the last word, the grantee.
+<pre>
+
+        SQL> grant select,insert, update, delete on orchem_audit_compound_changes to orchem;
+
+        Grant succeeded.
+
+
+
+</pre>            
             
-            - concept
-            - trigger/table
-            - install it
-            - grant ins/upd/dele -> OrChem will be reading deleting 
-            - make a synonym
-            - test
-            
-            - what procedure to call
-            
-            - dbms_job example
-           
-            
+            </li>
+            <li>Now <b>reconnect</b> to the database using SQL*Plus with your account ORCHEM account instead.</li>
+            <li>To finalize the setup, OrChem needs to create a private synonym for the audit table. This
+            makes it possible for Orchem to refer to the audit table without a schema prefix. <br>
+            You can use the example below, replacing xxx with the name of the schema in which you 
+            just created the audit table. If you don't have the privilege to create synonyms, you'll get 
+            an error (so go and bug your DBA)
+<pre>
+
+        SQL>  create synonym orchem_audit_compound_changes for xxxx.orchem_audit_compound_changes;
+        
+        Synonym created.
+</pre>
+            </li>
+            <li>This complete the synchronization set up.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>Running the synchronization</h3>
+
+            Synchronization is invoked by calling package "orchem_fingerprinting",
+            procedure "synchronize_cdk_fingerprints". An example is given below,
+            in this case the procedure returns immediately because there was nothing to do 
+            (the audit table was empty).<br>
+<pre>
+
+SQL> exec orchem_fingerprinting.SYNCHRONIZE_CDK_FINGERPRINTS
+
+Nothing to do !!
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.12
+SQL>
+
+
+</pre>
+
+            You may want to <b>schedule</b> this procedure regularly, 
+            depending on the volatility of you compound data. For such scheduling you
+            could use the standard facility DBMS_JOB. Or you could run it each time
+            after you update/load compounds in some batch job. It's up to you.
+
+        <p><p>
+        <a href="index.html">Back to main page</a>
+        <br></br>
+        <span style="font-size: 8pt;">
+          Author:
+          <a href="mailto:mark_rynbeek@users.sourceforge.net">mark_rynbeek@users.sourceforge.net </a>
+        </span>
+
+
+
           </td>
         </tr>
 

@@ -16,6 +16,9 @@ AS
    FUNCTION SmilesToMolfile (smiles clob)
    RETURN CLOB;
 
+   FUNCTION MolfileToJpeg (molfile clob, hsize number, vsize number)
+   RETURN BLOB;
+
 END;
 /
 SHOW ERRORS
@@ -38,6 +41,11 @@ AS
    RETURN CLOB
    IS LANGUAGE JAVA NAME 
    'uk.ac.ebi.orchem.convert.ConvertMolecule.SmilesToMolfile(oracle.sql.CLOB) return oracle.sql.CLOB ';
+
+   FUNCTION MolfileToJpeg (molfile clob, hsize number, vsize number)
+   RETURN BLOB
+   IS LANGUAGE JAVA NAME 
+   'uk.ac.ebi.orchem.convert.ConvertMolecule.MolfileToJpeg(oracle.sql.CLOB, java.lang.Integer, java.lang.Integer) return oracle.sql.BLOB ';
 
 END;  
 /   

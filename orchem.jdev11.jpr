@@ -329,6 +329,7 @@
             </hash>
             <hash>
                <list n="pattern-filters">
+                  <string v="-fpaoli"/>
                   <string v="+**"/>
                </list>
                <list n="url-path">
@@ -337,7 +338,6 @@
             </hash>
             <hash>
                <list n="pattern-filters">
-                  <string v="-convert.html"/>
                   <string v="-diary.sxw"/>
                   <string v="-prweb-sidebar.png"/>
                   <string v="-ashReport.html"/>
@@ -361,6 +361,7 @@
             </hash>
             <hash>
                <list n="pattern-filters">
+                  <string v="-fpaoli"/>
                   <string v="+**"/>
                </list>
                <list n="url-path">
@@ -421,11 +422,22 @@
             <url n="targetURL" path="src/uk/ac/ebi/orchem/imp/PubChemImport.java"/>
             <value n="VMName" v="server"/>
          </hash>
+         <hash n="TestFromJava">
+            <value n="custom" v="false"/>
+            <value n="javaOptions" v=""/>
+            <value n="name" v="TestFromJava"/>
+            <value n="programArguments" v=""/>
+            <value n="runActiveFile" v="false"/>
+            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/test/TestFromJava.java"/>
+            <value n="VMName" v="server"/>
+         </hash>
       </hash>
       <list n="runConfigurationList">
          <string v="Empty"/>
          <string v="Load Unit test data"/>
          <string v="PubChem Import"/>
+         <string v="TestFromJava"/>
          <string v="non-parallel benchmark"/>
          <string v="parallel benchmark"/>
       </list>

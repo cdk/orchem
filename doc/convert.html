@@ -69,8 +69,8 @@ select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('cc1cccc1')
             </ul>     
             <h5>For database 11g</h5>There is a <a href="https://metalink2.oracle.com/metalink/plsql/showdoc?db=Bug&id=7184929">Bug 7184929</a> regarding the fonts in Oracle Server - Version: 11.1.0.6 to 11.1.0.7<br></br>
             Implement the workaround (check Oracle Metalink Note): <a href="https://metalink2.oracle.com/metalink/plsql/f?p=130:14:9750602592382268878::::p14_database_id,p14_docid,p14_show_header,p14_show_help,p14_black_frame,p14_font:NOT,604472.1,1,1,1,helvetica">604472.1</a><br></br>
-            mkdir $ORACLE_HOME/javavm/lib/fonts<br></br>
-            cp $ORACLE_HOME/jdk/jre/lib/fonts/* $ORACLE_HOME/javavm/lib/fonts<br></br>
+            - mkdir $ORACLE_HOME/javavm/lib/fonts<br></br>
+            - cp $ORACLE_HOME/jdk/jre/lib/fonts/* $ORACLE_HOME/javavm/lib/fonts<br></br>
             <h5>Examples</h5>
             <hr align="left">
 <pre>

@@ -34,9 +34,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-
-import java.sql.SQLException;
-
 import java.util.Iterator;
 
 import javax.servlet.ServletException;
@@ -46,7 +43,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
-import uk.ac.ebi.orchem.shared.DatabaseAccess;
 
 
 /**

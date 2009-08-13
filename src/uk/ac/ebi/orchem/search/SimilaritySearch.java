@@ -93,7 +93,7 @@ public class SimilaritySearch {
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      * @throws Exception
      */
-    private static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN) throws Exception { 
+    private static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN, String idsOnlyYN) throws Exception { 
 
         /*
          * 
@@ -325,16 +325,26 @@ public class SimilaritySearch {
     
             while (heap.size() != 0) {
                 SimHeapElement bElm = (SimHeapElement)heap.remove();
-                pstmLookup.setString(1, bElm.getID());
-                ResultSet resLookup = pstmLookup.executeQuery();
-                if (resLookup.next()) {
+
+                if (idsOnlyYN.equals("N")) {
+                // return structure to user
+                    pstmLookup.setString(1, bElm.getID());
+                    ResultSet resLookup = pstmLookup.executeQuery();
+                    if (resLookup.next()) {
+                        OrChemCompound c = new OrChemCompound();
+                        c.setId(bElm.getID());
+                        c.setMolFileClob(resLookup.getClob(compoundTableMolfileColumn));
+                        compounds.add(c);
+                    }
+                    resLookup.close();
+                }
+                else {
+                // only return ID and score to user
                     OrChemCompound c = new OrChemCompound();
                     c.setId(bElm.getID());
-                    c.setMolFileClob(resLookup.getClob(compoundTableMolfileColumn));
                     c.setScore(bElm.getTanimotoCoeff().floatValue());
                     compounds.add(c);
                 }
-                resLookup.close();
             }
             pstmLookup.close();
             long befSort= System.currentTimeMillis();
@@ -367,34 +377,38 @@ public class SimilaritySearch {
 
     /**
      * Similarity search with molfile as input arg
-     * @param molfile
-     * @param cutOff
-     * @param topN
-     * @param debugYN
-     * @return
-     * @throws Exception
+     *
+     * @param molfile    molfile query
+     * @param cutOff     break out when similarity goes under this cut off
+     * @param topN       only find first top N results
+     * @param debugYN    debug info back to user Y/N
+     * @param idsOnlyYN  only return IDs Y/N
+     * @return           array of compound data
+     * @throws Exception 
      */
-    private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN) throws Exception {
+    private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN, String idsOnlyYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
-        return search(fp, cutOff, topN, debugYN);
+        return search(fp, cutOff, topN, debugYN,idsOnlyYN);
     }
 
 
     /**
      * Similarity search by simplified molecular input line entry specification
      *
-     * @param smiles string
-     * @param topN top N results after which to stop searching
-     * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
-     *
+    * @param smiles     SMILES query
+    * @param cutOff     break out when similarity goes under this cut off
+    * @param topN       only find first top N results
+    * @param debugYN    debug info back to user Y/N
+    * @param idsOnlyYN  only return IDs Y/N
+    * @return           array of compound data
      * @throws Exception
      */
-    private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN) throws Exception {
+    private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN, String idsOnlyYN) throws Exception {
         IAtomContainer molecule = sp.parseSmiles(smiles);
         BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
-        return search(fp, cutOff, topN, debugYN);
+        return search(fp, cutOff, topN, debugYN,idsOnlyYN);
     }
 
     /**
@@ -410,27 +424,27 @@ public class SimilaritySearch {
         }
     }
 
-
-    public static oracle.sql.ARRAY  search(Clob userQuery, String queryType, Float cutOff, Integer topN,String debugYN) throws Exception {
+    /**
+     * Java interface to PL/SQL for similarity searching
+     * @param userQuery  query structure in some chemical format
+     * @param cutOff     break out when similarity goes under this cut off
+     * @param topN       only find first top N results
+     * @param debugYN    debug info back to user Y/N
+     * @param idsOnlyYN  only return IDs Y/N
+     * @return           array of compound data
+     * @throws Exception
+     */
+    public static oracle.sql.ARRAY  search(Clob userQuery, String queryType, Float cutOff, Integer topN,String debugYN, String idsOnlyYN) throws Exception {
         int clobLen = new Long(userQuery.length()).intValue();
         String query = (userQuery.getSubString(1, clobLen));
         if (queryType.equals(Utils.QUERY_TYPE_MOL))  
-            return molSearch(query, cutOff, topN, debugYN);
+            return molSearch(query, cutOff, topN, debugYN,idsOnlyYN);
         else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) 
-            return smilesSearch(query, cutOff, topN, debugYN);
+            return smilesSearch(query, cutOff, topN, debugYN,idsOnlyYN);
         else 
             throw new RuntimeException("Query type not recognized");
     }
     
     
-    /*
-    public static void main(String[] args) throws Exception {
-        OracleConnection conn = (OracleConnection) new UnitTestConnection().getDbConnection();
-        CLOB myClob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
-        myClob.open(CLOB.MODE_READWRITE);
-        myClob.setString(1, "C:C:C:C:C");
-        search(myClob, Constants.QUERY_TYPE_SMILES, 0.1f, 5,"Y");
-    }
-    */
 
 }

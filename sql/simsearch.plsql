@@ -10,7 +10,7 @@ ________________________________________________________________________________
 CREATE OR REPLACE PACKAGE orchem_simsearch
 AS 
    FUNCTION search ( user_query clob, query_type varchar2, 
-                     cutoff float, topn NUMBER:=NULL, debug_YN VARCHAR2:='N')
+                     cutoff float, topn NUMBER:=NULL, debug_YN VARCHAR2:='N', return_ids_only_YN VARCHAR2:='N')
    RETURN orchem_COMPOUND_LIST;
 END;
 /
@@ -28,16 +28,18 @@ AS
    ___________________________________________________________________________*/
    FUNCTION javaSearch 
    (
-      user_query CLOB            -- user's query, a Smiles or Mol string
-     ,query_type VARCHAR2        -- values can be: "SMILES", "MOL"
-     ,cutoff     FLOAT           -- minimum similarity breakout (float 0..1)
+      user_query         CLOB            -- user's query, a Smiles or Mol string
+     ,query_type         VARCHAR2        -- values can be: "SMILES", "MOL"
+     ,cutoff             FLOAT           -- minimum similarity breakout (float 0..1)
 
-     ,topn       NUMBER          -- max number of results breakout, optional
-     ,debug_YN   VARCHAR2        -- switch on/off debug statements, optional
+     ,topn               NUMBER          -- max number of results breakout, optional
+     ,debug_YN           VARCHAR2        -- switch on/off debug statements, optional
+     ,return_ids_only_YN VARCHAR2        -- set to Y if you only want IDs returned, not structures
+
    )
    RETURN orchem_COMPOUND_LIST
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SimilaritySearch.search (java.sql.Clob, java.lang.String, java.lang.Float, java.lang.Integer, java.lang.String) return oracle.sql.ARRAY';
+   'uk.ac.ebi.orchem.search.SimilaritySearch.search (java.sql.Clob, java.lang.String, java.lang.Float, java.lang.Integer, java.lang.String, java.lang.String) return oracle.sql.ARRAY';
 
 
 
@@ -46,16 +48,17 @@ AS
    Hack to allow default values on Java stored procedures
    ___________________________________________________________________________*/
    FUNCTION search (
-      user_query CLOB            
-     ,query_type VARCHAR2        
-     ,cutoff     FLOAT           
-     ,topn       NUMBER   := NULL -- default value       
-     ,debug_YN   VARCHAR2 := 'N'  -- default value       
+      user_query         CLOB            
+     ,query_type         VARCHAR2        
+     ,cutoff             FLOAT           
+     ,topn               NUMBER   := NULL -- default value       
+     ,debug_YN           VARCHAR2 := 'N'  -- default value    
+     ,return_ids_only_YN VARCHAR2:='N'
    )
    RETURN orchem_COMPOUND_LIST
    IS
    BEGIN 
-       RETURN javaSearch(user_query, query_type, cutoff, topn, debug_YN); 
+       RETURN javaSearch(user_query, query_type, cutoff, topn, debug_YN,return_ids_only_YN); 
    END;
    
 

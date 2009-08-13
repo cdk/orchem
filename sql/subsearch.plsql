@@ -16,7 +16,7 @@ AS
    l_candidate orchem_utils.candidate_rec;
 
    FUNCTION search (userQuery Clob, input_type varchar2
-                  , topN integer:=null, debug_YN varchar2:='N' )
+                  , topN integer:=null, debug_YN varchar2:='N', return_ids_only_YN VARCHAR2:='N') 
    RETURN   orchem_compound_list
    PIPELINED
    ;
@@ -110,7 +110,8 @@ AS
    (13) If topN was set, and number of results==topN, exit wounds
    
    ___________________________________________________________________________*/
-   FUNCTION search (userQuery Clob, input_type varchar2, topN integer :=null , debug_YN varchar2 := 'N')
+   FUNCTION search (userQuery Clob, input_type varchar2, topN integer :=null , 
+                    debug_YN varchar2 := 'N',return_ids_only_YN VARCHAR2:='N')
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -229,8 +230,13 @@ AS
                 THEN
                    --(12)
                     BEGIN
-                    execute immediate moleculeQuery into molecule using l_candidate.compound_id;
-                    pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );
+                    if return_ids_only_YN='N' then
+                        execute immediate moleculeQuery into molecule using l_candidate.compound_id;    
+                        pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );  
+                    else 
+                        pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );  
+                    end if;
+
                     numOfResults:=numOfResults+1;
                     EXCEPTION
                     WHEN TOO_MANY_ROWS THEN

@@ -333,6 +333,7 @@ public class SimilaritySearch {
                     if (resLookup.next()) {
                         OrChemCompound c = new OrChemCompound();
                         c.setId(bElm.getID());
+                        c.setScore(bElm.getTanimotoCoeff().floatValue());
                         c.setMolFileClob(resLookup.getClob(compoundTableMolfileColumn));
                         compounds.add(c);
                     }

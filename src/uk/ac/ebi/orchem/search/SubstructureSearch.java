@@ -297,10 +297,13 @@ public class SubstructureSearch {
      * @param debugMessage
      * @param debug
      */
-    private static void debug(String debugMessage, boolean debug) {
+    private static void debug(String debugMessage, Boolean debug) {
         if (debug) {
             System.out.println(new java.util.Date() + " debug: " + debugMessage);
         }
+    }
+    public static void debug(String debugMessage) {
+        debug(debugMessage,true);
     }
 
     /**

@@ -83,6 +83,11 @@ AS
 
 
 
+   PROCEDURE debug(msg varchar2) 
+   IS LANGUAGE JAVA NAME 
+   'uk.ac.ebi.orchem.search.SubstructureSearch.debug(java.lang.String)' ;
+
+
   /*___________________________________________________________________________
 
         Main function (refer to numbers in code)
@@ -252,7 +257,7 @@ AS
           END IF;
        END LOOP;
        remove_query_from_map (query_key);    
-       dbms_output.put_line ('Amount of compounds inspected = '||countCompoundsLooped);
+       debug ('Amount of compounds inspected = '||countCompoundsLooped);
        RETURN;
 
      EXCEPTION WHEN OTHERS THEN
@@ -262,6 +267,8 @@ AS
      remove_query_from_map (query_key);    
      RAISE;
    END;
+
+
 
 
    --PROCEDURE show_keys 

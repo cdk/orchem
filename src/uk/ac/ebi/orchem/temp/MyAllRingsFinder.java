@@ -20,6 +20,7 @@ import org.openscience.cdk.tools.LoggingTool;
 /**
  * TODO
  * TEMP CLASS : switch to CDK org/openscience/cdk/ringsearch/AllRingsFinder.java
+ * The change was for recursion break out (maxRingSize)
  *
  *
  */

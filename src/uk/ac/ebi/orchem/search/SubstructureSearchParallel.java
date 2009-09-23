@@ -82,7 +82,8 @@ public class SubstructureSearchParallel extends SubstructureSearch {
               "delete orchem_user_queries where id = ?");
         psDelUserQuery.setInt(1,queryKey);
         psDelUserQuery.executeUpdate();
-
+        psDelUserQuery.close();
+        
         CLOB largeAtomsClob= CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
         CLOB largeBondsClob= CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
         largeAtomsClob.open(CLOB.MODE_READWRITE);

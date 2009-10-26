@@ -111,6 +111,9 @@
     <!-- Unittest substructure searching                                     -->
     <!-- =================================================================== -->
     <target name="test.substr" depends="compile">
+        <exec dir="." executable="java" >
+          <arg line="-version"/>
+        </exec>
 
         <echo />
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
@@ -132,6 +135,9 @@
     <!-- Unittest similarity searching                                       -->
     <!-- =================================================================== -->
     <target name="test.simsrch" depends="compile">
+        <exec dir="." executable="java" >
+          <arg line="-version"/>
+        </exec>
 
         <echo />
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>

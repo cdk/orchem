@@ -236,8 +236,13 @@ AS
                    --(12)
                     BEGIN
                     if return_ids_only_YN='N' then
-                        execute immediate moleculeQuery into molecule using l_candidate.compound_id;    
-                        pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );  
+                        BEGIN
+                           execute immediate moleculeQuery into molecule using l_candidate.compound_id;    
+                           pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );  
+                        EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                             dbms_output.put_line ('>> Warning: compound could not be found '||l_candidate.compound_id);
+                        END;
                     else 
                         pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );  
                     end if;
@@ -265,11 +270,9 @@ AS
         CLOSE myRefCur;
      END IF;
      remove_query_from_map (query_key);    
-     RAISE;
+     dbms_output.put_line ('>>>>ERROR:'||chr(10)||'>>>>Search could not complete: '||chr(10)||'>>>>'||sqlerrm);
+     RAISE; -- raise where ? doesn't really work with pipelined :(
    END;
-
-
-
 
    --PROCEDURE show_keys 
    --IS LANGUAGE JAVA NAME 

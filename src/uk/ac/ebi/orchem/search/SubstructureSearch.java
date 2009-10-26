@@ -109,10 +109,6 @@ public class SubstructureSearch {
      */
      static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN) throws CDKException {
 
-        boolean debugging = false;
-        if (debugYN.toLowerCase().equals("y"))
-            debugging = true;
-
         BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(atc);
 
         String whereCondition = "";
@@ -125,7 +121,7 @@ public class SubstructureSearch {
         }
         whereCondition += builtCondition.toString();
         whereCondition = whereCondition.trim();
-        debug("where condition is : " + whereCondition, debugging);
+        debug("where condition is : " + whereCondition, debugYN);
         return whereCondition;
 
     }
@@ -218,9 +214,8 @@ public class SubstructureSearch {
                                              Integer fCount, Integer clCount, Integer brCount, Integer iCount,
                                              Integer cCount, String debugYN) {
         String retVal = "Y";
-        boolean debugging = false;
-        if (debugYN.toLowerCase().equals("y"))
-            debugging = true;
+
+        debug("check possible candidate " + compoundId, debugYN);
 
         UserQueryMolecule qc = queries.get(mapKey);
         Map atomAndBondCounts = qc.atomsAndBonds;
@@ -236,7 +231,7 @@ public class SubstructureSearch {
             iCount < (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT) ||
             cCount < (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT)) {
 
-            debug("discarded compound " + compoundId, debugging);
+            debug("discarded compound " + compoundId, debugYN);
             retVal = "N";
         }
         return retVal;
@@ -255,11 +250,8 @@ public class SubstructureSearch {
     public static String isomorphismCheck(Integer mapKey, String compoundId, Clob atoms, Clob bonds, String debugYN) {
 
         String retVal = null;
-        boolean debugging = false;
         try {
-            if (debugYN.toLowerCase().equals("y"))
-                debugging = true;
-
+            debug("isomorphism check for "+compoundId,debugYN);
             // Get user query structure
             UserQueryMolecule qc = queries.get(mapKey);
             IAtomContainer queryMolecule = qc.mol;
@@ -279,7 +271,7 @@ public class SubstructureSearch {
                 retVal = compoundId;
             }
         } catch (Exception e) {
-            debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugging);
+            debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugYN);
         }
         return retVal;
     }
@@ -297,13 +289,13 @@ public class SubstructureSearch {
      * @param debugMessage
      * @param debug
      */
-    private static void debug(String debugMessage, Boolean debug) {
-        if (debug) {
+    private static void debug(String debugMessage, String debugYN) {
+        if (debugYN.toUpperCase().equals("Y")) {
             System.out.println(new java.util.Date() + " debug: " + debugMessage);
         }
     }
     public static void debug(String debugMessage) {
-        debug(debugMessage,true);
+        debug(debugMessage,"Y");
     }
 
     /**

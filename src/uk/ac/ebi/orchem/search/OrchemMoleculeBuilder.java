@@ -21,7 +21,6 @@
  *
  *
  */
-
 package uk.ac.ebi.orchem.search;
 
 import java.sql.SQLException;
@@ -36,10 +35,11 @@ import java.util.StringTokenizer;
 import org.openscience.cdk.Atom;
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.Molecule;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
-import org.openscience.cdk.nonotify.NNMolecule;
+import org.openscience.cdk.interfaces.IMolecule;
 
 
 /**
@@ -56,9 +56,9 @@ public class OrchemMoleculeBuilder {
      * See more on these strings at {@link #atomsAsString} and {@link #bondsAsString} 
      * @return molecule
      */
-    public static NNMolecule getBasicAtomContainer(String atomString, String bondString) {
+    public static IMolecule getBasicAtomContainer(String atomString, String bondString) {
 
-        NNMolecule mol = new NNMolecule();
+        Molecule mol = new Molecule();
 
         StringTokenizer s = new StringTokenizer(atomString);
         int atomPos = 0;
@@ -78,6 +78,9 @@ public class OrchemMoleculeBuilder {
             IAtom atB = atomMap.get(new Integer(s.nextToken()));
             char bondOrder = s.nextToken().charAt(0);
             char aromaticYN = s.nextToken().charAt(0);
+            int stereo = new Integer(s.nextToken());
+            //System.out.println("stereo is "+stereo);
+
 
             IBond b = new Bond();
             b.setAtom(atA, 0);
@@ -106,7 +109,14 @@ public class OrchemMoleculeBuilder {
                 break;
             }
 
+
+            for (IBond.Stereo enumStereo : IBond.Stereo.values()) {
+                if (enumStereo.ordinal()==stereo)  {
+                    b.setStereo(enumStereo);
+                }
+            }
             bondList.add(b);
+
         }
         
         
@@ -148,11 +158,11 @@ public class OrchemMoleculeBuilder {
     /**
      * Method that iterates bonds in an atom container and puts the bond info in a String, space separated.<br>
      * The result could look for example like this:<br>
-     * " 1 10 S N 0 2 S N 1 3 S Y 0 4 S N 5 14 S N "<br>
-     * Read as follows: 1 10 S N means atoms at atomArray[1] and atomArray[10] have
-     * a single (S) bond that is not (N) aromatic.<br>
-     * This repeats for each group of 4 tokens. Valid values for the third token are S|D|T|Q and
-     * Y|N for the fourth token.<P>
+     * " 1 10 S N 0 0 2 S N 8 1 3 S Y 8 0 4 S N 0 5 14 S N 8"<br>
+     * Read as follows: 1 10 S N 0 means atoms at atomArray[1] and atomArray[10] have
+     * a single (S) bond that is not (N) aromatic and stereo is NONE (0) <br>
+     * This repeats for each group of 5 tokens. Valid values for the third token are S|D|T|Q and
+     * Y|N for the fourth token. The fifth token is the ordinal value of IBond.Stereo<P>
      *
      * These strings are persisted in the db and can be used to quickly materialize a molecule
      * by {@link OrchemMoleculeBuilder}
@@ -193,6 +203,9 @@ public class OrchemMoleculeBuilder {
                 sb.append("Y").append(" ");
             else
                 sb.append("N").append(" ");
+        
+            sb.append (bond.getStereo().ordinal()).append(" ");
+
         }
         return sb.toString();
     }

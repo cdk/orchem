@@ -35,4 +35,5 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 class UserQueryMolecule {
     IAtomContainer mol;
     Map atomsAndBonds;
+    String originalQuery;
 }

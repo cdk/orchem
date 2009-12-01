@@ -16,7 +16,7 @@ delete orchem_log
 prompt delete orchem_big_molecules 
 delete orchem_big_molecules
 /
-
+commit;
 
 prompt JIT... please wait
 prompt =====================
@@ -24,11 +24,10 @@ prompt =====================
          i number;
        begin
          for r_java in (select name from user_java_classes ) loop
-             if  --   r_java.name like 'org/openscience/cdk%'
-                 --or r_java.name like 'javax/vecmath%'
-                 --or r_java.name like 'org/_3pq%'
-                 --or 
-                      r_java.name like 'uk/ac/ebi%'
+             if     r_java.name like 'org/openscience/cdk%'
+                 or r_java.name like 'javax/vecmath%'
+                 or r_java.name like 'org/_3pq%'
+                 or r_java.name like 'uk/ac/ebi%' 
              then
 
                 begin
@@ -42,7 +41,6 @@ prompt =====================
          end loop;
       end;
 /
-
 
 prompt create new fingerprints
 prompt =============================

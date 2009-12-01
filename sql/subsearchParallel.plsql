@@ -31,7 +31,11 @@ AS
    FUNCTION setup (user_query Clob, query_type varchar2)
    RETURN   integer;
 
-   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:='Y' )
+   FUNCTION search (query_key integer, 
+                    topN integer:=null, 
+                    force_full_scan varchar2:='Y',
+                    strict_stereo_yn VARCHAR2:='N'
+                   ) 
    RETURN  orchem_compound_list
    PIPELINED;
 
@@ -116,24 +120,22 @@ AS
    Procedure to get get a quick verdict if a candidate compound can be a 
    a superstructure of the user's query. 
    ___________________________________________________________________________*/
-   FUNCTION is_possible_candidate (query_key number, compoundId varchar2, singleBondCount number, doubleBondCount number
-                       , tripleBondCount number, aromaticBondCount number, sCount number, oCount number 
+   FUNCTION is_possible_candidate (query_key number, compoundId varchar2
+                       , tripleBondCount number, sCount number, oCount number 
                        , nCount number, fCount number, clCount number, brCount number, iCount number
                        , cCount number, debugYN varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isPossibleCandidate(java.lang.Integer,java.lang.String,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.String) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isPossibleCandidate(java.lang.Integer,java.lang.String,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.String) return java.lang.String ';
 
 
   /*___________________________________________________________________________
    Procedure to invoke graph ismorphism check between query and candidate
    ___________________________________________________________________________*/
-   FUNCTION isomorphism (query_key number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2)
+   FUNCTION isomorphism (query_key number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2, strict_stereo_yn varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isomorphismCheck(java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String) return java.lang.String ';
-
-
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isomorphismCheck(java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String, java.lang.String) return java.lang.String ';
 
 
   /*___________________________________________________________________________
@@ -142,7 +144,7 @@ AS
    
    This function is called from a query (see next function below) and 
    is executed by Oracle in parallel threads. These threads are autonomous
-   and do NOT share package context or Java singleton values.
+   and do NOT share context like Java singleton values.
    That is why the query was first stored in the database:  each thread will 
    first set up its environment by rerieving the user's query and stashing it 
    in a Map of its own.
@@ -185,10 +187,7 @@ AS
          IF is_possible_candidate  (
               l_candidate.query_key
              ,l_candidate.compound_id         
-             ,l_candidate.single_bond_count   
-             ,l_candidate.double_bond_count   
              ,l_candidate.triple_bond_count   
-             ,l_candidate.aromatic_bond_count 
              ,l_candidate.s_count             
              ,l_candidate.o_count             
              ,l_candidate.n_count             
@@ -214,6 +213,7 @@ AS
                  ,l_candidate.atoms               
                  ,l_candidate.bonds               
                  ,'N'            
+                 ,l_candidate.strict_stereo_yn
              );
              --IF retval IS NOT NULL THEN
                PIPE ROW (retval);
@@ -244,7 +244,11 @@ AS
    (8)  If topN was set, and number of results==topN, exit wounds
    
    ___________________________________________________________________________*/
-   FUNCTION search (query_key integer, topN integer:=null, force_full_scan varchar2:='Y' )
+   FUNCTION search (query_key integer, 
+                    topN integer:=null, 
+                    force_full_scan varchar2:='Y',
+                    strict_stereo_yn VARCHAR2:='N'
+                   ) 
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -291,10 +295,7 @@ AS
        '           ( select /*+ '||full_hint||' parallel(s) */  ' ||  
                        query_key                           ||
        '             , s.id                              ' ||
-       '             , s.single_bond_count               ' ||
-       '             , s.double_bond_count               ' ||
        '             , s.triple_bond_count               ' ||
-       '             , s.aromatic_bond_count             ' ||
        '             , s.s_count                         ' ||
        '             , s.o_count                         ' ||
        '             , s.n_count                         ' ||
@@ -306,6 +307,7 @@ AS
        '             , s.atoms                           ' ||
        '             , s.bonds                           ' ||
        '             ,''N'' '                              ||  
+       '             ,'''||strict_stereo_yn||''''          ||  
        '              from  orchem_fingprint_subsearch s ' ||
        '              where 1=1                          ' ||
                      whereClause                           ||

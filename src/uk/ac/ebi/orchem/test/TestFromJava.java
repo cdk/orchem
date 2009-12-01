@@ -24,10 +24,8 @@ public class TestFromJava {
      BLOB cjpeg=null;
      System.out.println("Begin Test");
      csmiles=ConvertMolecule.StringToClob("O=C(N)CCC1NC(=O)C(NC(=O)C(N5C=CC(NC(=O)C(NC(=O)C(NC1(=O))CC3=CNC=2C=CC=CC=23)CC=4C=CC=CC=4)C5(=O))CC(C)C)CCSC");
-     //csmiles=ConvertMolecule.StringToClob("NNONc1ccccc1cNNNc1cccc1c");
-     cmolfile=ConvertMolecule.SmilesToMolfile(csmiles);
-     cjpeg=ConvertMolecule.MolfileToJpeg(cmolfile,200,200);
-      //System.out.println(ConvertMolecule.ClobToString(cmolfile));
+     cmolfile=ConvertMolecule.smilesToMolfile(csmiles);
+     cjpeg=ConvertMolecule.molfileToJpeg(cmolfile,200,200);
      System.out.println(cjpeg.length());
      /* begin test*/
      File              blobFile   = new File("/tmp/test.jpg");

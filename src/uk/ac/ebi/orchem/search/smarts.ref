@@ -28,16 +28,24 @@ import java.sql.Clob;
 import java.sql.SQLException;
 
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
+import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.smiles.smarts.SMARTSQueryTool;
+import org.openscience.cdk.smiles.smarts.parser.SMARTSParser;
+import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
@@ -57,48 +65,53 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  * @author markr@ebi.ac.uk, 2009
  *
  */
-public class SubstructureSearch {
+public class SMARTSSearch {
 
     final static Map<Integer, UserQueryMolecule> queries = new ConcurrentHashMap<Integer, UserQueryMolecule>();
-   
+
     /**
      * Translates a user query (such as for example a Smiles string "O=S=O") into
      * a CDK atomcontainer
-     * 
-     * @param userQuery 
-     * @param queryType 
+     *
+     * @param userQuery
+     * @param queryType
      * @return user query represented as CDK atom container
      * @throws Exception
      */
-     static IAtomContainer translateUserQueryClob(Clob userQuery, String queryType) throws SQLException, CDKException {
+    static IAtomContainer translateUserQueryClob(Clob userQuery, String queryType) throws SQLException, CDKException {
         IAtomContainer atc = null;
         int clobLen = new Long(userQuery.length()).intValue();
         String query = (userQuery.getSubString(1, clobLen));
 
+
         if (queryType.equals(Utils.QUERY_TYPE_MOL)) {
             MDLV2000Reader mdlReader = new MDLV2000Reader();
             atc = MoleculeCreator.getNNMolecule(mdlReader, query);
-        } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
-            SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-            atc = sp.parseSmiles(query);
+
+        } else {
+            if (queryType.equals(Utils.QUERY_TYPE_SMARTS)) {
+                atc = SMARTSParser.parse(query);
+            } else {
+                SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+                atc = sp.parseSmiles(query);
+                atc = AtomContainerManipulator.removeHydrogens(atc);
+            }
             try {
-                atc=AtomContainerManipulator.removeHydrogens(atc);
             } catch (NullPointerException e) {
-                throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+                throw new CDKException("Error , nullpointer exception on removeHydrogens()");
             }
         }
         return atc;
     }
 
 
-
     /**
-     * 
+     *
      * Builds a string to be used as an SQL "WHERE" clause for queries
      * that filter possible candidates in an OrChem substructure search. <BR>
-     * 
+     *
      * The WHERE clause will look like "and bit7='1' and bit56='1' and bit108='1' and bit143='1'",
-     * depending on the user query - the more elaborate the query, the more bits 
+     * depending on the user query - the more elaborate the query, the more bits
      * are likely to be set. <BR>
      * The WHERE clause refers to columns in table ORCHEM_FINGPRINT_SUBSEARCH.<P>
      *
@@ -107,7 +120,7 @@ public class SubstructureSearch {
      * @return content for an SQL WHERE clause on ORCHEM_FINGPRINT_SUBSEARCH
      * @throws CDKException
      */
-     static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN) throws CDKException {
+    static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN) throws CDKException {
 
         BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(atc);
 
@@ -140,28 +153,27 @@ public class SubstructureSearch {
      */
     public static String getWhereClause(Clob userQuery, String queryType, String debugYN) throws CDKException,
                                                                                                  SQLException {
-        boolean debugging = false;
-        if (debugYN.toLowerCase().equals("y"))
-            debugging = true;
         return whereClauseFromFingerPrint(translateUserQueryClob(userQuery, queryType), debugYN);
     }
 
 
     /**
-     * Puts a CDK atomcontainter in a Map, from where it can be retrieved by 
+     * Puts a CDK atomcontainter in a Map, from where it can be retrieved by
      * other methods later on during the substructure search.
-     * 
+     *
      * @param mapKey key value for the Java Map
      * @param queryMolecule
      * @throws Exception
      */
-    public static void stash(Integer mapKey, IAtomContainer queryMolecule){
+    public static void stash(Integer mapKey, IAtomContainer queryMolecule, String query) {
         IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
         queryMolecule.setAtoms(sortedAtoms);
         Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(queryMolecule);
+
         UserQueryMolecule uqm = new UserQueryMolecule();
         uqm.mol = queryMolecule;
         uqm.atomsAndBonds = atomAndBondCounts;
+        uqm.originalQuery = query;
         queries.put(mapKey, uqm);
     }
 
@@ -171,32 +183,36 @@ public class SubstructureSearch {
      * Method scope=public -> used as Oracle Java stored procedure
      * @param mapKey
      * @param userQuery a Smiles string, or Mol..
-     * @param queryType 
+     * @param queryType
      * @param debugYN
      * @throws Exception
      */
-    public static void stashMoleculeInMap(Integer mapKey, Clob userQuery, String queryType, String debugYN) throws SQLException, CDKException {
+    public static void stashMoleculeInMap(Integer mapKey, Clob userQuery, String queryType,
+                                          String debugYN) throws SQLException, CDKException {
 
-        boolean debugging = false;
         IAtomContainer queryMolecule = translateUserQueryClob(userQuery, queryType);
-        if (debugYN.toLowerCase().equals("y"))
-            debugging = true;
-        stash (mapKey, queryMolecule);
+        if (queryType.equals(Utils.QUERY_TYPE_SMARTS)) {
+            int clobLen = new Long(userQuery.length()).intValue();
+            String query = (userQuery.getSubString(1, clobLen));
+            stash(mapKey, queryMolecule, query);
+        } else
+            stash(mapKey, queryMolecule, null);
     }
 
 
     /**
-     * Method to get a quickly see if a candidate compound can be a 
-     * a superstructure of the user's query. This is done using various simple 
+     * Method to get a quickly see if a candidate compound can be a
+     * a superstructure of the user's query. This is done using various simple
      * counts.<BR>
      * For example, if the candidate has two Sulphur atoms and the query
      * has three, the candidate can be ruled out immediately.
-     * 
-     * Double/aromatic/single counts are problematic - not taken into account.
-     * 
+     *
      * @param mapKey key to user query structure
      * @param compoundId the database id for the database compound
+     * @param singleBondCount count of single bonds of database compound
+     * @param doubleBondCunt count of double bonds of database compound
      * @param tripleBondCount count of triplex bonds of database compound
+     * @param aromaticBondCount count of aromatic bonds of database compound
      * @param sCount sulphur count of database compound
      * @param oCount oxygen count of database compound
      * @param nCount nitrogen count of database compound
@@ -207,14 +223,17 @@ public class SubstructureSearch {
      * @param cCount carbon count of database compound
      * @param debugYN
      */
-    public static String isPossibleCandidate(Integer mapKey, String compoundId,
-                                             Integer tripleBondCount,
-                                             Integer sCount, Integer oCount, Integer nCount,
+    public static String isPossibleCandidate(Integer mapKey, String compoundId, Integer singleBondCount,
+                                             Integer doubleBondCunt, Integer tripleBondCount,
+                                             Integer aromaticBondCount, Integer sCount, Integer oCount, Integer nCount,
                                              Integer fCount, Integer clCount, Integer brCount, Integer iCount,
                                              Integer cCount, String debugYN) {
         String retVal = "Y";
+<<<<<<< SubstructureSearch.java
+=======
 
         debug("check possible candidate " + compoundId, debugYN);
+>>>>>>> 1.36
 
         UserQueryMolecule qc = queries.get(mapKey);
         Map atomAndBondCounts = qc.atomsAndBonds;
@@ -244,16 +263,17 @@ public class SubstructureSearch {
      * @param atoms atoms of database compound, see more at {@ link uk.ac.ebi.orchem.OrchemMoleculeBuilder }
      * @param bonds bonds atoms of database compound, see more at {@ link uk.ac.ebi.orchem.OrchemMoleculeBuilder }
      * @param debugYN
-     * @param strictStereoIsomorphismYN
      * @return Y or N to indicate is-substructure
      */
-    public static String isomorphismCheck
-    (Integer mapKey, String compoundId, Clob atoms, Clob bonds, 
-     String debugYN, String strictStereoIsomorphismYN) {
+    public static String isomorphismCheck(Integer mapKey, String compoundId, Clob atoms, Clob bonds, String debugYN) {
 
         String retVal = null;
         try {
+<<<<<<< SubstructureSearch.java
+
+=======
             debug("isomorphism check for "+compoundId,debugYN);
+>>>>>>> 1.36
             // Get user query structure
             UserQueryMolecule qc = queries.get(mapKey);
             IAtomContainer queryMolecule = qc.mol;
@@ -266,17 +286,55 @@ public class SubstructureSearch {
             IAtomContainer databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(atString, bondString);
 
             //Invoke the CDK implementation of the VF2 algorithm
-            SubgraphIsomorphism s =
-                new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN);
+            SubgraphIsomorphism s = new SubgraphIsomorphism(databaseMolecule, queryMolecule);
 
             if (s.matchSingle()) {
                 retVal = compoundId;
             }
         } catch (Exception e) {
+<<<<<<< SubstructureSearch.java
             debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugYN);
         }
         return retVal;
     }
+
+
+    /**
+     * TODO jajaja
+     */ 
+    public static String smartsMatch(Integer mapKey, String compoundId, Clob atoms, Clob bonds, String debugYN) {
+
+        String retVal = null;
+        try {
+
+            // Get user query structure
+            UserQueryMolecule qc = queries.get(mapKey);
+
+            // Get candidate compound
+            int clobLenAtoms = new Long(atoms.length()).intValue();
+            String atString = (atoms.getSubString(1, clobLenAtoms));
+            int clobLenBonds = new Long(bonds.length()).intValue();
+            String bondString = (bonds.getSubString(1, clobLenBonds));
+            IAtomContainer databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(atString, bondString);
+
+            AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(databaseMolecule);
+            CDKHydrogenAdder adder = CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
+            adder.addImplicitHydrogens(databaseMolecule);
+
+            SMARTSQueryTool querytool = new SMARTSQueryTool(qc.originalQuery);
+
+            if (querytool.matches(databaseMolecule))
+                retVal = compoundId;
+
+        } catch (Exception e) {
+            debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugYN);
+=======
+            debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugYN);
+>>>>>>> 1.36
+        }
+        return retVal;
+    }
+
 
     /**
      * Remove a query structure from the user query compound map
@@ -289,15 +347,25 @@ public class SubstructureSearch {
     /**
      * Debug method (to stdout)
      * @param debugMessage
-     * @param debugYN
+     * @param debug
      */
-    static void debug(String debugMessage, String debugYN) {
+<<<<<<< SubstructureSearch.java
+    private static void debug(String debugMessage, String debugYN) {
+        if (debugYN.toLowerCase().equals("y")) {
+=======
+    private static void debug(String debugMessage, String debugYN) {
         if (debugYN.toUpperCase().equals("Y")) {
+>>>>>>> 1.36
             System.out.println(new java.util.Date() + " debug: " + debugMessage);
         }
     }
+
     public static void debug(String debugMessage) {
+<<<<<<< SubstructureSearch.java
+        debug(debugMessage, "y");
+=======
         debug(debugMessage,"Y");
+>>>>>>> 1.36
     }
 
     /**

@@ -17,7 +17,7 @@
 
 <html>
     <body>
-     <a href="<s:url value="molSearch.action"/>">Search again with Marvin applet</a>
+     <a href="<s:url value="molSearch.action"/>">Search again with Jchempaint applet</a>
      <BR>
      <a href="<s:url value="smilesSearch.action"/>">Search again with Smiles</a>
 
@@ -67,7 +67,6 @@
                               <a href="#" onclick="document.forms[<s:property value="#res_stat.count-#session.wsr.currDisplayStartIdx+2"/>].submit()"" > <s:property value="id" /></a><BR>
                               <s:hidden name="id" value="%{#res.id}" />
                             </s:form>
-                            <!--a href="http://www.ebi.ac.uk/chebi/searchId.do?chebiId=<s:property value="id"/>"> Chebi <s:property value="id" /></a><BR-->
                             <s:if test="score!=0 ">
                                Score=<s:property value="score" /><BR>
                             </s:if>

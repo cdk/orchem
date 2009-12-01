@@ -5,9 +5,10 @@
     <link rel="stylesheet" href="orchem.css" type="text/css"></link>
   </head>
   <body>
+    <img src="logo.small.jpg"></img>
     <h1>Convert Utility</h1>
      
-   <div class="main">
+   <div class="main" style="width:70%">
       <a href="index.html">Back to main page</a>
 
       <table width="100%" border="0" cellspacing="10" cellpadding="10">
@@ -16,11 +17,12 @@
             <h3>Introduction</h3>
             Orchem contains functionality to convert between different chemical notations. 
             It uses the the ConvertMolucule.java class located in Java package 'uk.ac.ebi.orchem.convert'.
-            This class includes:
+            This class includes method to convert:
             <ul>
-                <li>SmilesToMolfile</li>
-                <li>MolfileToSmiles</li>
-                <li>MolfileToJpeg</li>
+                <li>SMILES &rarr; Molfile</li>
+                <li>Molfile &rarr; SMILES</li>
+                <li>Molfile &rarr; Jpeg (using JChemPaint)</li>
+		<li>Molfile &rarr; InChi</li>
             </ul>
             You interact with these classes through PL/SQL packages that 
             wrap the classes as Java stored procedures/functions. These packages will be 
@@ -38,7 +40,7 @@
             <h5>Examples</h5>
             <hr align="left">
 <pre>
-select orchem_convert.smilestomolfile('cc1cccc1') as mol from dual
+select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('CC1CCCC1')) as smi from dual
 </pre>
             <br></br>
             <hr align="left">
@@ -53,7 +55,7 @@ select orchem_convert.smilestomolfile('cc1cccc1') as mol from dual
             <h5>Examples</h5>
             <hr align="left">
 <pre>
-select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('cc1cccc1')) as smi from dual
+select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('CC1CCCC1')) as smi from dual
 </pre>
             <br></br>
             <hr align="left">
@@ -74,7 +76,22 @@ select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('cc1cccc1')
             <h5>Examples</h5>
             <hr align="left">
 <pre>
-select orchem_convert.molfiletojpeg(orchem_convert.smilestomolfile('cc1cccc1'),256,256) as image from dual
+select orchem_convert.molfiletojpeg(orchem_convert.smilestomolfile('CC1CCCC1'),256,256) as image from dual
+</pre>
+
+            <br></br>
+            <hr align="left">
+            <h3>Molfile To InChi </h3>
+            Package orchem_convert.MolFileToInchi.<br></br>
+            The function MolFileToInchi converts a Molfile to an InChi string:
+            <ul>
+                 <li>MOLFILE (CLOB): a string MDL molfile</li> 
+                 <span style="font-style:italic"> 
+            </ul>     
+            <h5>Examples</h5>
+            <hr align="left">
+<pre>
+select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('CC1CCCC1')) as image from dual
 </pre>
 
            

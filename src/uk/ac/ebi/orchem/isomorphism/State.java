@@ -115,8 +115,15 @@ public abstract class State {
         if (aFlag != tbond.getFlag(CDKConstants.ISAROMATIC)) return false;
 
         // if the strict on stereo isometry and stereo indicators differ, no match
-        if (strictStereoIsomorphism && aBond.getStereo()!=tbond.getStereo()) {
-            //System.out.println("nope ... "+aBond.getStereo()+" and "+ tbond.getStereo());
+        if (strictStereoIsomorphism 
+            && aBond.getStereo()!= null 
+            && tbond.getStereo()!=null 
+            // the E Z stereo types are useless .. they can get set for Benze for example. Chose to ignore.
+            && aBond.getStereo()!= IBond.Stereo.E_OR_Z
+            && aBond.getStereo()!= IBond.Stereo.E_Z_BY_COORDINATES
+            && tbond.getStereo()!= IBond.Stereo.E_OR_Z
+            && tbond.getStereo()!= IBond.Stereo.E_Z_BY_COORDINATES
+            && aBond.getStereo()!=tbond.getStereo()) {
             return false;
         }
 

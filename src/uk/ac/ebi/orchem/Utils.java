@@ -40,6 +40,7 @@ public class Utils {
     public static final String SESSION_WEB_SEARCH_RESULTS = new String("wsr");
     public static final String QUERY_TYPE_SMILES = new String("SMILES");
     public static final String QUERY_TYPE_MOL = new String("MOL");
+    public static final String QUERY_TYPE_SMARTS = new String("SMARTS");
 
     /**
      * Converts a BitSet into an array of bytes
@@ -48,7 +49,7 @@ public class Utils {
      */
     public static byte[] toByteArray(BitSet bits, int fixedNumBytes) {
         byte[] bytes = new byte[fixedNumBytes / 8];
-        for (int i = 0; i < bits.length(); i++) {
+        for (int i = 0; i < fixedNumBytes; i++) {
             if (bits.get(i)) {
                 bytes[bytes.length - i / 8 - 1] |= 1 << (i % 8);
             }

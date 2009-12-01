@@ -24,7 +24,6 @@
 package uk.ac.ebi.orchem.test;
 
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -75,7 +74,8 @@ public class TestSubstructureSearch extends TestCase {
             Properties properties = PropertyLoader.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
             conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
-            targetMolecules = new DatabaseAccess().getAllCompounds(conn);
+            targetMolecules = new DatabaseAccess().getAllFingerprintedCompounds(conn);
+            System.out.println("Number of target molecules is "+targetMolecules.size());
             System.out.println("___ static : End set up target list");
 
         } catch (Exception e) {
@@ -96,9 +96,11 @@ public class TestSubstructureSearch extends TestCase {
      * not, then the fingerprinter is incorrectly filtering (false negatives)
      * 
      * @param dbId database id of query molecule in database test set
+     * @param strictStereo Y or N to indicate exact stereoisomeric matching
+     * @param idList limited list of IDs in database to consider; leave null if you want
      * @throws Exception
      */
-    private void fingerprintVersusFullScan(int dbId) throws Exception {
+    private void fingerprintVersusFullScan(int dbId, String strictStereo, List<Integer> idList) throws Exception {
 
         PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id=?");
         pStmt.setInt(1,dbId);
@@ -116,7 +118,7 @@ public class TestSubstructureSearch extends TestCase {
 
             /* part 1: do a substructure search using the fingerprinter */            
             System.out.println("Fingerprint substructure search:");
-            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(mdl, "MOL", conn, 9999999);
+            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(mdl, "MOL", conn, strictStereo, idList);
             System.out.println("results # : "+fprintSearchResults.size());
             Collections.sort(fprintSearchResults);
             for (OrChemCompound oc : fprintSearchResults) {
@@ -125,7 +127,7 @@ public class TestSubstructureSearch extends TestCase {
 
             /* part 2: find all substructures by doing a full scan on the data set */            
             System.out.println("\nFull isomorphism test : ");
-            List<Integer> fullScanResults = fullScan(res.getInt("id"), targetMolecules, conn);
+            List<Integer> fullScanResults = fullScan(res.getInt("id"), targetMolecules, conn, strictStereo, idList);
             Collections.sort(fullScanResults);
             System.out.println("results # : "+fullScanResults.size());
 
@@ -141,40 +143,42 @@ public class TestSubstructureSearch extends TestCase {
         pStmt.close();
     }
 
+
+
     /**
      * Performs a complete substructure search between a query compound 
      * and target compounds. This can be used to find all substructures and 
      * validate this against the prefilter result from a fingerprinter.
      *
      * @param id query compound database id
-     * @param alg isomorphism algorithm 
      * @param conn database connection
      * @return list of ids of compounds of which compound with arg "id" is a substructure
      * @throws SQLException
      * @throws CDKException
      * @throws CloneNotSupportedException
      */
-    private List<Integer> fullScan(int id, List<WrappedAtomContainer> targetMolecules, Connection conn) throws SQLException, CDKException, CloneNotSupportedException {
+    private List<Integer> fullScan
+    (int id, List<WrappedAtomContainer> targetMolecules, OracleConnection conn, String strictStereo, List<Integer> idList)
+    throws SQLException, CDKException, CloneNotSupportedException {
         List<Integer> result = new ArrayList<Integer>();
 
         System.out.println("+++++++++++++++++++++++++");
-        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id = ?");
-        pStmt.setInt(1, id);
 
-        List<WrappedAtomContainer> queryMol = dbApi.getMols(pStmt);
+        List<WrappedAtomContainer> queryMol = dbApi.getFingerprintedCompounds(conn, id);
         if (queryMol.size() == 1) {
 
             WrappedAtomContainer query = queryMol.get(0);
-            //QueryAtomContainer queryAtomContainer = QueryAtomContainerCreator.createBasicQueryContainer(query.getAtomContainer());
-
             for (WrappedAtomContainer target : targetMolecules) {
-                SubgraphIsomorphism s = new SubgraphIsomorphism(target.getAtomContainer(), query.getAtomContainer() );
-                if (s.matchSingle()) {
-                    result.add(target.getDbId());
+                
+                if (idList==null || idList.contains(target.getDbId()+"")) {
+                    SubgraphIsomorphism s = new SubgraphIsomorphism
+                        (target.getAtomContainer(), query.getAtomContainer(), strictStereo );
+                    if (s.matchSingle()) {
+                        result.add(target.getDbId());
+                    }
                 }
             }
         }
-        pStmt.close();
         return result;
     }
 
@@ -193,167 +197,218 @@ public class TestSubstructureSearch extends TestCase {
         return true;
     }
 
+
+    /**
+     * Substructure search testing with SMILES input. 
+     * @param SMILES smiles substructure
+     * @param strictStereo Y or N to indicate exact stereoisomeric matching
+     * @param idList limited list of IDs in database to consider; leave null if you 
+     * @param expectedCount expected number of results to hit in the test set
+     * @throws Exception
+     */
+    private void smilesTest(String SMILES, String strictStereo, List<Integer> idList, int expectedCount) throws Exception {
+
+        System.out.println("\n______________________________________________");
+        System.out.println("testing SMILES "+SMILES);
+
+        System.out.println("SMILES based substructure search:");
+        List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(SMILES, "SMILES", conn, strictStereo, idList);
+        System.out.println("results # : "+fprintSearchResults.size());
+        Collections.sort(fprintSearchResults);
+        for (OrChemCompound oc : fprintSearchResults) {
+            System.out.print(oc.getId() + " ");
+        }
+        System.out.println();
+        assertEquals("Expected # of results ",fprintSearchResults.size(),expectedCount);
+    }
+
     /*
      * Start of Junit test methods 
      */
     public void testCompoundID_1() throws Exception {
-        fingerprintVersusFullScan(1);
+        fingerprintVersusFullScan(1,"N",null);
     }
 
     public void testCompoundID_2() throws Exception {
-        fingerprintVersusFullScan(2);
+        fingerprintVersusFullScan(2,"N",null);
     }
 
     public void testCompoundID_3() throws Exception {
-        fingerprintVersusFullScan(3);
+        fingerprintVersusFullScan(3,"N",null);
     }
 
     public void testCompoundID_4() throws Exception {
-        fingerprintVersusFullScan(4);
+        fingerprintVersusFullScan(4,"N",null);
     }
 
     public void testCompoundID_5() throws Exception {
-        fingerprintVersusFullScan(5);
+        fingerprintVersusFullScan(5,"N",null);
     }
 
     public void testCompoundID_6() throws Exception {
-        fingerprintVersusFullScan(6);
+        fingerprintVersusFullScan(6,"N",null);
     }
 
     public void testCompoundID_7() throws Exception {
-        fingerprintVersusFullScan(7);
+        fingerprintVersusFullScan(7,"N",null);
     }
 
     public void testCompoundID_8() throws Exception {
-        fingerprintVersusFullScan(8);
+        fingerprintVersusFullScan(8,"N",null);
     }
 
     public void testCompoundID_9() throws Exception {
-        fingerprintVersusFullScan(9);
+        fingerprintVersusFullScan(9,"N",null);
     }
 
     public void testCompoundID_10() throws Exception {
-        fingerprintVersusFullScan(10);
+        fingerprintVersusFullScan(10,"N",null);
     }
 
     public void testCompoundID_11() throws Exception {
-        fingerprintVersusFullScan(11);
+        fingerprintVersusFullScan(11,"N",null);
     }
 
     public void testCompoundID_12() throws Exception {
-        fingerprintVersusFullScan(12);
+        fingerprintVersusFullScan(12,"N",null);
     }
 
     public void testCompoundID_13() throws Exception {
-        fingerprintVersusFullScan(13);
+        fingerprintVersusFullScan(13,"N",null);
     }
 
     public void testCompoundID_14() throws Exception {
-        fingerprintVersusFullScan(14);
+        fingerprintVersusFullScan(14,"N",null);
     }
 
     public void testCompoundID_15() throws Exception {
-        fingerprintVersusFullScan(15);
+        fingerprintVersusFullScan(15,"N",null);
     }
 
     public void testCompoundID_16() throws Exception {
-        fingerprintVersusFullScan(16);
+        fingerprintVersusFullScan(16,"N",null);
     }
 
     public void testCompoundID_17() throws Exception {
-        fingerprintVersusFullScan(17);
+        fingerprintVersusFullScan(17,"N",null);
     }
 
     public void testCompoundID_18() throws Exception {
-        fingerprintVersusFullScan(18);
+        fingerprintVersusFullScan(18,"N",null);
     }
 
     public void testCompoundID_19() throws Exception {
-        fingerprintVersusFullScan(19);
+        fingerprintVersusFullScan(19,"N",null);
     }
 
     public void testCompoundID_20() throws Exception {
-        fingerprintVersusFullScan(20); 
+        fingerprintVersusFullScan(20,"N",null); 
     }
 
     public void testCompoundID_21() throws Exception {
-        fingerprintVersusFullScan(21);
+        fingerprintVersusFullScan(21,"N",null);
     }
 
     public void testCompoundID_22() throws Exception {
-        fingerprintVersusFullScan(22);
+        fingerprintVersusFullScan(22,"N",null);
     }
     public void testCompoundID_23() throws Exception {
-        fingerprintVersusFullScan(23);
+        fingerprintVersusFullScan(23,"N",null);
     }
 
     public void testCompoundID_24() throws Exception {
-        fingerprintVersusFullScan(24);
+        fingerprintVersusFullScan(24,"N",null);
     }
 
     public void testCompoundID_25() throws Exception {
-        fingerprintVersusFullScan(25);
+        fingerprintVersusFullScan(25,"N",null);
     }
 
     public void testCompoundID_26() throws Exception {
-        fingerprintVersusFullScan(26);
+        fingerprintVersusFullScan(26,"N",null);
     }
 
     public void testCompoundID_27() throws Exception {
-        fingerprintVersusFullScan(27);
+        fingerprintVersusFullScan(27,"N",null);
     }
 
     public void testCompoundID_28() throws Exception {
-        fingerprintVersusFullScan(28);
+        fingerprintVersusFullScan(28,"N",null);
     }
 
     public void testCompoundID_29() throws Exception {
-        fingerprintVersusFullScan(29);
+        fingerprintVersusFullScan(29,"N",null);
     }
 
     public void testCompoundID_30() throws Exception {
-        fingerprintVersusFullScan(30);
+        fingerprintVersusFullScan(30,"N",null);
     }
-
     public void testCompoundID_31() throws Exception {
-        fingerprintVersusFullScan(31);
+        fingerprintVersusFullScan(31,"N",null);
     }
 
     public void testCompoundID_32() throws Exception {
-        fingerprintVersusFullScan(32);
+        fingerprintVersusFullScan(32,"N",null);
     }
     public void testCompoundID_33() throws Exception {
-        fingerprintVersusFullScan(33);
+        fingerprintVersusFullScan(33,"N",null);
     }
     public void testCompoundID_34() throws Exception {
-        fingerprintVersusFullScan(34);
+        fingerprintVersusFullScan(34,"N",null);
     }
     public void testCompoundID_35() throws Exception {
-        fingerprintVersusFullScan(35);
+        fingerprintVersusFullScan(35,"N",null);
     }
     public void testCompoundID_36() throws Exception {
-        fingerprintVersusFullScan(36);
+        fingerprintVersusFullScan(36,"N",null);
     }
     public void testCompoundID_37() throws Exception {
-        fingerprintVersusFullScan(37);
+        fingerprintVersusFullScan(37,"N",null);
     }
     public void testCompoundID_38() throws Exception {
-        fingerprintVersusFullScan(38);
+        fingerprintVersusFullScan(38,"N",null);
     }
     public void testCompoundID_39() throws Exception {
-        fingerprintVersusFullScan(39);
+        fingerprintVersusFullScan(39,"N",null);
     }
     public void testCompoundID_40() throws Exception {
-        fingerprintVersusFullScan(40);
+        fingerprintVersusFullScan(40,"N",null);
     }
+
     public void testCompoundID_41() throws Exception {
-        fingerprintVersusFullScan(41);
+        fingerprintVersusFullScan(41,"N",null);
     }
     public void testCompoundID_42() throws Exception {
-        fingerprintVersusFullScan(42);
+        fingerprintVersusFullScan(42,"N",null);
+    }
+    public void testCompoundID_43() throws Exception {
+        fingerprintVersusFullScan(43,"N",null);
     }
 
+    public void testCompoundID_43_strict() throws Exception {
+        fingerprintVersusFullScan(43,"Y",null);
+    }
+    public void testCompoundID_1_idList() throws Exception {
+        List<Integer> idList = new ArrayList<Integer>();
+        idList.add(10);
+        idList.add(11);
+        idList.add(12);
+        idList.add(13);
+        idList.add(14);
+        idList.add(27);
+        fingerprintVersusFullScan(43,"Y",idList);
+    }
 
+    public void testBenzeneSMILES() throws Exception {
+        List<Integer> idList = new ArrayList<Integer>();
+        idList.add(10);
+        idList.add(11);
+        idList.add(12);
+        idList.add(13);
+        idList.add(14);
+        idList.add(27);
+        smilesTest("c1ccccc1", "Y", idList, 3);
+    }
 
 }
 

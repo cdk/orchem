@@ -28,15 +28,15 @@ import java.util.Map;
 
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.tools.SaturationChecker;
 
+
 /**
  * Class to counting (particular) elements and bond orders in a given atom container
- * 
+ *
  * @author markr@ebi.ac.uk
  */
 public class AtomsBondsCounter {
@@ -135,8 +135,8 @@ public class AtomsBondsCounter {
                     if (satCheck.isSaturated(atom, iac)) {
                         satCount++;
                     }
-            } catch (CDKException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                //e.printStackTrace();
                 satCount = 999999;
             }
 

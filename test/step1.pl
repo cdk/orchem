@@ -5,17 +5,17 @@
 #print "3 $ARGV[2]\n"; 
 #print "4 $ARGV[3]\n"; 
 #print "5 $ARGV[4]\n"; 
+#print "6 $ARGV[5]\n"; 
 
 
-if (@ARGV ne 5){die "Error, wrong number of input arguments ! "};
+if (@ARGV ne 6){die "Error, wrong number of input arguments ! "};
 
 $username = $ARGV[0]; 
 $password = $ARGV[1];  
 $instance = $ARGV[2]; 
 $dir      = $ARGV[3]; 
 $os       = $ARGV[4];
-
-
+$workDir  = $ARGV[5];
 
 
 print "----------------------------------------------\n\n";
@@ -34,9 +34,9 @@ system("sqlplus -S $username/$password\@$instance \@../sql/createfingerprints.pl
 system("sqlplus -S $username/$password\@$instance \@../sql/simsearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearchParallel.plsql");
+system("sqlplus -S $username/$password\@$instance \@../sql/smartsSearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/convert.plsql");
-
-system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable.sql");
+system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable.sql $workDir" );
 
 
 

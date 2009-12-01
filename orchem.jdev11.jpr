@@ -87,6 +87,33 @@
       </hash>
    </hash>
    <hash n="oracle.jdeveloper.compiler.OjcConfiguration">
+      <value n="compiler.name" v="Ojc"/>
+      <list n="copyRes">
+         <string v=".lst"/>
+         <string v=".gif"/>
+         <string v=".GIF"/>
+         <string v=".jpg"/>
+         <string v=".JPG"/>
+         <string v=".jpeg"/>
+         <string v=".JPEG"/>
+         <string v=".png"/>
+         <string v=".PNG"/>
+         <string v=".properties"/>
+         <string v=".xml"/>
+         <string v="-apf.xml"/>
+         <string v=".ejx"/>
+         <string v=".xcfg"/>
+         <string v=".cpx"/>
+         <string v=".dcx"/>
+         <string v=".sva"/>
+         <string v=".wsdl"/>
+         <string v=".ini"/>
+         <string v=".tld"/>
+         <string v=".tag"/>
+         <string v=".xlf"/>
+         <string v=".xsl"/>
+         <string v=".xsd"/>
+      </list>
       <value n="source" v="1.5"/>
       <value n="target" v="1.5"/>
    </hash>
@@ -385,17 +412,12 @@
    </hash>
    <hash n="oracle.jdeveloper.runner.RunConfigurations">
       <hash n="runConfigurationDefinitions">
-         <hash n="Empty">
-            <value n="custom" v="false"/>
-            <value n="name" v="Empty"/>
-            <value n="VMName" v="server"/>
-         </hash>
          <hash n="Load Unit test data">
             <value n="custom" v="false"/>
             <value n="javaOptions" v=""/>
             <value n="name" v="Load Unit test data"/>
-            <value n="programArguments" v="/home/markr/cvs/sourceforge/OrChem/test/step1_compoundtable.queries.mol 0"/>
-            <value n="runActiveFile" v="false"/>
+            <value n="programArguments" v="/home/markr/cvs/sourceforge/OrChem/test/step1_compoundtable.mol 0"/>
+            <value n="runActiveFile" v="true"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
             <url n="targetURL" path="src/uk/ac/ebi/orchem/test/LoadCompounds.java"/>
             <value n="VMName" v="server"/>
@@ -403,43 +425,13 @@
          <hash n="non-parallel benchmark">
             <value n="custom" v="false"/>
             <value n="name" v="non-parallel benchmark"/>
-            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/BenchMarkSubs2.java"/>
-            <value n="VMName" v="server"/>
-         </hash>
-         <hash n="parallel benchmark">
-            <value n="custom" v="false"/>
-            <value n="name" v="parallel benchmark"/>
-            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/BenchmarkSubsearchForPaper.java"/>
-            <value n="VMName" v="server"/>
-         </hash>
-         <hash n="PubChem Import">
-            <value n="custom" v="false"/>
-            <value n="javaOptions" v=""/>
-            <value n="name" v="PubChem Import"/>
-            <value n="programArguments" v="09"/>
-            <value n="runActiveFile" v="false"/>
-            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
-            <url n="targetURL" path="src/uk/ac/ebi/orchem/imp/PubChemImport.java"/>
-            <value n="VMName" v="server"/>
-         </hash>
-         <hash n="TestFromJava">
-            <value n="custom" v="false"/>
-            <value n="javaOptions" v=""/>
-            <value n="name" v="TestFromJava"/>
-            <value n="programArguments" v=""/>
-            <value n="runActiveFile" v="false"/>
-            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
-            <url n="targetURL" path="src/uk/ac/ebi/orchem/test/TestFromJava.java"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/refactor/BenchMarkSubs2.java"/>
             <value n="VMName" v="server"/>
          </hash>
       </hash>
       <list n="runConfigurationList">
-         <string v="Empty"/>
          <string v="Load Unit test data"/>
-         <string v="PubChem Import"/>
-         <string v="TestFromJava"/>
          <string v="non-parallel benchmark"/>
-         <string v="parallel benchmark"/>
       </list>
    </hash>
    <hash n="oracle.jdevimpl.config.JProjectLibraries">
@@ -462,10 +454,6 @@
          </hash>
          <hash>
             <value n="id" v="Freemarker-2.3.14.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Junit.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -513,15 +501,35 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Mx-1.0-beta1.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
             <value n="id" v="Ojdbc5.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Junit.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jniinchi-0.5.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="NestedVm.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi_102.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Cdk.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jcp.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -594,15 +602,6 @@
                <value n="deployedByDefault" v="true"/>
                <value n="description" v="Freemarker-2.3.14.jar"/>
                <value n="id" v="Freemarker-2.3.14.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/junit.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Junit.jar"/>
-               <value n="id" v="Junit.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -697,15 +696,6 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/cdk.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Cdk.jar"/>
-               <value n="id" v="Cdk.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
                   <url path="../../../git/mx/build/jar/mx-1.0-beta1.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
@@ -720,6 +710,60 @@
                <value n="deployedByDefault" v="true"/>
                <value n="description" v="Ojdbc5.jar"/>
                <value n="id" v="Ojdbc5.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/junit.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Junit.jar"/>
+               <value n="id" v="Junit.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/jniinchi-0.5.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Jniinchi-0.5.jar"/>
+               <value n="id" v="Jniinchi-0.5.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/nestedVm.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="NestedVm.jar"/>
+               <value n="id" v="NestedVm.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/inchi_102.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Inchi_102.jar"/>
+               <value n="id" v="Inchi_102.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/cdk.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Cdk.jar"/>
+               <value n="id" v="Cdk.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/jcp.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Jcp.jar"/>
+               <value n="id" v="Jcp.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
@@ -743,10 +787,6 @@
          </hash>
          <hash>
             <value n="id" v="Freemarker-2.3.14.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Junit.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -794,15 +834,35 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Mx-1.0-beta1.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
             <value n="id" v="Ojdbc5.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Junit.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jniinchi-0.5.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="NestedVm.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi_102.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Cdk.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jcp.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

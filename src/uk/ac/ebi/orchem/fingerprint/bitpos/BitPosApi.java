@@ -38,10 +38,17 @@ import java.util.Map;
  */
 public class BitPosApi {
     public final static BitPositions bp = new BitPositions();
+    public final static ExtendedBitPositions bpExtended = new ExtendedBitPositions();
 
-    public static void main(String[] args) {
-        printFingerprintBitPositions();
-    }
+
+    /**
+     * Main method to run a dump of the bit positions
+     *
+     * @param args
+     */
+     public static void main(String[] args) {
+         printFingerprintBitPositions();
+     }
 
     /**
      * Convenience method to print out the bit position of each
@@ -51,17 +58,21 @@ public class BitPosApi {
     public static void printFingerprintBitPositions() {
 
         Map<Integer, String> all = new HashMap<Integer, String>();
-        all.putAll(prepareContentDump(bp.elemCntBits));
-        all.putAll(prepareContentDump(bp.atomPairBits));
-        all.putAll(prepareContentDump(bp.ringSetBits));
-        all.putAll(prepareContentDump(bp.ringBits));
-        all.putAll(prepareContentDump(bp.smilesPatternBits));
-        all.putAll(prepareContentDump(bp.carbonTrails));
-        all.putAll(prepareContentDump(bp.ringLayout));
+        all.putAll(prepareContentDump(bpExtended.elemCntBits));
+        all.putAll(prepareContentDump(bpExtended.atomPairBits));
+        all.putAll(prepareContentDump(bpExtended.ringSetBits));
+        all.putAll(prepareContentDump(bpExtended.ringBits));
+        all.putAll(prepareContentDump(bpExtended.smilesPatternBits));
+        all.putAll(prepareContentDump(bpExtended.carbonTrails));
+        all.putAll(prepareContentDump(bpExtended.ringLayout));
+        all.putAll(prepareContentDump(bpExtended.ringSizes));
 
-        for (Iterator<Integer> neighItr = bp.neighbourBits.keySet().iterator(); neighItr.hasNext(); ) {
+        all.putAll(prepareContentDump(bpExtended.basicStuff));
+        all.putAll(prepareContentDump(bpExtended.allElements));
+
+        for (Iterator<Integer> neighItr = bpExtended.neighbourBits.keySet().iterator(); neighItr.hasNext(); ) {
             int bit = neighItr.next();
-            List<Neighbour> nbList = bp.neighbourBits.get(bit);
+            List<Neighbour> nbList = bpExtended.neighbourBits.get(bit);
             StringBuilder sb = new StringBuilder();
             for (Neighbour n : nbList)
                 sb.append(n.toString());
@@ -69,15 +80,14 @@ public class BitPosApi {
         }
 
         int i=1;
-        while (i<1024) {
+        while (i<bpExtended.getFingerprintSize()) {
             if (all.containsKey(i)) {
                 String condition = all.get(i);
                 System.out.println("Bit  " + i + "  " + condition);
             }
             i++;
-
         }
-        System.out.println(">> first 1024 bits printed");
+        System.out.println("extended bit positions listed");
     }
 
     /**

@@ -97,7 +97,8 @@ sub printConnDetails
   print "   username : $username\n";
   print "   password : $password\n";
   print "   url      : $url\n";
-  print "   tns name : $tnsName\n\n";
+  print "   tns name : $tnsName\n";
+  print "   work dir : $workDir\n\n";
 }
 
 
@@ -132,6 +133,11 @@ sub getProperties
       {
          $password=substr($propLine,$i);
       }
+      if (index($propLine,"dbWorkDir",0)!=-1)
+      {
+         $workDir=substr($propLine,$i);
+      }
+
     }
   }
   &printConnDetails; 
@@ -173,8 +179,9 @@ sub getConnDetailsFromUser
 {
 	$username = &promptUser("Enter the username ");
 	$password = &promptUser("Enter the password ");
-	$tnsName = &promptUser("Enter the (tns) database name ");
+	$tnsName  = &promptUser("Enter the (tns) database name ");
 	$url      = &promptUser("Enter the url ");
+	$workDir   = &promptUser("Enter the working dir on the database server ");
 }
 
 #----------------------------------------------------------------------------
@@ -212,7 +219,7 @@ sub processMenuChoice
      $confirm = &promptUser("Are you sure? Enter y to proceed and DROP ALL database objects for $username");
      if("$confirm" eq "y" )
      {
-      system ("perl ./step1.pl $username $password $tnsName $dir $os");
+      system ("perl ./step1.pl $username $password $tnsName $dir $os $workDir");
      }
    }
 
@@ -248,6 +255,17 @@ sub processMenuChoice
 
    if ("$menuChoice" eq "6") 
    {
+      &clearScreen;
+      print( "\n\n> Part of this step will test InChi conversion."); 
+      print( "\n\n\n> Make sure that Oracle account '$username' has been granted read/write/delete privileges for $workDir."); 
+      print( "\n> If not, then use a DBA account NOW to execute the SQL commands below.\n\n\n"); 
+
+      print ("\nexec dbms_java.grant_permission( '$username', 'SYS:java.io.FilePermission', '$workDir*', 'read' )");
+      print ("\nexec dbms_java.grant_permission( '$username', 'SYS:java.io.FilePermission', '$workDir*', 'write' )");
+      print ("\nexec dbms_java.grant_permission( '$username', 'SYS:java.io.FilePermission', '$workDir*', 'delete' )");
+
+      $_ = &promptUser("\n\nHit ENTER to run conversion unit test ..");
+
       if ($os eq "MSWin32") {
          system ("ant -f ..\\build.xml test.conv");
       }

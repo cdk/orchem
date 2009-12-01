@@ -34,5 +34,9 @@ prompt creating type "compound_id_table"
     CREATE or REPLACE TYPE compound_id_table is TABLE OF VARCHAR2(80)
     /
 
+
+prompt creating type "orchem_number_table"
+    CREATE OR REPLACE TYPE orchem_number_table AS TABLE OF NUMBER(5)
+    /
   
 exit 1;

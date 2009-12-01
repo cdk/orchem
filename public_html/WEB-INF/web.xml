@@ -27,20 +27,21 @@
     <servlet-class>uk.ac.ebi.orchem.web.ImageServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
+
+  <servlet>
+    <servlet-name>JCPImage</servlet-name>
+    <servlet-class>uk.ac.ebi.orchem.web.OrchemBlobServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>DynamicImages</servlet-name>
     <url-pattern>/dynimages/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <servlet-name>BlobServlet</servlet-name>
-    <servlet-class>uk.ac.ebi.orchem.web.OrchemBlobServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>  
   <servlet-mapping>
-    <servlet-name>BlobServlet</servlet-name>
+    <servlet-name>JCPImage</servlet-name>
     <url-pattern>/blob/*</url-pattern>
   </servlet-mapping>
-
 
 </web-app>

@@ -14,6 +14,7 @@ prompt creating table "orchem_parameters"
     (  comp_tab_name         varchar2(30) not null
       ,comp_tab_pk_col       varchar2(30) not null
       ,comp_tab_molfile_col  varchar2(30) not null
+      ,tmp_dir_on_server     varchar2(1000) not null
     )
     cache
     /
@@ -54,7 +55,7 @@ prompt creating table "orchem_fingprint_simsearch"
     create table orchem_fingprint_simsearch
     ( id varchar2(80)         not null
     , bit_count number(4)     not null 
-    , fp raw(100)             not null --corresponds to possible bits in fingerprint
+    , fp raw(114)             not null --corresponds to possible bits in extended fingerprint
     )
     cache -- hm ....
     /
@@ -868,17 +869,6 @@ prompt creating table "orchem_fingprint_subsearch"
      ,bit786  varchar2(1)
      ,bit787  varchar2(1)
      ,bit788  varchar2(1)
-     ,bit789  varchar2(1)
-     ,bit790  varchar2(1)
-     ,bit791  varchar2(1)
-     ,bit792  varchar2(1)
-     ,bit793  varchar2(1)
-     ,bit794  varchar2(1)
-     ,bit795  varchar2(1)
-     ,bit796  varchar2(1)
-     ,bit797  varchar2(1)
-     ,bit798  varchar2(1)
-     ,bit799  varchar2(1)
      ,constraint pk_orchem_subsrch primary key (id)
     ) 
     cache

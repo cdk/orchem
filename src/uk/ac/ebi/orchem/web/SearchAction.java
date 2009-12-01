@@ -1,4 +1,4 @@
-/*  
+/*
  *  $Author$
  *  $Date$
  *  $Revision$
@@ -42,108 +42,99 @@ import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 public class SearchAction extends SessionAwareAction {
 
 
-  public String execute() throws Exception {
-    OracleConnection conn = null;
+    public String execute() throws Exception {
+        OracleConnection conn = null;
 
-    try {
+        try {
 
-      StringBuffer debugMsg = new StringBuffer();
-      debugMsg.append("Struts action started   .." + new java.util.Date());
+            StringBuffer debugMsg = new StringBuffer();
+            debugMsg.append("Struts action started   .." + new java.util.Date());
 
-      //Set some default values if missing ..
-      if (wsr.getTopN() == null || wsr.getTopN().equals(""))
-        wsr.setTopN("100");
-      if (wsr.getMinTanCoeff() == null || wsr.getMinTanCoeff().equals(""))
-        wsr.setMinTanCoeff("0.70");
+            //Set some default values if missing ..
+            if (wsr.getTopN() == null || wsr.getTopN().equals(""))
+                wsr.setTopN("100");
+            if (wsr.getMinTanCoeff() == null || wsr.getMinTanCoeff().equals(""))
+                wsr.setMinTanCoeff("0.70");
+            if (wsr.getStrictStereoYN()==null) {
+                wsr.setStrictStereoYN("N");
+            }
 
-      List compounds = new ArrayList();
-      long time = System.currentTimeMillis();
+            List compounds = new ArrayList();
+            long time = System.currentTimeMillis();
 
-      String queryType = null;
-      String query = null;
-        
-        if (wsr.getSmilesOrMol().equals("mol") ) {
-            queryType = Utils.QUERY_TYPE_MOL;
-            query = wsr.getStructure();
-        }
-        else {
-            queryType = Utils.QUERY_TYPE_SMILES;
-            query = wsr.getSmiles();
-        }
-        
+            String queryType = null;
+            String query = null;
 
-      if (wsr.getStructureSearchMethod().equals("sim")) {
-          
-          conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
-          debugMsg.append(wsr.getDebugMessage() +
-                          "<br>Invoking similarity search  .." +
-                          new java.util.Date());
-          compounds =
-              new DatabaseAccess().similaritySearch(   query,
-                                                       queryType,
-                                                       conn,
-                                                       new Float(wsr.getMinTanCoeff()).floatValue(),
-                                                       new Integer(wsr.getTopN()).intValue());
+            if (wsr.getSmilesOrMol().equals("mol")) {
+                queryType = Utils.QUERY_TYPE_MOL;
+                query = wsr.getStructure();
+            } else {
+                queryType = Utils.QUERY_TYPE_SMILES;
+                query = wsr.getSmiles();
+            }
 
-      } else {
-          conn = (OracleConnection) DatabaseAgent.DB_AGENT.getCachedConnection();
-          debugMsg.append(wsr.getDebugMessage() +
-                          "<br>Invoking substr search using VF2 and bitmap indices .." +
-                          new java.util.Date());
-          compounds =
-              
-             new DatabaseAccess().substructureSearchParallel(query,
-                                                      queryType,
-                                                      conn,
-                                                      new Integer(wsr.getTopN()).intValue());
-             
-             /*
+
+            if (wsr.getStructureSearchMethod().equals("sim")) {
+
+                conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
+                debugMsg.append(wsr.getDebugMessage() + "<br>Invoking similarity search  .." + new java.util.Date());
+                compounds =
+                        new DatabaseAccess().similaritySearch(query, queryType, conn, new Float(wsr.getMinTanCoeff()).floatValue(),
+                                                              new Integer(wsr.getTopN()).intValue());
+
+            } else {
+                conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
+                debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +
+                                new java.util.Date());
+
+                compounds =
+                        new DatabaseAccess().substructureSearchParallel(query, queryType, conn, new Integer(wsr.getTopN()).intValue(),
+                                                                        wsr.getStrictStereoYN());
+
+                /*
              new DatabaseAccess().substructureSearch(query,
                                                   queryType,
                                                   conn,
                                                   new Integer(wsr.getTopN()).intValue());
              */
-      }
+            }
 
-      wsr.setDebugMessage(debugMsg.toString());
-      wsr.setSearchResults(compounds);
-      wsr.setPageNum(1);
+            wsr.setDebugMessage(debugMsg.toString());
+            wsr.setSearchResults(compounds);
+            wsr.setPageNum(1);
 
-      debugMsg.append(wsr.getDebugMessage() + "<br>Search completed  .." +
-                      new java.util.Date());
-      debugMsg.append(wsr.getDebugMessage() +
-                      "<br><B>Search time in milliseconds =" +
-                      (System.currentTimeMillis() - time));
-      debugMsg.append(wsr.getDebugMessage() + "<br>Results : " +
-                      compounds.size() + "</B>");
+            debugMsg.append(wsr.getDebugMessage() + "<br>Search completed  .." + new java.util.Date());
+            debugMsg.append(wsr.getDebugMessage() + "<br><B>Search time in milliseconds =" +
+                            (System.currentTimeMillis() - time));
+            debugMsg.append(wsr.getDebugMessage() + "<br>Results : " + compounds.size() + "</B>");
 
-      this.getSession().put(Utils.SESSION_WEB_SEARCH_RESULTS, wsr);
-      return "searchDone";
+            this.getSession().put(Utils.SESSION_WEB_SEARCH_RESULTS, wsr);
+            return "searchDone";
 
-    } catch (Exception ex) {
-      this.setExceptionMsg(Utils.getErrorString(ex));
-      return "error";
+        } catch (Exception ex) {
+            this.setExceptionMsg(Utils.getErrorString(ex));
+            return "error";
 
-    } finally {
-      if (conn != null)
+        } finally {
+            if (conn != null)
                 DatabaseAgent.DB_AGENT.returnCachedConnection(conn);
+        }
+
     }
 
-  }
 
+    /**
+     * A 'session aware' bean to hold the search results, accessed on the JSPs.
+     */
+    private WebSearchResults wsr = new WebSearchResults();
 
-  /**
-   * A 'session aware' bean to hold the search results, accessed on the JSPs.
-   */
-  private WebSearchResults wsr = new WebSearchResults();
+    public void setWsr(WebSearchResults wsr) {
+        this.wsr = wsr;
+    }
 
-  public void setWsr(WebSearchResults wsr) {
-    this.wsr = wsr;
-  }
-
-  public WebSearchResults getWsr() {
-    return wsr;
-  }
+    public WebSearchResults getWsr() {
+        return wsr;
+    }
 
 
 }

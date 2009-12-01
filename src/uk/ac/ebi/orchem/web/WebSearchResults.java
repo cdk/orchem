@@ -39,6 +39,7 @@ public class WebSearchResults {
     private String debugMessage;
     private String smiles;
     private String smilesOrMol;
+    private String strictStereoYN;
 
     private int pageNum;
 
@@ -138,5 +139,13 @@ public class WebSearchResults {
 
     public String getSmilesOrMol() {
         return smilesOrMol;
+    }
+
+    public void setStrictStereoYN(String strictStereoYN) {
+        this.strictStereoYN = strictStereoYN;
+    }
+
+    public String getStrictStereoYN() {
+        return strictStereoYN;
     }
 }

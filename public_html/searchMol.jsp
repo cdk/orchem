@@ -58,10 +58,18 @@
                                  <tbody>
                                      <tr>
                                         <td colspan="2" id="appletDiv" style="vertical-align: top;">
-                                            <applet id="editor" name="MSketch" width="400" height="350" code="JMSketch.class" codebase="applets/marvinSketch" archive="jmarvin.jar">
-                                             <param name="autoscale" value="true">
-                                             <param name="mol" value=" ">
-                                            </applet>
+
+<applet code="org.openscience.jchempaint.applet.JChemPaintEditorApplet" archive="jchempaint/jchempaint-applet-core.jar"
+        id="editor" name="editor" width="500" height="400">
+<param name="impliciths" value="true">
+<param name="codebase_lookup" value="false" />
+<PARAM name="onLoadTarget" value="statusFrame">
+<PARAM NAME="image" VALUE="hourglass.gif">
+<PARAM NAME="boxborder" VALUE="false">
+<PARAM NAME="centerimage" VALUE="true">
+</applet>
+
+
                                         </td>
                                      </tr>
                                      <tr>
@@ -103,8 +111,21 @@
                                                 name="wsr.minTanCoeff"
                                                 value="%{#session.wsr.minTanCoeff}"
                                                 list="#{'0.95':'0.95' ,'0.90':'0.90' ,'0.85':'0.85' ,'0.80':'0.80' ,'0.75':'0.75' ,'0.60':'0.60' ,'0.50':'0.50','0.25':'0.25' }"
-                                                required="true" size="4"	 />
+                                                required="true" size="2"	 />
 
+                                           </td>
+                                            </tr>
+
+                                           <tr>
+                                           <td >
+                                            Strict stereo match for substructure?
+                                            </td>
+                                           <td >
+                                            <s:select 
+                                                name="wsr.strictStereoYN"
+                                                value="%{#session.wsr.strictStereoYN}"
+                                                list="#{'N':'N' ,'Y':'Y'}"
+                                                required="true" size="1"	 />
                                            </td>
                                             </tr>
 
@@ -119,7 +140,7 @@
                                              cssClass="submit_button" 
                                              name="action" 
                                              title="Submit this search." 
-                                             onclick="javascript:marvinFromEditor();"/>
+                                             onclick="javascript:jcpFromEditor();"/>
                                            </td>
                                             </tr>
                                         </table>
@@ -134,33 +155,28 @@
     
 
   <script type="text/javascript">
-        function loadStructure(){
+    function loadStructure(){
 
-            if (BrowserDetect.browser=='Firefox' && BrowserDetect.version=='1.5'){
-                    alert("There is an incompatibility of the latest version of MarvinSketch with Firefox 1.5. Please upgrade your browser to use this page.");
+            //alert ("loadStructure");
+            var struc="";
+            struc = document.getElementById('molfileLookedUp').value;
+            //alert ("structure retrieved");
+            
+            if(struc == "") {
+              //alert ("NOT FOUND "+document.getElementById('molfileLookedUp').value);
+              struc = document.getElementById('advancedSearchFT_structure').value;
             }
-            else {
-                    //alert ("loadStructure");
-                    var struc="";
-                    struc = document.getElementById('molfileLookedUp').value;
-                    //alert ("structure retrieved");
-                    
-                    if(struc == "") {
-                      //alert ("NOT FOUND "+document.getElementById('molfileLookedUp').value);
-                      struc = document.getElementById('advancedSearchFT_structure').value;
-                    }
 
-                    var edi = document.getElementById("editor");
-                    //alert ("edi "+edi);
-                    if (edi!=null){
-                            edi.setMol(struc);
-                    }
+            var edi = document.getElementById("editor");
+            //alert ("edi "+edi);
+            if (edi!=null){
+                    edi.setMolFile(struc);
             }
     }
     loadStructure();
                     
-    function marvinFromEditor () {
-            document.getElementById('advancedSearchFT_structure').value = document.getElementById("editor").getMol("mol");
+    function jcpFromEditor () {
+            document.getElementById('advancedSearchFT_structure').value = document.getElementById("editor").getMolFile();
     }
 
   </script>

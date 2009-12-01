@@ -20,4 +20,12 @@ prompt creating sequence "orchem_sequence_querykeys"
    nocache
 /
 
+prompt creating sequence "orchem_sequence_tmp_filenums"
+   create sequence orchem_sequence_tmp_filenums
+   increment by 1 
+   minvalue 1 
+   maxvalue 999
+   cycle  --!! important -> roll over sequence
+   nocache
+/
 exit 1;

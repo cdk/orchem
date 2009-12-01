@@ -45,11 +45,11 @@ import oracle.jdbc.OracleTypes;
 import oracle.sql.CLOB;
 
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.nonotify.NNMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.db.OrChemParameters;
+import uk.ac.ebi.orchem.search.OrchemMoleculeBuilder;
 import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 
 
@@ -100,24 +100,41 @@ public class DatabaseAccess {
      *
      * @param userQuery
      * @param queryType see {@link uk.ac.ebi.orchem.Utils}
-     * @param conn
-     * @param topN
+     * @param conn db connection
+     * @param strictStereo Y or N to indicate match for stereoisomerism
+     * @param idList list of IDs to search within only
      * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-     public List substructureSearch(String userQuery, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
+     public List<OrChemCompound> substructureSearch
+     (String userQuery, String queryType, OracleConnection conn,String strictStereo,List<Integer> idList) 
+     throws SQLException, ClassNotFoundException {
 
-        conn.setDefaultRowPrefetch(1); //?? todo necessary?
+        String query=null;
+
+        if (idList==null)  {
+            query= "select id, mol_file from table(orchem_subsearch.search(userquery=>?,input_type=>?, strict_stereo_yn=>?))";
+        }
+        else {
+            query= "select id, mol_file from table(orchem_subsearch.SEARCHLIMITEDSET(userquery=>?, input_type=>?, strict_stereo_yn=>?, id_list=>?))";
+        }
+        
+        conn.setDefaultRowPrefetch(1); 
         List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
-        OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement("select id, mol_file from table(orchem_subsearch.search(?,?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement
+            (query,
+             ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
-        //pstmt.setString(1, userQuery);  // Do not use setString !
-        //                                // Works for small queries, but ORA-01460 when > 4000
-
-        pstmt.setCLOB(1, getCLOB (userQuery,conn)); 
+        pstmt.setCLOB(1, getCLOB (userQuery,conn));  //Do not use setString ! Works for small queries, but ORA-01460 when > 4000
         pstmt.setString(2, queryType); 
-        pstmt.setInt(3, topN);
+        pstmt.setString(3, strictStereo); 
+
+        if (idList!=null)  {
+            oracle.sql.ArrayDescriptor descrip = oracle.sql.ArrayDescriptor.createDescriptor("COMPOUND_ID_TABLE",conn);
+            oracle.sql.ARRAY a = new oracle.sql.ARRAY(descrip, conn, idList.toArray());
+            pstmt.setArray(4,a);
+        }
 
         ResultSet res = pstmt.executeQuery();
         while (res.next())  {
@@ -126,6 +143,7 @@ public class DatabaseAccess {
             cmp.setMolFileClob(res.getClob("mol_file"));
             compounds.add(cmp);
         }
+
         res.close();
         pstmt.close();
         return compounds;
@@ -143,7 +161,9 @@ public class DatabaseAccess {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    public List<OrChemCompound> substructureSearchParallel(String userQuery, String queryType, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
+    public List<OrChemCompound> substructureSearchParallel
+    (String userQuery, String queryType, OracleConnection conn, int topN, String strictStereoYN) 
+    throws SQLException, ClassNotFoundException {
 
        conn.setDefaultRowPrefetch(25);
        String setUp = "begin ?:= orchem_subsearch_par.setup (?,?); end;";
@@ -160,10 +180,11 @@ public class DatabaseAccess {
 
        List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
        //choose FORCE FULL SCAN Y for smaller databases, N for larger ones (millions of compounds)
-       PreparedStatement pstmt = conn.prepareStatement("select id, mol_file from table(orchem_subsearch_par.search(?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+       PreparedStatement pstmt = conn.prepareStatement("select id, mol_file from table(orchem_subsearch_par.search(?,?,'N',?))   ",ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
        pstmt.setInt(1,key);
        pstmt.setInt(2,topN);
-
+       pstmt.setString(3,strictStereoYN);
+       
        ResultSet res = pstmt.executeQuery();
        while (res.next())  {
           OrChemCompound cmp = new OrChemCompound();
@@ -177,6 +198,39 @@ public class DatabaseAccess {
     }
 
 
+
+    /**
+     * SMARTS searching
+     *
+     * @param smartsQuery
+     * @param conn
+     * @param topN
+     * @return
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    public List<OrChemCompound> smartsSearch(String smartsQuery, OracleConnection conn) throws SQLException, ClassNotFoundException {
+
+       conn.setDefaultRowPrefetch(10);
+
+       List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
+       OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement(
+             "select * from table ( orchem_smarts_search.search(?,'N') )",
+              ResultSet.TYPE_FORWARD_ONLY, 
+              ResultSet.CONCUR_READ_ONLY);
+       pstmt.setCLOB(1, getCLOB (smartsQuery,conn)); 
+
+       ResultSet res = pstmt.executeQuery();
+       while (res.next())  {
+          OrChemCompound cmp = new OrChemCompound();
+           cmp.setId(res.getString("id"));
+           cmp.setMolFileClob(res.getClob("mol_file"));
+           compounds.add(cmp);
+       }
+       res.close();
+       pstmt.close();
+       return compounds;
+    }
 
 
     /**
@@ -218,29 +272,55 @@ public class DatabaseAccess {
     }
 
     /**
-     * Retrieve a list of molecules from the database
-     * @param pStmt
-     * @return
-     * @throws SQLException
-     * @throws CDKException
+     * Retrieve molecules built from the substructure search table.
+     * Used for Unit testing.
      */
-    public List<WrappedAtomContainer> getMols(PreparedStatement pStmt) throws SQLException, CDKException {
-        MDLV2000Reader mdlReader = new MDLV2000Reader();
+    public List<WrappedAtomContainer> getFingerprintedCompounds(OracleConnection conn,Integer id) 
+    throws SQLException, CDKException {
         List<WrappedAtomContainer> molecules = new ArrayList<WrappedAtomContainer>();
-        ResultSet res = pStmt.executeQuery();
-        String mdl = null;
-        while (res.next()) {
-            mdl = res.getString("molfile");
-            try {
-                NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, mdl);
-                molecules.add(new WrappedAtomContainer(molecule, res.getInt("id")));
-            } catch (Exception e) {
-                System.err.println("Error for ID " + res.getInt("id") + ": " + e.getMessage());
-            }
-        }
-        res.close();
-        return molecules;
+        String query="";
+        PreparedStatement pStmt=null;
+        if (id!=null) {
+            query = " select id, to_clob(atoms) atoms , to_clob(bonds) bonds " +
+                    " from orchem_fingprint_subsearch" +
+                    " where id =? " +
+                    " and atoms is not null " +
+                    " union all " +
+                    " select id, atoms, bonds " +
+                    " from orchem_big_molecules " +
+                    " where id =?";
+            pStmt = conn.prepareStatement(query);
+            pStmt.setInt(1,id);
+            pStmt.setInt(2,id);
 
+        }
+        else {
+            query = " select id, to_clob(atoms) atoms , to_clob(bonds) bonds " +
+                    " from orchem_fingprint_subsearch " +
+                    " where atoms is not null " +
+                    " union all " +
+                    " select id, atoms, bonds " +
+                    " from orchem_big_molecules ";
+            pStmt = conn.prepareStatement(query);
+        }
+        ResultSet res = pStmt.executeQuery();
+        while (res.next()) {
+            Clob atoms = res.getClob("atoms");
+            Clob bonds = res.getClob("bonds");
+            int clobLenAtoms = new Long(atoms.length()).intValue();
+            String atString = (atoms.getSubString(1, clobLenAtoms));
+            String bondString ="";
+            if(bonds!=null) {
+                int clobLenBonds = new Long(bonds.length()).intValue();
+                bondString = (bonds.getSubString(1, clobLenBonds));
+            }
+            IAtomContainer molecule = null;
+            OrchemMoleculeBuilder mb = new OrchemMoleculeBuilder();
+            molecule = mb.getBasicAtomContainer(atString, bondString);
+            WrappedAtomContainer wrap = new WrappedAtomContainer(molecule, res.getInt("id"));
+            molecules.add(wrap);
+        }
+        return molecules;
     }
 
 
@@ -251,11 +331,8 @@ public class DatabaseAccess {
      * @throws SQLException
      * @throws CDKException
      */
-    public List<WrappedAtomContainer> getAllCompounds(OracleConnection conn) throws SQLException, CDKException {
-        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample");
-        List<WrappedAtomContainer> ret = getMols(pStmt);
-        pStmt.close();
-        return ret;
+    public List<WrappedAtomContainer> getAllFingerprintedCompounds(OracleConnection conn) throws SQLException, CDKException {
+        return getFingerprintedCompounds(conn, null);
     }
 
 

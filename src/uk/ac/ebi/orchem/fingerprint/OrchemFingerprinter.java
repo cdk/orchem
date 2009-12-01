@@ -43,12 +43,12 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
+import org.openscience.cdk.ringsearch.AllRingsFinder;
 import org.openscience.cdk.ringsearch.RingPartitioner;
 import org.openscience.cdk.ringsearch.SSSRFinder;
 
 import uk.ac.ebi.orchem.fingerprint.bitpos.BitPosApi;
 import uk.ac.ebi.orchem.fingerprint.bitpos.Neighbour;
-import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
 
 
 /**
@@ -61,14 +61,17 @@ import uk.ac.ebi.orchem.temp.MyAllRingsFinder;
 public class OrchemFingerprinter implements IFingerprinter {
 
 
-    public final static int FINGERPRINT_SIZE=new Integer(800);
+    public final static int FINGERPRINT_SIZE=BitPosApi.bp.getFingerprintSize();
     private int hashModulo = BitPosApi.bp.HASH_OFFSET;
+    IRingSet ringSet;
+    List<IRingSet> rslist;
 
     public int getSize() {
         return FINGERPRINT_SIZE;
     }
 
-    public BitSet getFingerprint(IAtomContainer molecule)  {
+
+    public BitSet getFingerprint(IAtomContainer molecule) throws CDKException {
         BitSet fingerprint;
         fingerprint = new BitSet(FINGERPRINT_SIZE); 
         /* Set a dummy default bit. This prevents compounds with 0 bits set, which in turn makes the similarity search unhappy*/
@@ -81,32 +84,25 @@ public class OrchemFingerprinter implements IFingerprinter {
 
         neighbours(molecule,fingerprint);
 
-        /* 
-         * Fingerprint ring aspects.
-         * AllRingsFinder or SSSRFinder? The AllRingsFinder is prefered. 
-         * 
-         * This is best illustrated by an example: unittest compound with id=30 would not be regarded a substructure
-         * of compound id=1062 if using SSSR. However AllRingsFinder spots all the rings we want.
-         * Downside of AllRingsFinder is potential slowness; SSSR is used on timeout. Timeouts can happen for
-         * complex 3D compounds like Boron buckyballs (unittest id=1218) 
-         */
-
-        //TODO this is a TEMP class (copy of AllRingsFinder) to user until CDK has new AllRingsFinder (with search depth) 
-        MyAllRingsFinder ringFinder =  new MyAllRingsFinder();
-        ringFinder.setTimeout(3000);
-        IRingSet ringSet=null;
+        //long start = System.currentTimeMillis();
         try {
-            ringSet = ringFinder.findAllRingsInIsolatedRingSystem(molecule,7); // max depth=7
-        } catch (CDKException e) {
-            /* time out? let SSSR make the rings (fast) */
-            ringSet = new SSSRFinder(molecule).findSSSR();
+            AllRingsFinder ringFinder =  new AllRingsFinder();
+            ringFinder.setTimeout(2500);
+            // fingerprinter prints up to 6; from 7 onwards bucky balls and such become quite expensive!
+            ringSet = ringFinder.findAllRingsInIsolatedRingSystem(molecule,6); 
+            //System.out.println("ring detection took ms : "+(System.currentTimeMillis()-start));
+        } catch (Exception e) {
+            long startExc = System.currentTimeMillis();
+            ringSet = new SSSRFinder(molecule).findRelevantRings();
+            System.out.println("warning timeout ring detection, exception handled in "+(System.currentTimeMillis()-startExc));
         }
+
         rings(ringSet,fingerprint);
-        List<IRingSet> rslist = RingPartitioner.partitionRings(ringSet);
+        rslist = RingPartitioner.partitionRings(ringSet);
         ringSets(rslist,fingerprint);
         ringSetLayout(rslist,fingerprint);
         
-        smartsPatterns(molecule,fingerprint);
+        smilesPatterns(molecule,fingerprint);
         return fingerprint;
 
     }
@@ -144,7 +140,11 @@ public class OrchemFingerprinter implements IFingerprinter {
 
             // if the element is 'rare' then it will not be in the
             // map of counts for elements. Instead we set an 'other element' bit
-            if (!BitPosApi.bp.elemFingerprinted.containsKey(elemSymbol) && !elemSymbol.equals("R"))  {
+            if (!BitPosApi.bp.elemFingerprinted.containsKey(elemSymbol) 
+                && !elemSymbol.equals("R")
+                && !elemSymbol.equals("H")
+            )  
+            {
                 Integer bitPos = BitPosApi.bp.elemCntBits.get(BitPosApi.bp.otherElem);
                 fingerprint.set(bitPos, true);
             }
@@ -211,10 +211,13 @@ public class OrchemFingerprinter implements IFingerprinter {
                 /* Put all neighbours in the list, plus the bond order and aromaticity  */
                 while (bondSubIterator.hasNext()) {
                     IBond subBond = bondSubIterator.next();
-                    if (subBond.getAtom(0).equals(centralAtom))
-                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(1).getSymbol(), subBond.getOrder(), subBond.getFlag(CDKConstants.ISAROMATIC)));
-                    else if (subBond.getAtom(1).equals(centralAtom))
-                        atomPlusNeighbours.add(new Neighbour(subBond.getAtom(0).getSymbol(), subBond.getOrder(), subBond.getFlag(CDKConstants.ISAROMATIC)));
+                    if (subBond.getOrder()!=null)  // SMARTS query atom container case
+                        if (subBond.getAtom(0).equals(centralAtom))
+                            atomPlusNeighbours.add(
+                               new Neighbour(subBond.getAtom(1).getSymbol(), subBond.getOrder(), subBond.getFlag(CDKConstants.ISAROMATIC)));
+                        else if (subBond.getAtom(1).equals(centralAtom))
+                            atomPlusNeighbours.add(
+                               new Neighbour(subBond.getAtom(0).getSymbol(), subBond.getOrder(), subBond.getFlag(CDKConstants.ISAROMATIC)));
                 }
 
                 /*
@@ -282,18 +285,28 @@ public class OrchemFingerprinter implements IFingerprinter {
         while (ringIterator.hasNext()) {
 
             IAtomContainer ring = ringIterator.next();
-
             int ringSize = ring.getAtomCount();
+
+            /* Fingerprint uncommon ring sizes */
+            if (ringSize!=5 && ringSize!=6)  {
+                String mapKey = BitPosApi.bp.ringSize+ringSize;
+                Integer bitPos = BitPosApi.bp.ringSizes.get(mapKey);
+                if (bitPos != null) {
+                  fingerprint.set(bitPos, true);
+                }
+            }
+
             boolean hasNitrogen = false;
             boolean hasHeteroAtom = false;
             boolean hasOnlyCarbon = true;
-
             Iterator<IAtom> itr = ring.atoms().iterator();
             while (itr.hasNext()) {
                 IAtom atom = itr.next();
+                
                 if (atom.getSymbol().equals("N")) {
                     hasNitrogen = true;
-                } else if (!atom.getSymbol().equals("C")) {
+                } else if (!atom.getSymbol().equals("C")&&
+                           !atom.getSymbol().equals("R")) {
                     hasHeteroAtom = true;
                 }
                 if (hasNitrogen && hasHeteroAtom)
@@ -312,20 +325,32 @@ public class OrchemFingerprinter implements IFingerprinter {
             Iterator<IBond> bondItr = ring.bonds().iterator();
             while (bondItr.hasNext()) {
                 IBond bond = bondItr.next();
-                if (bond.getFlag(CDKConstants.ISAROMATIC)) {
+                if (bond.getOrder()!=null && bond.getFlag(CDKConstants.ISAROMATIC)) {
                     aromStr = BitPosApi.bp.ringPrefixArom;
+                    break;
+                }
+                if (bond.getOrder()==null) {
+                    aromStr="unreliable"; // can happen for QueryAtomContainter for SMARTS
                     break;
                 }
             }
 
             addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + BitPosApi.bp.ringPrefixAny);
             addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr);
-            if (hasNitrogen)
+            if (hasNitrogen) {
                 addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr + BitPosApi.bp.ringPrefixNitro);
-            if (hasHeteroAtom)
+                addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + BitPosApi.bp.ringPrefixNitro);
+            }
+
+            if (hasHeteroAtom) {
                 addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr + BitPosApi.bp.ringPrefixHetero);
-            if (hasOnlyCarbon)
+                addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + BitPosApi.bp.ringPrefixHetero);
+
+            }
+            if (hasOnlyCarbon) {
                 addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + aromStr + BitPosApi.bp.ringPrefixCarbonOnly);
+                addRingProps(ringProps, ringSize + BitPosApi.bp.ringPrefixRing + BitPosApi.bp.ringPrefixCarbonOnly);
+            }
 
         }
 
@@ -420,7 +445,7 @@ public class OrchemFingerprinter implements IFingerprinter {
                 while (ringsetMembers.hasNext()) {
 
                     IRing ring = (IRing)ringsetMembers.next();
-                    boolean ringIsAromatic=isSmellyRing(ring);
+                    Boolean ringIsAromatic=isAromaticRing(ring);
 
                     /* Track number of hex and pent rings per set */
                     if (ring.getAtomCount() == 6)
@@ -450,13 +475,15 @@ public class OrchemFingerprinter implements IFingerprinter {
                             }
                         }
                         if (ringSize1==6 && ringSize2==6 )  {
-                            boolean neighbourRingIsAromatic=isSmellyRing(neighbourRing);
-                            if (ringIsAromatic && neighbourRingIsAromatic ) 
-                                hexMixedAromNeighbourCount++;
-                            else if (!ringIsAromatic && !neighbourRingIsAromatic ) 
-                                hexNonAromNeighbourCount++;
-                            else 
-                                hexAromNeighbourCount++;
+                            Boolean neighbourRingIsAromatic=isAromaticRing(neighbourRing);
+                            if (neighbourRingIsAromatic!=null && ringIsAromatic!=null) {
+                                if (ringIsAromatic && neighbourRingIsAromatic ) 
+                                    hexMixedAromNeighbourCount++;
+                                else if (!ringIsAromatic && !neighbourRingIsAromatic ) 
+                                    hexNonAromNeighbourCount++;
+                                else 
+                                    hexAromNeighbourCount++;
+                            }
                         }
                         
                     }
@@ -469,41 +496,49 @@ public class OrchemFingerprinter implements IFingerprinter {
                 }
 
                 /* Set bit overall ringset count */
-                flipRingSetBits(1, ringSetCount, BitPosApi.bp.ringsetCountTotalPrefix,fingerprint);
+                doRingSetBits(1, ringSetCount, BitPosApi.bp.ringsetCountTotalPrefix,fingerprint);
 
                 /* Set rings related to cluttering - maximum amount of connected rings for any ring in the set */
-                flipRingSetBits(2, maxConnectedCount, BitPosApi.bp.ringsetCountConnectedPrefix,fingerprint);
+                doRingSetBits(2, maxConnectedCount, BitPosApi.bp.ringsetCountConnectedPrefix,fingerprint);
 
                 /* Set rings related to occurence of hex and pent rings */
-                flipRingSetBits(3, maxHexRingInSetCount, BitPosApi.bp.ringsetCountHexPrefix,fingerprint);
-                flipRingSetBits(2, maxPentRingInSetCount, BitPosApi.bp.ringsetCountPentPrefix,fingerprint);
+                doRingSetBits(3, maxHexRingInSetCount, BitPosApi.bp.ringsetCountHexPrefix,fingerprint);
+                doRingSetBits(2, maxPentRingInSetCount, BitPosApi.bp.ringsetCountPentPrefix,fingerprint);
 
                 /* Set bits that indicate the number of rings in the multiple ring sets */
                 Set<Integer> keys = ringsetCountPerSet.keySet();
                 Iterator<Integer> setCntItr = keys.iterator();
                 while (setCntItr.hasNext()) {
                     Integer ringSetSize = setCntItr.next();
-                    flipRingSetBits(2, ringSetSize, BitPosApi.bp.ringsetCountPerSet,fingerprint);
+                    doRingSetBits(2, ringSetSize, BitPosApi.bp.ringsetCountPerSet,fingerprint);
                 }
             }
         }
 
         /* Set bits related to aromatic/non aromatic hex ring connections */
-        flipRingSetBits(1, hexNonAromNeighbourCount/2 ,  BitPosApi.bp.hexRingNonAromNeighPrefix,fingerprint);
-        flipRingSetBits(1, hexAromNeighbourCount/2 ,     BitPosApi.bp.hexRingAromNeighPrefix,fingerprint);
-        flipRingSetBits(1, hexMixedAromNeighbourCount/2, BitPosApi.bp.hexRingMixNeighPrefix,fingerprint);
+        doRingSetBits(1, hexNonAromNeighbourCount/2 ,  BitPosApi.bp.hexRingNonAromNeighPrefix,fingerprint);
+        doRingSetBits(1, hexAromNeighbourCount/2 ,     BitPosApi.bp.hexRingAromNeighPrefix,fingerprint);
+        doRingSetBits(1, hexMixedAromNeighbourCount/2, BitPosApi.bp.hexRingMixNeighPrefix,fingerprint);
 
     }
 
     /**
      * Helper method for {@link #ringSets(List,BitSet) }
      * @param ring
-     * @return true if ring is aromatic
+     * @return true if ring is aromatic, false if not aromatic and Null if
+     * can't decide (SMARTS case)
      */
-    private boolean isSmellyRing (IAtomContainer ring) {
-        Iterator<IBond> bondItr = ring.bonds().iterator();
-        while (bondItr.hasNext()) {
-            IBond bond = bondItr.next();
+    private Boolean isAromaticRing (IAtomContainer ring) {
+
+        // Only when all the bond orders have a value set, 
+        // we'll dare say something about aromaticity
+        for (IBond bond : ring.bonds() )  {
+            if (bond.getOrder()==null)  {
+              return null;
+            }
+        }
+
+        for (IBond bond : ring.bonds() )  {
             if (bond.getFlag(CDKConstants.ISAROMATIC)) {
                 return true;
             }
@@ -518,7 +553,7 @@ public class OrchemFingerprinter implements IFingerprinter {
      * @param prefix
      * @param fingerprint
      */
-    private void flipRingSetBits(int start, int maxCount, String prefix,BitSet fingerprint) {
+    private void doRingSetBits(int start, int maxCount, String prefix,BitSet fingerprint) {
         for (int cnt = start; cnt <= maxCount; cnt++) {
             String mapKey = prefix + cnt;
             if (BitPosApi.bp.ringSetBits.containsKey(mapKey)) {
@@ -529,24 +564,25 @@ public class OrchemFingerprinter implements IFingerprinter {
     
 
     /**
-     * Set fingerprint bits related for certain smarts patterns
-     * TODO - could use a CDK smarts pattern detector instead ..
+     * Set fingerprint bits related for certain SMILES patterns
      * @param molecule
      * @param fingerprint
      */
-    private void smartsPatterns(IAtomContainer molecule,BitSet fingerprint) {
+    private void smilesPatterns(IAtomContainer molecule,BitSet fingerprint) {
         /* Build up result list */
         Map<String, String> results = new HashMap<String, String>();
         Map<String,String> threeSomes = new HashMap<String,String>();
 
         for (int atomPos = 0; atomPos < molecule.getAtomCount(); atomPos++) {
-            List<IAtom> atoms = new ArrayList<IAtom>();
             IAtom at = molecule.getAtom(atomPos);
-            atoms.add(at);
-            smartsTraversal(atoms, at.getSymbol(), molecule, results, fingerprint, threeSomes);
+            if (!at.getSymbol().equals("R")) {
+                List<IAtom> atoms = new ArrayList<IAtom>();
+                atoms.add(at);
+                smilesTraversal(atoms, at.getSymbol(), molecule, results, fingerprint, threeSomes);
+            }
         }
 
-        /* Loop over result list and set bits where result matches a smarts pattern */
+        /* Loop over result list and set bits where result matches a SMILES pattern */
         Iterator iterator = results.keySet().iterator();
         while (iterator.hasNext()) {
             String pattern = (String)iterator.next();
@@ -558,15 +594,18 @@ public class OrchemFingerprinter implements IFingerprinter {
     }
 
     /**
-     * Recursive helper function for {@link #smartsPatterns(IAtomContainer,BitSet)} to traverse 
-     * through the atom container graph, building up potentially interesting smarts patterns.
-     * 
+     * Recursive helper function for {@link OrchemFingerprinter#smilesPatterns(org.openscience.cdk.interfaces.IAtomContainer,java.util.BitSet)}to traverse
+     * through the atom container graph, building up potentially interesting SMILES patterns.
+     *
      * @param atomList
-     * @param smarts
+     * @param smiles
      * @param molecule
      * @param results
      */
-    private void smartsTraversal(List<IAtom> atomList, String smarts, IAtomContainer molecule, Map<String, String> results, BitSet fingerprint, Map<String,String> threeSomes) {
+    private void smilesTraversal(List<IAtom> atomList, String smiles, 
+                                 IAtomContainer molecule, Map<String, 
+                                 String> results, BitSet fingerprint, 
+                                 Map<String,String> threeSomes) {
 
         IAtom lastAtomInList = atomList.get(atomList.size() - 1);
 
@@ -583,31 +622,34 @@ public class OrchemFingerprinter implements IFingerprinter {
                 nextAtom = at1;
             }
 
-            if (nextAtom != null) {
-                String nextSmart = null;
-                atomList.add(nextAtom);
-                if (bond.getFlag(CDKConstants.ISAROMATIC))
-                    nextSmart = smarts + ":" + nextAtom.getSymbol();
+            if (nextAtom != null && nextAtom.getSymbol()!=null && !nextAtom.getSymbol().equals("R")) {
+                String nextSMILES = null;
+                if (bond.getOrder()==null) // can be for SMARTS queries
+                    nextSMILES=null;
+                else if (bond.getFlag(CDKConstants.ISAROMATIC))
+                    nextSMILES = smiles + ":" + nextAtom.getSymbol();
                 else if (bond.getOrder() == IBond.Order.SINGLE) {
-                    nextSmart = smarts + "-" + nextAtom.getSymbol();
+                    nextSMILES = smiles + "-" + nextAtom.getSymbol();
                 } else if (bond.getOrder() == IBond.Order.DOUBLE) {
-                    nextSmart = smarts + "=" + nextAtom.getSymbol();
+                    nextSMILES = smiles + "=" + nextAtom.getSymbol();
                 } else if (bond.getOrder() == IBond.Order.TRIPLE) {
-                    nextSmart = smarts + "#" + nextAtom.getSymbol();
+                    nextSMILES = smiles + "#" + nextAtom.getSymbol();
                 }
 
-                if (atomList.size() >= 4) {
-                    results.put(nextSmart, nextSmart);
+                if(nextSMILES!=null ) {
+                    atomList.add(nextAtom);
+                    if (atomList.size() >= 4) {
+                        results.put(nextSMILES, nextSMILES);
+                    }
+    
+                    if (atomList.size() == 3 ) {
+                        hashThreeSome(nextSMILES,fingerprint, threeSomes);
+                    }
+    
+                    if (atomList.size() != 6) // TODO MAX depth -> doc and make constant
+                        smilesTraversal(atomList, nextSMILES, molecule, results, fingerprint, threeSomes);
+                    atomList.remove(atomList.size() - 1);
                 }
-
-                if (atomList.size() == 3 ) {
-                    hashThreeSome(nextSmart,fingerprint, threeSomes);
-                }
-
-                if (atomList.size() != 6) // TODO MAX depth -> doc and make constant
-                    smartsTraversal(atomList, nextSmart, molecule, results, fingerprint, threeSomes);
-
-                atomList.remove(atomList.size() - 1);
             }
         }
     }
@@ -626,7 +668,8 @@ public class OrchemFingerprinter implements IFingerprinter {
         for (Iterator<IBond> iterator = molecule.bonds().iterator(); iterator.hasNext(); ) {
             IBond b = iterator.next();
             if (b.getAtom(0).getSymbol().equals("C") && 
-                b.getAtom(1).getSymbol().equals("C") && 
+                b.getAtom(1).getSymbol().equals("C") &&
+                b.getOrder()!=null &&
                 !b.getFlag(CDKConstants.ISAROMATIC) && 
                 b.getOrder() == IBond.Order.SINGLE) {
                 ccBonds.add(b);
@@ -736,9 +779,9 @@ public class OrchemFingerprinter implements IFingerprinter {
      * @param threeSomes map of three-atom series already processed. Map is to quickly check and avoid duplicate work here.
      */
     private void hashThreeSome (String threeAtomString, BitSet fingerprint, Map threeSomes) {
-        // already done this one ? check..
-        if(!threeSomes.containsKey(threeAtomString)) {
-            
+
+        if (!threeSomes.containsKey(threeAtomString)) {
+            //System.out.println(threeAtomString);
             // determine reverse string, so for example "C:C-Br" -> "Br-C:C"
             StringTokenizer s = new StringTokenizer(threeAtomString, ":#-=", true);
             StringBuilder sb = new StringBuilder();
@@ -747,26 +790,26 @@ public class OrchemFingerprinter implements IFingerprinter {
                 sb.insert(0, str);
             }
             String reversedThreeAtomSmiles = sb.toString();
-            
+
             /* Pick between the two equivalent Strings the one with the lowest
-               hash code. So either "C:C-Br" or "Br-C:C", not both. They're the same, 
+               hash code. So either "C:C-Br" or "Br-C:C", not both. They're the same,
                so hashing both would be redundant */
-            String choice=null;
+            String choice = null;
             if (threeAtomString.hashCode() < reversedThreeAtomSmiles.hashCode())
-                choice=threeAtomString; 
+                choice = threeAtomString;
             else
-                choice=reversedThreeAtomSmiles;
+                choice = reversedThreeAtomSmiles;
 
             // already done this one ? check again, possible reversed now
-            if (!threeSomes.containsKey(choice))  {
-                threeSomes.put(choice,null);
+            if (!threeSomes.containsKey(choice)) {
+                threeSomes.put(choice, null);
 
-                /* Now check not to hash the very common threesomes. Like "C:C:C". 
+                /* Now check not to hash the very common threesomes. Like "C:C:C".
                  * These would flood the fingerprint for particular hash positions. */
-                if (!commonThreeSomes.contains(choice))  {
-                    int hc = ((choice.hashCode())%hashModulo) + 1;
-                    if (hc<0)  {
-                        hc*=-1;
+                if (!commonThreeSomes.contains(choice)) {
+                    int hc = ((choice.hashCode()) % hashModulo) + 1;
+                    if (hc < 0) {
+                        hc *= -1;
                     }
                     fingerprint.set(hc);
                 }
@@ -849,30 +892,41 @@ public class OrchemFingerprinter implements IFingerprinter {
                                         collectSharedAtoms(atc2, atc3, sharedAtoms);
 
                                         Set<IBond> sharedBonds = new HashSet<IBond>();
-                                        if (detectSharedAndDoubleBonds(atc1, sharedAtoms, sharedBonds))
-                                            singleDouble = "D";
-                                        if (detectSharedAndDoubleBonds(atc2, sharedAtoms, sharedBonds))
-                                            singleDouble = "D";
-                                        if (detectSharedAndDoubleBonds(atc3, sharedAtoms, sharedBonds))
-                                            singleDouble = "D";
+                                        
+                                        Boolean dblBonds=null;
+                                        dblBonds = detectSharedAndDoubleBonds(atc1, sharedAtoms, sharedBonds);
+                                        if(dblBonds!=null) {
+                                            if (dblBonds)
+                                                singleDouble = "D";
 
-                                        Iterator<Integer> iterator = sharedAtoms.values().iterator();
-                                        while (iterator.hasNext()) {
-                                            if (iterator.next() == 3) {
-                                                connectivity = "H";
-                                                break;
+                                            dblBonds = detectSharedAndDoubleBonds(atc2, sharedAtoms, sharedBonds);
+                                            if(dblBonds!=null) {
+                                                if (dblBonds)
+                                                    singleDouble = "D";
+                                                
+                                                dblBonds = detectSharedAndDoubleBonds(atc3, sharedAtoms, sharedBonds);
+
+                                                if(dblBonds!=null) {
+                                                    if (dblBonds)
+                                                        singleDouble = "D";
+
+                                                    Iterator<Integer> iterator = sharedAtoms.values().iterator();
+                                                    while (iterator.hasNext()) {
+                                                        if (iterator.next() == 3) {
+                                                            connectivity = "H";
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (sharedBonds.size() >= 5)
+                                                        bondOverlap = "H";
+                                                    else if (sharedBonds.size() >= 3)
+                                                        bondOverlap = "M";
+                                                    
+                                                    int bitPos = BitPosApi.bp.ringLayout.get(fiveSix + singleDouble + connectivity +bondOverlap);
+                                                    fingerprint.set(bitPos, true);
+                                                }
                                             }
                                         }
-                                        if (sharedBonds.size() >= 5)
-                                            bondOverlap = "H";
-                                        else if (sharedBonds.size() >= 3)
-                                            bondOverlap = "M";
-                                        
-                                        
-                                        
-                                        int bitPos = BitPosApi.bp.ringLayout.get(fiveSix + singleDouble + connectivity +bondOverlap);
-                                        //System.out.println(fiveSix + singleDouble + connectivity +bondOverlap);
-                                        fingerprint.set(bitPos, true);
                                     }
                                 }
                             }
@@ -939,11 +993,13 @@ public class OrchemFingerprinter implements IFingerprinter {
      * @param sharedBonds
      * @return true if there's a double bond somewhere in the atom container
      */
-    private boolean detectSharedAndDoubleBonds (IAtomContainer atc, Map sharedAtoms, Set sharedBonds) {
-        boolean doubleBondsFound=false;
+    private Boolean detectSharedAndDoubleBonds (IAtomContainer atc, Map sharedAtoms, Set sharedBonds) {
+        Boolean doubleBondsFound=false;
         Iterator<IBond> bonds = atc.bonds().iterator();
         while (bonds.hasNext())  {
             IBond bond = bonds.next();
+            if (bond.getOrder()==null)
+                return null; // break out and give up
             if (bond.getOrder()==IBond.Order.DOUBLE) 
                 doubleBondsFound=true;
             if ( sharedAtoms.containsKey(bond.getAtom(0))&& sharedAtoms.containsKey(bond.getAtom(1)))  {
@@ -952,6 +1008,6 @@ public class OrchemFingerprinter implements IFingerprinter {
         }
         return doubleBondsFound;
     }
-    
+
 }
 

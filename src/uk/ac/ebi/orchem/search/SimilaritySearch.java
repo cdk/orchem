@@ -162,7 +162,7 @@ public class SimilaritySearch {
             debugging=true;
 
         debug("started",debugging);
-        final int fpSize = FingerPrinterAgent.FP.getFpSize();
+        final int extFpSize = FingerPrinterAgent.FP.getExtendedFpSize();
 
        /**********************************************************************
         * Similarity search algorithm section                                *
@@ -195,7 +195,7 @@ public class SimilaritySearch {
             String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
 
             float queryBitCount = queryFp.cardinality();
-            byte[] queryBytes = Utils.toByteArray(queryFp, fpSize);
+            byte[] queryBytes = Utils.toByteArray(queryFp, extFpSize);
             int queryByteArrLen = queryBytes.length;
     
             float lowBucketNum = queryBitCount - 1;
@@ -300,7 +300,7 @@ public class SimilaritySearch {
                             lowBucketNum--;
                         }
     
-                        if (lowBucketNum < 1 && highBucketNum > fpSize)
+                        if (lowBucketNum < 1 && highBucketNum > extFpSize)
                             done = true;
                     }
                 }
@@ -390,7 +390,7 @@ public class SimilaritySearch {
     private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN, String idsOnlyYN) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
-        BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
+        BitSet fp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN,idsOnlyYN);
     }
 
@@ -408,7 +408,7 @@ public class SimilaritySearch {
      */
     private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN, String idsOnlyYN) throws Exception {
         IAtomContainer molecule = sp.parseSmiles(smiles);
-        BitSet fp = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(molecule);
+        BitSet fp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN,idsOnlyYN);
     }
 
@@ -446,6 +446,6 @@ public class SimilaritySearch {
             throw new RuntimeException("Query type not recognized");
     }
     
-    
+
 
 }

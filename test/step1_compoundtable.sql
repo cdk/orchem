@@ -9,7 +9,7 @@ CREATE TABLE orchem_compound_sample
 /
 
 prompt Setting up 'orchem_parameters'
-insert into orchem_parameters values ('ORCHEM_COMPOUND_SAMPLE','ID','MOLFILE')
+insert into orchem_parameters values ('ORCHEM_COMPOUND_SAMPLE','ID','MOLFILE','&&1')
 /
 commit
 /

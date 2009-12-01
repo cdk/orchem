@@ -36,8 +36,6 @@ import junit.framework.TestCase;
 
 import oracle.jdbc.driver.OracleConnection;
 
-import org.openscience.cdk.exception.CDKException;
-
 import uk.ac.ebi.orchem.PropertyLoader;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.shared.DatabaseAccess;
@@ -70,18 +68,13 @@ public class TestSimilaritySearch extends TestCase {
             Properties properties = PropertyLoader.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
             conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
-            targetMolecules = new DatabaseAccess().getAllCompounds(conn);
+            targetMolecules = new DatabaseAccess().getAllFingerprintedCompounds(conn);
             System.out.println("___ static : End set up target list");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void setUp() throws SQLException, CDKException {
-    }
-
-    public void tearDown() throws SQLException {
-    }
 
     /**
      *
@@ -143,7 +136,7 @@ public class TestSimilaritySearch extends TestCase {
     * Start of Junit test methods
     */
     public void testCompoundID_1() throws Exception {
-        findSelf (similaritySearch(1, 0.8f, 2),1);
+        findSelf (similaritySearch(1, 0.8f, 1),1);
     }
 
     public void testCompoundID_1_bogus() throws Exception {
@@ -151,7 +144,7 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_2() throws Exception {
-        findSelf(similaritySearch(2, 0.75f, 5),2);
+        findSelf(similaritySearch(2, 0.75f, 6),2);
     }
 
     public void testCompoundID_15() throws Exception {
@@ -159,11 +152,11 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_22() throws Exception {
-        findSelf(similaritySearch(22, 0.8f, 5),22);
+        findSelf(similaritySearch(22, 0.8f, 7),22);
     }
 
     public void testCompoundID_27() throws Exception {
-        findSelf(similaritySearch(27, 0.85f, 8),27);
+        findSelf(similaritySearch(27, 0.75f, 10),27);
     }
 
     public void testCompoundID_31() throws Exception {
@@ -171,11 +164,15 @@ public class TestSimilaritySearch extends TestCase {
     }
 
     public void testCompoundID_34() throws Exception {
-        findSelf(similaritySearch(34, 0.5f, 7),34);
+        findSelf(similaritySearch(34, 0.5f, 9),34);
     }
 
     public void testCompoundID_35() throws Exception {
-        findSelf(similaritySearch(35, 0.7f, 4),35);
+        findSelf(similaritySearch(35, 0.7f, 5),35);
+    }
+
+    public void testCompoundID_1218() throws Exception {
+        findSelf(similaritySearch(1218, 0.6f, 3),1218);
     }
 
     // add more if u like

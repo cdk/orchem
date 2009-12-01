@@ -15,23 +15,24 @@ CREATE OR REPLACE PACKAGE orchem_subsearch
 AS 
    l_candidate orchem_utils.candidate_rec;
 
-   FUNCTION search (userQuery Clob, input_type varchar2
-                  , topN integer:=null, debug_YN varchar2:='N', return_ids_only_YN VARCHAR2:='N') 
+   FUNCTION search (userQuery Clob
+                  , input_type varchar2
+                  , topN integer:=null
+                  , debug_YN varchar2:='N'
+                  , return_ids_only_YN VARCHAR2:='N'
+                  , strict_stereo_yn VARCHAR2:='N') 
    RETURN   orchem_compound_list
    PIPELINED
    ;
-
 
    FUNCTION searchLimitedSet (userQuery Clob, input_type varchar2
                   , id_list compound_id_table
-                  , topN integer:=null, debug_YN varchar2:='N', return_ids_only_YN VARCHAR2:='N') 
+                  , topN integer:=null, debug_YN varchar2:='N'
+                  , return_ids_only_YN VARCHAR2:='N'
+                  , strict_stereo_yn VARCHAR2:='N')
    RETURN   orchem_compound_list
    PIPELINED
    ;
-
-
- --PROCEDURE show_keys
- --;
 END;
 /
 SHOW ERRORS
@@ -73,23 +74,23 @@ AS
    Procedure to get get a quick verdict if a candidate compound can be a 
    a superstructure of the user's query. 
    ___________________________________________________________________________*/
-   FUNCTION is_possible_candidate (query_key number, compoundId varchar2, singleBondCount number, doubleBondCount number
-                       , tripleBondCount number, aromaticBondCount number, sCount number, oCount number 
+   FUNCTION is_possible_candidate (query_key number, compoundId varchar2
+                       , tripleBondCount number, sCount number, oCount number 
                        , nCount number, fCount number, clCount number, brCount number, iCount number
                        , cCount number, debugYN varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearch.isPossibleCandidate(java.lang.Integer,java.lang.String,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.String) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearch.isPossibleCandidate(java.lang.Integer,java.lang.String,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.String) return java.lang.String ';
 
 
   /*___________________________________________________________________________
    Procedure to invoke graph ismorphism check between query and candidate
    ___________________________________________________________________________*/
-   FUNCTION isomorphism (query_key number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2)
+   FUNCTION isomorphism 
+   (query_key number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2, strict_stereo_yn varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearch.isomorphismCheck(java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String) return java.lang.String ';
-
+   'uk.ac.ebi.orchem.search.SubstructureSearch.isomorphismCheck(java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String,java.lang.String) return java.lang.String ';
 
 
    PROCEDURE debug(msg varchar2) 
@@ -125,7 +126,8 @@ AS
    
    ___________________________________________________________________________*/
    FUNCTION search (userQuery Clob, input_type varchar2, topN integer :=null , 
-                    debug_YN varchar2 := 'N',return_ids_only_YN VARCHAR2:='N')
+                    debug_YN varchar2 := 'N',return_ids_only_YN VARCHAR2:='N',
+                    strict_stereo_yn VARCHAR2:='N')
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -142,7 +144,9 @@ AS
       molecule                 clob;
       numOfResults             integer:=0; 
       countCompoundsLooped     integer:=0;
-
+      compound_id              VARCHAR2(255);
+      stashed                  boolean:=false;
+      
    BEGIN
        --(1)
        IF input_type NOT IN ('SMILES','MOL') THEN
@@ -161,6 +165,7 @@ AS
        
        --(4)
        stash_query_in_map (query_key, userQuery, input_type, debug_YN);
+       stashed :=true;
 
        --(5)
        whereClause := getWhereClause (userQuery, input_type, debug_YN );
@@ -170,10 +175,7 @@ AS
        '            select /*+ FIRST_ROWS */             ' ||
                        query_key                           ||
        '             , s.id                              ' ||
-       '             , s.single_bond_count               ' ||
-       '             , s.double_bond_count               ' ||
        '             , s.triple_bond_count               ' ||
-       '             , s.aromatic_bond_count             ' ||
        '             , s.s_count                         ' ||
        '             , s.o_count                         ' ||
        '             , s.n_count                         ' ||
@@ -185,6 +187,7 @@ AS
        '             , s.atoms                           ' ||
        '             , s.bonds                           ' ||
        '             ,'''||debug_YN||''''                  ||  
+       '             ,'''||strict_stereo_yn||''''          ||  
        '              from  orchem_fingprint_subsearch s ' ||
        '              where 1=1                          ' ||
                       whereClause                         ;
@@ -218,10 +221,7 @@ AS
              IF is_possible_candidate  (
                   l_candidate.query_key          
                  ,l_candidate.compound_id         
-                 ,l_candidate.single_bond_count   
-                 ,l_candidate.double_bond_count   
                  ,l_candidate.triple_bond_count   
-                 ,l_candidate.aromatic_bond_count 
                  ,l_candidate.s_count             
                  ,l_candidate.o_count             
                  ,l_candidate.n_count             
@@ -234,13 +234,16 @@ AS
                  ) = 'Y' 
              THEN
                 --(11)
-                IF (isomorphism (
-                      l_candidate.query_key          
-                     ,l_candidate.compound_id         
-                     ,l_candidate.atoms               
-                     ,l_candidate.bonds               
-                     ,l_candidate.debug_yn            
-                 )) IS NOT NULL
+                compound_id :=isomorphism (
+                  l_candidate.query_key          
+                 ,l_candidate.compound_id         
+                 ,l_candidate.atoms               
+                 ,l_candidate.bonds               
+                 ,l_candidate.debug_yn            
+                 ,l_candidate.strict_stereo_yn
+                ); 
+
+                IF compound_id IS NOT NULL
                 THEN
                    --(12)
                     BEGIN
@@ -278,19 +281,12 @@ AS
      IF myRefCur is not null AND myRefCur%ISOPEN THEN
         CLOSE myRefCur;
      END IF;
-     remove_query_from_map (query_key);    
+     IF stashed THEN
+        remove_query_from_map (query_key);    
+     END IF;
      dbms_output.put_line ('>>>>ERROR:'||chr(10)||'>>>>Search could not complete: '||chr(10)||'>>>>'||sqlerrm);
      RAISE; -- raise where ? doesn't really work with pipelined :(
    END;
-
-   --PROCEDURE show_keys 
-   --IS LANGUAGE JAVA NAME 
-   --'uk.ac.ebi.orchem.search.SubstructureSearch.showKeys()';
-
-
-
-
-
 
 
   /*___________________________________________________________________________
@@ -301,11 +297,14 @@ AS
     do a combined search (say on compound name AND substructure), with the
     name search being done first, resulting in a limited set of candidates,
     for which Orchem is then invoked.
-   
+
    ___________________________________________________________________________*/
    FUNCTION searchLimitedSet (userQuery Clob, input_type varchar2
                   , id_list compound_id_table
-                  , topN integer:=null, debug_YN varchar2:='N', return_ids_only_YN VARCHAR2:='N') 
+                  , topN integer:=null, debug_YN varchar2:='N'
+                  , return_ids_only_YN VARCHAR2:='N'
+                  , strict_stereo_yn VARCHAR2:='N')
+
    RETURN   orchem_compound_list
    PIPELINED
    AS
@@ -320,7 +319,7 @@ AS
       moleculeQuery            varchar2(5000);
       prefilterQuery           varchar2(30000);
       molecule                 clob;
-      numOfResults             integer:=0; 
+      numOfResults             integer:=0;
       countCompoundsLooped     integer:=0;
 
    BEGIN
@@ -328,25 +327,22 @@ AS
           raise_application_error (-20013,'The provided input type '||input_type||' is not valid.');
        END IF;
 
-       SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molfile_col 
+       SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molfile_col
        INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molfile_col
        FROM   orchem_parameters;
 
        SELECT orchem_sequence_querykeys.nextval
        INTO   query_key
        FROM   dual;
-       
+
        stash_query_in_map (query_key, userQuery, input_type, debug_YN);
        whereClause := getWhereClause (userQuery, input_type, debug_YN );
 
-       prefilterQuery:=       
+       prefilterQuery:=
        '       select /*+ INDEX (s pk_orchem_subsrch) */ ' ||
                        query_key                           ||
        '             , s.id                              ' ||
-       '             , s.single_bond_count               ' ||
-       '             , s.double_bond_count               ' ||
        '             , s.triple_bond_count               ' ||
-       '             , s.aromatic_bond_count             ' ||
        '             , s.s_count                         ' ||
        '             , s.o_count                         ' ||
        '             , s.n_count                         ' ||
@@ -357,12 +353,13 @@ AS
        '             , s.c_count                         ' ||
        '             , s.atoms                           ' ||
        '             , s.bonds                           ' ||
-       '             ,'''||debug_YN||''''                  ||  
+       '             ,'''||debug_YN||''''                  ||
+       '             ,'''||strict_stereo_yn||''''          ||  
        '              from  orchem_fingprint_subsearch s ' ||
        '              where id=:1                        ' || -- !!!!
                       whereClause                         ;
-        
-       moleculeQuery := ' select '|| compound_tab_molfile_col|| 
+
+       moleculeQuery := ' select '|| compound_tab_molfile_col||
                         ' from  ' || compound_tab_name       ||
                         ' where  '|| compound_tab_pk_col     ||'=:var01';
 
@@ -382,42 +379,40 @@ AS
              END IF;
 
              IF is_possible_candidate  (
-                  l_candidate.query_key          
-                 ,l_candidate.compound_id         
-                 ,l_candidate.single_bond_count   
-                 ,l_candidate.double_bond_count   
-                 ,l_candidate.triple_bond_count   
-                 ,l_candidate.aromatic_bond_count 
-                 ,l_candidate.s_count             
-                 ,l_candidate.o_count             
-                 ,l_candidate.n_count             
-                 ,l_candidate.f_count             
-                 ,l_candidate.cl_count            
-                 ,l_candidate.br_count            
-                 ,l_candidate.i_count             
-                 ,l_candidate.c_count             
-                 ,l_candidate.debug_yn            
-                 ) = 'Y' 
+                  l_candidate.query_key
+                 ,l_candidate.compound_id
+                 ,l_candidate.triple_bond_count
+                 ,l_candidate.s_count
+                 ,l_candidate.o_count
+                 ,l_candidate.n_count
+                 ,l_candidate.f_count
+                 ,l_candidate.cl_count
+                 ,l_candidate.br_count
+                 ,l_candidate.i_count
+                 ,l_candidate.c_count
+                 ,l_candidate.debug_yn
+                 ) = 'Y'
              THEN
                 IF (isomorphism (
-                      l_candidate.query_key          
-                     ,l_candidate.compound_id         
-                     ,l_candidate.atoms               
-                     ,l_candidate.bonds               
-                     ,l_candidate.debug_yn            
+                      l_candidate.query_key
+                     ,l_candidate.compound_id
+                     ,l_candidate.atoms
+                     ,l_candidate.bonds
+                     ,l_candidate.debug_yn
+                     ,l_candidate.strict_stereo_yn
                  )) IS NOT NULL
                 THEN
                     BEGIN
                     if return_ids_only_YN='N' then
                         BEGIN
-                           execute immediate moleculeQuery into molecule using l_candidate.compound_id;    
-                           pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );  
+                           execute immediate moleculeQuery into molecule using l_candidate.compound_id;
+                           pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );
                         EXCEPTION
                         WHEN NO_DATA_FOUND THEN
                              dbms_output.put_line ('>> Warning: compound could not be found '||l_candidate.compound_id);
                         END;
-                    else 
-                        pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );  
+                    else
+                        pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );
                     end if;
 
                     numOfResults:=numOfResults+1;
@@ -426,16 +421,16 @@ AS
                        raise_application_error (-20001, 'Query in compound table/view with id '||l_candidate.compound_id||' gave more than one row. Aborting!');
                     END;
                     IF (topN is not null AND numOfResults >= topN) THEN
-                      CLOSE myRefcur;  
+                      CLOSE myRefcur;
                       EXIT id_loop;
                     END IF;
                 END IF;
              END IF;
           END IF;
-          CLOSE myRefcur;  
+          CLOSE myRefcur;
        END LOOP;
 
-       remove_query_from_map (query_key);    
+       remove_query_from_map (query_key);
        debug ('Amount of compounds inspected = '||countCompoundsLooped);
        RETURN;
 
@@ -443,10 +438,16 @@ AS
      IF myRefCur is not null AND myRefCur%ISOPEN THEN
         CLOSE myRefCur;
      END IF;
-     remove_query_from_map (query_key);    
+     remove_query_from_map (query_key);
      dbms_output.put_line ('>>>>ERROR:'||chr(10)||'>>>>Search could not complete: '||chr(10)||'>>>>'||sqlerrm);
-     RAISE; 
+     RAISE;
    END;
+
+
+
+   --PROCEDURE show_keys 
+   --IS LANGUAGE JAVA NAME 
+   --'uk.ac.ebi.orchem.search.SubstructureSearch.showKeys()';
 
 END;
 /   

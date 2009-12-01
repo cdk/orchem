@@ -9,5 +9,6 @@ exec dbms_java.set_output(10000000);
 @simsearch.plsql
 @subsearch.plsql
 @subsearchParallel.plsql
+@smartsSearch.plsql
 
 

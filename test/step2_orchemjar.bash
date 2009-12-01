@@ -7,13 +7,12 @@ echo ___________________________________
 rm /tmp/orchem.jar
 
 
+
+
+
+
+
 jar -cvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/shared/AtomsBondsCounter.class
-
-
-#temporary classes, until available in official CDK release #
-jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/temp/*.class
-################
-
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/shared/MoleculeCreator.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/Utils.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/SimpleMail.class
@@ -24,14 +23,18 @@ jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/bean/SimHeapElement.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/fingerprint/bitpos/Neighbour.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/fingerprint/bitpos/BitPositions.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/fingerprint/bitpos/ExtendedBitPositions.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/fingerprint/bitpos/BitPosApi.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/fingerprint/OrchemFingerprinter.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/fingerprint/OrchemExtendedFingerprinter.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/singleton/FingerPrinterAgent.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SimilaritySearch.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/OrchemMoleculeBuilder.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/UserQueryMolecule.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SubstructureSearch.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SubstructureSearchParallel.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/OrchemSMARTSQueryTool.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/search/SMARTS_Search.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/test/VerifyOrchem.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/isomorphism/*.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/load/*.class

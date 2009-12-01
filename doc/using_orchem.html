@@ -5,43 +5,46 @@
     <link rel="stylesheet" href="orchem.css" type="text/css"></link>
   </head>
   <body>
-    <h1>Using OrChem</h1>
+    <img src="logo.small.jpg"></img>
+    <h1>Using OrChem: query examples</h1>               
      
-   <div class="main">
+   <div class="main" style="width:80%">
       <a href="index.html">Back to main page</a>
 
-      <table width="100%" border="0" cellspacing="10" cellpadding="10">
+      <table border="0" cellspacing="10" cellpadding="10">
         <tr>
           <td >
             <h3>Introduction</h3>
             Queries in Orchem are performed by classes located in Java package 'uk.ac.ebi.orchem.search':
             <ul>
                 <li>SimilaritySearch.java</li>
-                <li>SubstructureSearchParallel.java</li>
                 <li>SubstructureSearch.java</li>
+                <li>SMARTS_Search.java</li>
+		<li>SubstructureSearchParallel.java</li>
             </ul>
             You interact with these classes through PL/SQL packages that 
             wrap the classes as Java stored procedures/functions. These packages will be 
-            explained in the following sections and some example queries will be given.
+            detailed in the following sections and some example queries will be given.
             
             <br></br>
             Note that whenever the database is 'cold' (just been restarted or idle for a while), the 
-            <b>initial OrChem query will be less responsive</b>. The DBMS always needs to time to warm 
+            initial OrChem query will be less responsive. The DBMS always needs to time to warm 
             up the cache a bit. 
-            <br></br>
             <br></br>
 
             <h3>Similarity searching</h3>
             Package orchem_simsearch : 
 <pre>
-    FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
-     Argument Name                  Type                    In/Out Default?
-     ------------------------------ ----------------------- ------ --------
-     USER_QUERY                     CLOB                    IN
-     QUERY_TYPE                     VARCHAR2                IN
-     CUTOFF                         NUMBER(126)             IN
-     TOPN                           NUMBER                  IN
-     DEBUG_YN                       VARCHAR2                IN
+ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
+ Argument Name                  Type                    In/Out Default?
+ ------------------------------ ----------------------- ------ --------
+ USER_QUERY                     CLOB                    IN
+ QUERY_TYPE                     VARCHAR2                IN
+ CUTOFF                         NUMBER(126)             IN
+ TOPN                           NUMBER                  IN     DEFAULT
+ DEBUG_YN                       VARCHAR2                IN     DEFAULT
+ RETURN_IDS_ONLY_YN             VARCHAR2                IN     DEFAULT
+
 </pre>
             The search function in orchem_simsearch performs a similarity search using the 
             following arguments:
@@ -49,35 +52,41 @@
                  <li>USER_QUERY: a Smiles string or an MDL mol file </li> 
                  <li>QUERY_TYPE: choose 'SMILES' or 'MOL'  </li> 
                  <li>CUTOFF: the cutoff similarity score 0..1. The search will stop if the cutoff is reached.</li> 
-                 <li>TOPN: maximum number of results required (optional, can be set to NULL) </li> 
-                 <li>DEBUG_YN: choose 'Y' or 'N'. If 'Y', the search will debug back some info.
-                 <span style="font-style:italic"> 
+                 <li>TOPN: (optional) maximum number of results required </li> 
+                 <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.
+      		 <span style="font-style:italic"> 
                  In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
+		 <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will return IDs but no structures</li>
+
             </ul>     
             <h5>Examples</h5>
-            <hr align="left">
+            <hr align="left" style="width:50%">
 <pre>
 select * from 
 table(orchem_simsearch.search(
-        'OC4=C(C(=C3OC(C)(COC=1C=CC(=CC=1)CC2C(=O)NC(=O)S2)CCC3=C4C)C)C','SMILES',0.8,null,'N'))
+        'OC4=C(C(=C3OC(C)(COC=1C=CC(=CC=1)CC2C(=O)NC(=O)S2)CCC3=C4C)C)C'
+	,'SMILES',0.8,null,'N'))
 </pre>
-            This query performs a similarity search for a compound described with a Smiles string.
+            <div style="width:50%">
+	    This query performs a similarity search for a compound described with a Smiles string.
             The cutoff is set to 0.8, so only results with similarity of 80% or higher will be returned.
-            There is no topN value, so the query will not limit the result set. Debugging is set to 'N'
+            There is no topN value, so the query will not limit the result set. Debugging is set to 'N'.
+	    </div>
             <br></br>
-            <hr align="left">
-            
+            <hr align="left" style="width:50%">
+		            
 
 <pre>
 select * from 
 table(orchem_simsearch.search(
         'O(C=1C=CC=C2C=1CCCC2CN(C)CCC3=CC=C4C(=C3)NCC4)C','SMILES',0.5,5,'Y'))  
 </pre>       
-            A bit like the previous one, with different Smiles and cutoff. This time, debugging is switched on and
+           <div style="width:50%">
+	    A bit like the previous one, with different Smiles and cutoff. This time, debugging is switched on and
             topN=5, so the search will stop if the 5 best scoring results have been found.
-            By using topN you can make the query more responsive.
+            By using topN you can make the query more responsive.</div>
             <br></br>
-            <hr align="left">
+            <hr align="left" style="width:50%">
             <A name="sim_mol"/>
 <pre>
 SQL>desc compounds
@@ -88,9 +97,11 @@ SQL>desc compounds
  MOLFORMULA           VARCHAR2(250)
  MOLFILE              CLOB
 
-select orchem_simsearch.search(MOLFILE,'MOL',0.75,50,'N') from COMPOUNDS where MOLREGNO=666
+select orchem_simsearch.search(MOLFILE,'MOL',0.75,50,'N') 
+from COMPOUNDS where MOLREGNO=666
 </pre>
-            This query you'd have to adapt to make it work for you. For completeness the particular compound 
+            <div style="width:50%">
+	    This query you'd have to adapt to make it work for you. For completeness the particular compound 
             table is described first (desc compounds) <br>
             The query finds all compounds that are similar
             to compound with id ('MOLREGNO') 666. The MOLFILE column is fed into the search 
@@ -99,10 +110,14 @@ select orchem_simsearch.search(MOLFILE,'MOL',0.75,50,'N') from COMPOUNDS where M
             and finally MOLREGNO with your primary key name.<br>
             By the way, you can run a TABLE() function over the previous query as shown here.
             This make JDBC access more straightforward.
+	    </div>
 <pre>
-        select * from table( select orchem_simsearch.search(molfile,'MOL',0.7,5,'N') from compounds where molregno=666)  
+        select * from table
+	  ( select orchem_simsearch.search(molfile,'MOL',0.7,5,'N') 
+	    from compounds where molregno=1000
+	  )  
 </pre>
-            <hr align="left">
+            <hr align="left" style="width:50%">
             <br></br>
             <br></br>
 
@@ -111,6 +126,7 @@ select orchem_simsearch.search(MOLFILE,'MOL',0.75,50,'N') from COMPOUNDS where M
             <h3>Substructure searching</h3>
             Package orchem_subsearch : 
 <pre>
+
 FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  Argument Name                  Type                    In/Out Default?
  ------------------------------ ----------------------- ------ --------
@@ -118,17 +134,22 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  INPUT_TYPE                     VARCHAR2                IN
  TOPN                           NUMBER(38)              IN     DEFAULT
  DEBUG_YN                       VARCHAR2                IN     DEFAULT
-PROCEDURE SHOW_KEYS
+ RETURN_IDS_ONLY_YN             VARCHAR2                IN     DEFAULT
+ STRICT_STEREO_YN               VARCHAR2                IN     DEFAULT
+
 </pre>
             The search function in orchem_subsearch performs a <b>non parallelized</b> substructure 
             search using the following arguments:
             <ul>
                  <li>USER_QUERY: a Smiles string or an MDL mol file </li> 
-                 <li>QUERY_TYPE: choose 'SMILES' or 'MOL'  </li> 
-                 <li>TOPN: maximum number of results required (optional, can be set to NULL) </li> 
-                 <li>DEBUG_YN: choose 'Y' or 'N'. If 'Y', the search will debug back some info.
-                 <span style="font-style:italic"> 
-                 In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
+                 <li>INPUT_TYPE: choose 'SMILES' or 'MOL'  </li> 
+                 <li>TOPN: (optional) maximum number of results required  </li> 
+                 <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.		 <span style="font-style:italic"> 
+
+                     In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
+		 <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will only return ID's, not structures</li>
+		 <li>STRICT_STEREO_YN: (optional) choose 'Y' or 'N'. If 'Y', stereoisomerism is part of the isomorphism check.</li>
+
             </ul>     
 
             The substructure search is 'pipelined'. This means that results come back as soon as they are 
@@ -138,22 +159,27 @@ PROCEDURE SHOW_KEYS
 SQL> set arraysize 1
 </pre>
             <h5>Examples</h5>
-            <hr align="left">
+            <hr align="left" style="width:60%">
 <pre>
 select * from 
 table(orchem_subsearch.search('N#CC2=CC=1C=CC=CC=1N3C=C(N=C23)C(=O)OCC','SMILES',50,'Y'))
 </pre>
-            This query performs a substructure search for a structure described with a Smiles string.
+            <div style="width:50%">
+	    This query performs a substructure search for a structure described with a Smiles string.
             TopN=50, so after 50 results have been found the query exits. The query will debug some info back to you.
+	    </div>
             <br></br>
-            <hr align="left">
+            <hr align="left" style="width:60%">
 
 <pre>
 select orchem_subsearch.search(molfile,'MOL',50,'Y') from compounds where molregno=12345
 </pre>
             Refer to the <A href="#sim_mol">similarity search section</a> for an explanation of this type of query.
+            <hr align="left" style="width:60%">
+            
+	    <br></br>
             <br></br>
-            <hr align="left">
+
 
 <h3>Parallel substructure searching</h3>
             Package orchem_subsearch_par: 
@@ -163,7 +189,6 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  ------------------------------ ----------------------- ------ --------
  QUERY_KEY                      NUMBER(38)              IN
  TOPN                           NUMBER(38)              IN     DEFAULT
- FORCE_FULL_SCAN                VARCHAR2                IN     DEFAULT
 FUNCTION SETUP RETURNS NUMBER(38)
  Argument Name                  Type                    In/Out Default?
  ------------------------------ ----------------------- ------ --------
@@ -178,12 +203,14 @@ FUNCTION SETUP RETURNS NUMBER(38)
             the extra 'preparation' step is necessary. The reward may be in the performance: the parallel
             function can run significantly faster, but not always (!) depending on many things.
 <h5>Examples</h5>
-            <hr align="left">
-
+            <hr align="left" style="width:50%">
+            <div style="width:50%">
+            
 	    To prepare the query, you use SETUP. This function takes in a query and a query type, and
             then returns a number (the 'key'). The key is then fed into the parallel search.
             See the next example, where a parallel search for S:C-O-C-C-C is prepared
             an then executed with TopN 100. 
+	    </div>
 <pre>
 SQL> var key number;
 
@@ -191,66 +218,49 @@ SQL> exec :key :=orchem_subsearch_par.setup('S:C-O-C-C-C','SMILES')
 
 SQL> select id from table (orchem_subsearch_par.search(:key,100) )
 </pre>
-<hr align="left">
+<hr align="left" style="width:50%">
             <br></br>
             <br></br>
 
-
-            <h3>JDBC examples</h3>
-            Please refer to the OrChem CVS repository to find Java classes that
-            use the search packages with JDBC calls.
-            Below are a few code snippets.
+            <h3>SMARTS searching</h3>
+            Package orchem_smarts_search : 
 <pre>
-
-        // similarity search from JDBC
-        public List similaritySearch(String userQuery, String queryType, OracleConnection conn, 
-	float tanimotoCutoff, int topN) throws SQLException,ClassNotFoundException {
-         String plsqlCall = "begin ?:=orchem_simsearch.search(?,?,?,?,?); end;";
-         OracleCallableStatement ocs = (OracleCallableStatement)conn.prepareCall(plsqlCall);
-         ocs.registerOutParameter(1, OracleTypes.ARRAY,"ORCHEM_COMPOUND_LIST");
-         ocs.setString(2, userQuery);
-         ocs.setString(3, queryType);
-         ocs.setFloat(4, tanimotoCutoff);
-         ocs.setInt(5, topN);
-         ocs.setString(6, "N");
-         ocs.execute();
-         Array cARRAY = ocs.getArray(1);
-         Map map = conn.getTypeMap();
-         map.put("ORCHEM_COMPOUND", Class.forName("uk.ac.ebi.orchem.bean.OrChemCompound",
-	 false,Thread.currentThread().getContextClassLoader())); 
-         Object[] compoundArray = (Object[])cARRAY.getArray();
-         return Arrays.asList(compoundArray);
-       }
-
-
-
-        //substructure search from JDBC
-       public List substructureSearch(String userQuery, String queryType, 
-       OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
-
-        conn.setDefaultRowPrefetch(1); 
-        List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
-        OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement
-	("select id, mol_file from table(orchem_subsearch.search(?,?,?,'N'))   ",ResultSet.TYPE_FORWARD_ONLY, 
-	ResultSet.CONCUR_READ_ONLY);
-
-        pstmt.setCLOB(1, getCLOB (userQuery,conn)); 
-        pstmt.setString(2, queryType); 
-        pstmt.setInt(3, topN);
-
-        ResultSet res = pstmt.executeQuery();
-        while (res.next())  {
-           OrChemCompound cmp = new OrChemCompound();
-            cmp.setId(res.getString("id"));
-            cmp.setMolFileClob(res.getClob("mol_file"));
-            compounds.add(cmp);
-        }
-        res.close();
-        pstmt.close();
-        return compounds;
-    }
+ 
+ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
+ Argument Name                  Type                    In/Out Default?
+ ------------------------------ ----------------------- ------ --------
+ SMARTS_QUERY                   CLOB                    IN
+ DEBUG_YN                       VARCHAR2                IN     DEFAULT
+ TOPN                           NUMBER(38)              IN     DEFAULT
 </pre>
-            
+            The search function in orchem_smarts_search performs a SMARTS substructure search using the 
+            following arguments.
+            <ul>
+                 <li>SMARTS_QUERY: a <a href="http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html">SMARTS</a> query </li> 
+                 <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.
+      		 <span style="font-style:italic"> 
+                 In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
+                 <li>TOPN: (optional) maximum number of results required  </li> 
+            </ul>     
+            SMARTS searching is slower than regular substructure searching; performance depends on how specific the query is
+	    and thus how much can be fingerprinted. Again, this type of search is 'pipelined': results come back as soon as they are available. 
+	    To see this effect in SQL*plus you should set arraysize 1, or in JDBC use an OracleConnection and use setDefaultRowPrefetch(1);
+
+	    
+	    <h5>Example</h5>
+            <hr align="left" style="width:50%">
+<pre>
+select * from table ( orchem_smarts_search.search('N1CC[O,N]CC1') )
+</pre>
+
+            <hr align="left" style="width:50%">
+
+            <br></br>
+            <br></br>
+	    
+            <h3>JDBC examples</h3>
+            Java developers, please refer to the OrChem CVS repository to find Java classes that
+            use the search packages with JDBC calls. Class uk.ac.ebi.orchem.shared.DatabaseAccess has a few examples.
             
             <br></br>
             <a href="index.html">Back to main page</a>

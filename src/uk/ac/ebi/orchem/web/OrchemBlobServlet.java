@@ -30,14 +30,15 @@ import java.awt.image.BufferedImage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -47,15 +48,25 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import oracle.sql.BLOB;
-
-import org.openscience.cdk.exception.CDKException;
+import org.openscience.jchempaint.controller.PhantomBondGenerator;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
-import org.openscience.cdk.renderer.Java2DRenderer;
-import org.openscience.cdk.renderer.Renderer2DModel;
-
+import org.openscience.jchempaint.renderer.AtomContainerRenderer;
+import org.openscience.jchempaint.renderer.font.AWTFontManager;
+import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
+import org.openscience.jchempaint.renderer.generators.ExternalHighlightGenerator;
+import org.openscience.jchempaint.renderer.generators.HighlightAtomGenerator;
+import org.openscience.jchempaint.renderer.generators.HighlightBondGenerator;
+import org.openscience.jchempaint.renderer.generators.IGenerator;
+import org.openscience.jchempaint.renderer.generators.LonePairGenerator;
+import org.openscience.jchempaint.renderer.generators.MergeAtomsGenerator;
+import org.openscience.jchempaint.renderer.generators.RadicalGenerator;
+import org.openscience.jchempaint.renderer.generators.RingGenerator;
+import org.openscience.jchempaint.renderer.generators.SelectAtomGenerator;
+import org.openscience.jchempaint.renderer.generators.SelectBondGenerator;
+import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 
@@ -71,6 +82,22 @@ import uk.ac.ebi.orchem.shared.MoleculeCreator;
  *
  */
 public class OrchemBlobServlet extends HttpServlet {
+
+    private static List<IGenerator> generators;
+    static {
+       generators = new ArrayList<IGenerator>();
+       generators.add(new RingGenerator());
+       generators.add(new ExtendedAtomGenerator());
+       generators.add(new LonePairGenerator());
+       generators.add(new RadicalGenerator());
+       generators.add(new ExternalHighlightGenerator());
+       generators.add(new HighlightAtomGenerator());
+       generators.add(new HighlightBondGenerator());
+       generators.add(new SelectAtomGenerator());
+       generators.add(new SelectBondGenerator());
+       generators.add(new MergeAtomsGenerator());
+       generators.add(new PhantomBondGenerator());
+    }
 
     static String url = "jdbc:oracle:thin:@localhost:1521:marx";
     static String username = "testuser";
@@ -179,12 +206,16 @@ public class OrchemBlobServlet extends HttpServlet {
                     String molfile = rs.getString(1);
 
                     NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                    for(IAtom atom : molecule.atoms()) {
+                        atom.setValency(null); // otherwise ugly picture
+                    }
+                        
 
                     StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
                     gen2d.generateCoordinates();
 
-                    Renderer2DModel hrenderModel = new Renderer2DModel();
-                    Java2DRenderer renderer = new Java2DRenderer(hrenderModel);
+                    AtomContainerRenderer renderer = new AtomContainerRenderer
+                        (generators,new AWTFontManager());
 
                     Rectangle2D bounds = new Rectangle2D.Double(0, 0, hsize, vsize);
                     BufferedImage bufferedImage = new BufferedImage(hsize, vsize, BufferedImage.TYPE_INT_RGB);
@@ -192,7 +223,9 @@ public class OrchemBlobServlet extends HttpServlet {
                     graphics.setBackground(Color.WHITE);
                     graphics.setColor(Color.WHITE);
                     graphics.fillRect(0, 0, hsize, hsize);
-                    renderer.paintMolecule(molecule, graphics, bounds);
+
+                    renderer.paintMolecule(molecule, new AWTDrawVisitor(graphics), bounds, true);
+
                     bufferedImage.flush();
                     ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
                     ImageIO.write(bufferedImage, "jpg", baos);

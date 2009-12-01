@@ -24,8 +24,10 @@
 
 package uk.ac.ebi.orchem.test;
 
+import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import java.util.BitSet;
 
@@ -39,6 +41,7 @@ import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
 
 import uk.ac.ebi.orchem.Utils;
+import uk.ac.ebi.orchem.convert.ConvertMolecule;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
@@ -54,8 +57,10 @@ public class VerifyOrchem {
      * creating a Smiles String
      * @param primaryKey
      */
-    public static void verify(String primaryKey) throws Exception {
+    public static Clob verify(String primaryKey) throws Exception {
 
+        StringBuffer out = new StringBuffer();
+        
         try {
             OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
 
@@ -82,37 +87,54 @@ public class VerifyOrchem {
             ResultSet res = stmtQueryCompounds.executeQuery();
 
             if (res.next()) {
-                System.out.println("OKAY: compound found with primary key "+primaryKey);
-
+                out.append("\nOKAY: compound found with primary key "+primaryKey);
 
                 String molfile = res.getString(compoundTableMolfileColumn);
 
                 if (molfile != null) {
                     NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
-                    System.out.println("OKAY: CDK molecule created");
+                    out.append("\nOKAY: CDK molecule created");
                     fpBitset = fingerPrinter.getFingerprint(molecule);
-                    System.out.println("OKAY: Fingerprint made");
+                    out.append("\nOKAY: Fingerprint made");
 
                     SmilesGenerator sg = new SmilesGenerator();
                     fixCarbonHCount(molecule);
                     String smiles = sg.createSMILES(molecule);
-                    System.out.println("OKAY: Smiles generated " + smiles);
+                    out.append("\nOKAY: Smiles generated " + smiles);
+
+                    try {
+                        PreparedStatement pStmt =
+                            conn.prepareStatement("select orchem_convert.molfiletoinchi(?) inchi from dual");
+                        pStmt.setString(1, molfile);
+                        res = pStmt.executeQuery();
+                        Clob inchiClob = null;
+                        int clobLen = 0;
+                        String inChi = null;
+                        if (res.next()) {
+                            inchiClob = res.getClob("inchi");
+                            clobLen = new Long(inchiClob.length()).intValue();
+                            inChi = (inchiClob.getSubString(1, clobLen));
+                        }
+                        out.append("\nOKAY: InChi created is " + inChi);
+                    } catch (SQLException e) {
+                        out.append("\ncould not generate InChi "+e.getMessage());
+                    }
 
                 } else {
-                    System.out.println("ERROR-> Molfile is null");
+                    out.append("\n\nERROR-> Molfile is null");
                 }
 
             } else {
-                System.out.println("ERROR-> No compound found with primary key = " + primaryKey + "! ");
+                out.append("\nERROR-> No compound found with primary key = " + primaryKey + "! ");
             }
             res.close();
             stmtQueryCompounds.close();
 
         } catch (Exception e) {
-            System.out.println("ERROR");
-            System.out.println(Utils.getErrorString(e));
+            out.append("\nERROR");
+            out.append(Utils.getErrorString(e));
         }
-
+        return ConvertMolecule.StringToClob(out.toString());
 
     }
 

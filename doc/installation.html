@@ -5,28 +5,27 @@
     <link rel="stylesheet" href="orchem.css" type="text/css"></link>
   </head>
   <body>
-    <h1>OrChem: installation</h1>
-     
-    <div class="main">
+    <br>	  
+    <img src="logo.small.jpg"></img>
+    <h1>Installation</h1>               
+    <div class="left" style="width:75%">
       <a href="index.html">Back to main page</a>
+       <br>
       <table width="70%" border="0" cellspacing="10" cellpadding="10">
         <tr>
           <td>
             <h3>Installation of OrChem</h3>
                 This page describes how to set up OrChem in an 11g Database.
                 It is assumed that you have some knowledge of Oracle.
-                The installation is a bit low-level - we don't provide a fancy
-                GUI that guides you through it. All the more satisfaction
-                if you do get it to work!
           </td>
         </tr>
         <tr>
           <td>
-            <h3>Quick requirements</h3>
+            <h3>Quick check requirements</h3>
             <ul>
               <li>Oracle 11g database</li>
               <li>A full Oracle client installation (sqlplus, loadjava)</li>
-              <li>A newly created  Oracle database schema (call it "ORCHEM" or something) with 'developer' type privileges (not just CONNECT)</li>
+              <li>A newly created  Oracle database schema (call it "ORCHEM" or something) with 'developer' type privileges</li>
               <li>
                 A compound table that has a single primary key column and an MDL Clob column. In the near future we'll cater for other types of compound data types.
                 Your "compound table" can also be a view - OrChem will only select from it.
@@ -35,9 +34,9 @@
                 Granted SELECT access to "ORCHEM" so it can see the compound table/view. Perhaps create a synonym for the compound table.
               </li>
               <li>
-                Orchem jar file, CDK (stripped) jar file and  few depending jar files (<b>LINK</b>)
+                Downloaded OrChem zip file (can be found on the <a href="https://sourceforge.net/projects/orchem/files/">file</a> pages)
               </li>
-              <li>Tablespace: OrChem will be 10-15% in size compared to the compound table (ballpark figure)</li>
+              <li>Tablespace: as an estimate OrChem will be 10-15% in size compared to the compound table</li>
             </ul>
           </td>
         </tr>
@@ -59,14 +58,37 @@
 
                 <br></br>
 
-                <li><b>Create an ORCHEM user schema</b><p>
+                <li><b>DBA steps</b><p>
 
-                    It's best to create a new schema for OrChem (although you could install into an existing schema - not recommended).
-                    <br>
-                   <ul>
-                    <li>Create -or let your DBA create- a user (say "ORCHEM") that has privileges to create tables, views, 
-                    procedures, Java and such.</li>
-                   </ul>
+		   <ul>
+		    <li>
+		    <B>Orchem account</B><br>
+                    It's best to create a new schema for OrChem (although you could install into an existing schema - not recommended).<br>
+                    Let your DBA create a user (say "ORCHEM") that has privileges to create tables, views, 
+                    procedures, Java etc.
+		    </li>
+      		    <li>
+   		    <a name="inchi_file"/>
+
+		    <B>Server directory permissions</B><br>
+		    OrChem can generate <a href="http://www.iupac.org/inchi/">InChi</a> identifiers. If you are interested in this feature, 
+		    read on. If not, you can omit this step.<br><br>
+		    The InChi generator is a ported C-program that works with input and output files when generating the InChi.
+		    In order for this to work inside the database, OrChem needs to write temporary files to an <b>existing</b> directory somewhere visible for
+		    the database server. These temporary files are deleted after the InChi generation.
+		    <br><br>
+		    Assuming your OrChem schema is called <span style="font-style:italic">ORCHEM</span> (first argument) and your choice for an existing directory 
+		    visible on the server is <span style="font-style:italic">/tmp/orchem/</span> (third argument), then a DBA
+		    must grant the following privileges:
+			<PRE>		    
+dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/tmp/orchem/*', 'read' );
+dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/tmp/orchem/*', 'write' );
+dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/tmp/orchem/*', 'delete' );
+			</PRE>
+
+		    </li>
+
+		   </ul>
                 </li>   
 
                 <br></br>
@@ -138,8 +160,10 @@ loadjava -verbose -user USER/PW@INSTANCE commons-collections-3.2.1.jar
 loadjava -verbose -user USER/PW@INSTANCE jgrapht-0.6.0.jar
 loadjava -verbose -user USER/PW@INSTANCE log4j-1.2.15.jar
 loadjava -verbose -user USER/PW@INSTANCE cdk.jar
+loadjava -verbose -user USER/PW@INSTANCE jcp.jar
+loadjava -verbose -user USER/PW@INSTANCE inchi_102.jar
+loadjava -verbose -user USER/PW@INSTANCE nestedVm.jar
 loadjava -verbose -user USER/PW@INSTANCE orchem.jar
-
 </pre>
                 You should see output like in the example below:
 <pre style="font-style:italic;color:gray">                
@@ -253,16 +277,19 @@ SQL> desc orchem_parameters
  COMP_TAB_NAME                                                           NOT NULL VARCHAR2(30)
  COMP_TAB_PK_COL                                                         NOT NULL VARCHAR2(30)
  COMP_TAB_MOLFILE_COL                                                    NOT NULL VARCHAR2(30)
+ TMP_DIR_ON_SERVER                                                       NOT NULL VARCHAR2(1000)
 </pre>
                         </li>
                         <li> The table crucially <b>needs ONE row</b>. Column COMP_TAB_NAME must contain your 
                         compound table name, COMP_TAB_PK_COL the name of the primary key column
                         of that table, and COMP_TAB_MOLFILE_COL the name of mol file column 
                         of that table.<br>
+			If you want to let Orchem generate InChi descriptors as explained <a href="#inchi_file">earlier</a>, you 
+			must also insert the name (including a final slash) of the working directory for which you have been granted privileges.<br>
                         Use an insert statement like this one to accomplish this (with proper values substituted), 
                         and commit the insert to the database. <br>
 <pre>
-insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col) values ('x','y','z');
+insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col) values ('x','y','z','dirname');
 </pre>
                         </li>
                         <li> Alternatively, for example if your compound data is split over more than 
@@ -284,25 +311,24 @@ SQL> desc COMPOUNDS
  MOLFILE                                  CLOB
 
 SQL>  insert into orchem_parameters  
-                  (comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col) 
+                  (comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col,tmp_dir_on_server) 
                   values 
-                  ('COMPOUNDS','MOLREGNO','MOLFILE');
+                  ('COMPOUNDS','MOLREGNO','MOLFILE','/tmp/orchem/');
 
 1 row created.
 
 SQL> commit;
 Commit complete.
 
-
 SQL> select * from orchem_parameters;
 
-COMP_TAB_NAME                  COMP_TAB_PK_COL                COMP_TAB_MOLFILE_COL
------------------------------- ------------------------------ ------------------------------
-COMPOUNDS                      MOLREGNO                       MOLFILE
+COMP_TAB_NAME    COMP_TAB_PK_COL    COMP_TAB_MOLFILE_COL    TMP_DIR_ON_SERVER
+---------------- ------------------ ----------------------  -----------------
+COMPOUNDS        MOLREGNO           MOLFILE                 /tmp/orchem/ 
 
 </pre>
                         </li>
-                        <li> With ORCHEM_PARAMETERS correctly populated, OrChem will now be able to find you compound data.
+                        <li> With ORCHEM_PARAMETERS correctly populated, OrChem will now be able to find your compound data.
                         </li>
                     </ul>
                     </li>
@@ -313,36 +339,37 @@ COMPOUNDS                      MOLREGNO                       MOLFILE
                 <br></br>
                 You are now at a point where you can test OrChem. There is a test
                 class that selects a compound by primary key, 
-                creates a CDK molecule, makes a fingerprint and outputs the molecule as a SMILES string.
+                creates a CDK molecule, makes a fingerprint and outputs the molecule as a SMILES string (and InChi if configured).
                 The test class depends on ORCHEM_PARAMETERS being properly populated, and of course all
                 previous steps having completed succesfully.
                 <br></br>
                     <ul>
                     <li>Connect to the database using SQL*Plus with your ORCHEM account</li>
                     <li>Pick a <b>valid</b> primary key value from <b>your compound table</b>, say for example 12345 </li>
-                    <li>In SQL*Plus, execute the procedure as below to verify OrChem works. You need
-                    to switch on server output first to see anything printed. Note that it make take a while to 
+                    <li>In SQL*Plus, execute the function as below to verify OrChem works. Note that it make take a while to 
                     run the procedure for the first time, but following runs are done much quicker. <br>Replace 12345 with
                     a valid primary key value from your database. </li>
 <pre>                
-SQL> exec dbms_java.set_output(1000000)
-SQL> set serverout on
-
-SQL> exec orchem_utils.verify_orchem(12345)
+SQL> select orchem_utils.verify_orchem(12345) from dual;
+  
 </pre>        
                    <li>See below an example what the output should look like. No errors should be thrown.
 <pre style="font-style:italic;color:gray">                
-SQL> exec dbms_java.set_output(1000000)
-SQL> set serverout on
-SQL> exec orchem_utils.verify_orchem(91001)
+SQL> SQL> select orchem_utils.verify_orchem(1100) from dual;
 
-OKAY: compound found with primary key 91001
+ORCHEM_UTILS.VERIFY_ORCHEM(1100)
+--------------------------------------------------------------------------------
+
+OKAY: compound found with primary key 1100
 OKAY: CDK molecule created
 OKAY: Fingerprint made
-OKAY: Smiles generated O=C(C=1C=CC=C(C=1)C(F)(F)F)N4C2=CC=CC=C2C(NC=3C=CC=CC=3)CC4C
+OKAY: Smiles generated O=C(C=CC(=O)N3CCN(C=1N=C(N)C2=CC(OC)=C(OC)C=C2(N=1))CC3)C
+=4C=CC=CC=4
+OKAY: InChi created is InChI=1S/C24H25N5O4/c1-32-20-14-17-18(15-21(20)33-2)26-24
+(27-23(17)25)29-12-10-28(11-13-29)22(31)9-8-19(30)16-6-4-3-5-7-16/h3-9,14-15H,10
+-13H2,1-2H3,(H2,25,26,27)/b9-8+
 
 PL/SQL procedure successfully completed.
-Elapsed: 00:00:00.17
 
 </pre>
                     </ul>

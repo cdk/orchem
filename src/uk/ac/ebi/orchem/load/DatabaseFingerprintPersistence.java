@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat;
 
 import java.util.BitSet;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.Map;
 
 import oracle.jdbc.OracleConnection;
@@ -55,10 +54,11 @@ import uk.ac.ebi.orchem.search.OrchemMoleculeBuilder;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
-    
+
+
 /**
  * Calculates fingerprints and persist these in the database
- * 
+ *
  * @author Mark Rijnbeek
  */
 public class DatabaseFingerprintPersistence {
@@ -98,10 +98,13 @@ public class DatabaseFingerprintPersistence {
             conn.setAutoCommit(false);
 
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-            IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
-            
-            BitSet fpBitset;
-            final int fpSize = FingerPrinterAgent.FP.getFpSize();
+
+
+            /* The extended fingerprint is used, but for the substructure search we only capture the basic fingerprint */
+            IFingerprinter extendedFingerPrinter = FingerPrinterAgent.FP.getExtendedFingerPrinter();
+            BitSet extendedFingerPrint;
+            final int extendedFingerprintSize = FingerPrinterAgent.FP.getExtendedFpSize();
+            final int basicFingerprintSize = FingerPrinterAgent.FP.getFpSize();
 
             /* Prepare the (flexible) query on the base compound table in the schema */
             String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
@@ -122,10 +125,10 @@ public class DatabaseFingerprintPersistence {
             "    aromatic_bond_count, s_count, o_count, n_count, f_count, cl_count,  br_count, " +
             "    i_count, c_count, p_count, saturated_bond_count "
             );
-            for (int idx = 0; idx < fpSize; idx++)
+            for (int idx = 0; idx < basicFingerprintSize; idx++)
                 sb.append(",bit" + (idx));
             sb.append(") values (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,? ");
-            for (int idx = 0; idx < fpSize; idx++)
+            for (int idx = 0; idx < basicFingerprintSize; idx++)
                 sb.append(",?");
             sb.append(")");
             PreparedStatement psInsertSubstrFp = conn.prepareStatement(sb.toString());
@@ -162,14 +165,14 @@ public class DatabaseFingerprintPersistence {
 
                         /* Fingerprint the molecule */
                         bef = System.currentTimeMillis();
-                        fpBitset = fingerPrinter.getFingerprint(molecule);
+                        extendedFingerPrint = extendedFingerPrinter.getFingerprint(molecule);
 
-                        byte[] bytes = Utils.toByteArray(fpBitset, fpSize);
+                        byte[] bytes = Utils.toByteArray(extendedFingerPrint, extendedFingerprintSize);
                         makeFpTime += (System.currentTimeMillis() - bef);
 
                         /* Prepare statement for Similarity search helper table */
                         psInsertSimiFp.setString(1, compounds.getString(compoundTablePkColumn));
-                        psInsertSimiFp.setInt(2, fpBitset.cardinality());
+                        psInsertSimiFp.setInt(2, extendedFingerPrint.cardinality());
                         psInsertSimiFp.setBytes(3, bytes);
 
                         /* Prepare statement for OrChem compound table */
@@ -177,8 +180,7 @@ public class DatabaseFingerprintPersistence {
 
                         int pos = 0;
                         IAtom[] atoms = new IAtom[molecule.getAtomCount()];
-                        for (Iterator<IAtom> atItr = molecule.atoms().iterator(); atItr.hasNext(); ) {
-                            IAtom atom = atItr.next();
+                        for (IAtom atom : molecule.atoms() ) {
                             atoms[pos] = atom;
                             pos++;
                         }
@@ -230,11 +232,11 @@ public class DatabaseFingerprintPersistence {
                         psInsertSubstrFp.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.P_COUNT));
                         psInsertSubstrFp.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.SATURATED_COUNT));
 
-                        /* Hash the l fingerprint into a condensed fingerprint */
-                        for (int i = 0; i < fpSize; i++) {
+
+                        for (int i = 0; i < basicFingerprintSize; i++) {
                             idx = i + 18;
 
-                            if (fpBitset.get(i)) {
+                            if (extendedFingerPrint.get(i)) {
                                 psInsertSubstrFp.setString(idx, "1");
                             } else {
                                 psInsertSubstrFp.setString(idx, null);
@@ -299,7 +301,7 @@ public class DatabaseFingerprintPersistence {
                 msgClob.freeTemporary();
             }
             conn.commit();
-            System.gc();
+            //System.gc();
         }
     }
 

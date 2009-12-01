@@ -63,7 +63,7 @@
     <!-- =================================================================== -->
     <target name="compile">
         <!-- compile the Java classes  -->
-        <javac srcdir="${src.dir}" destdir="${build.classes}">
+        <javac srcdir="${src.dir}" destdir="${build.classes}" source="1.5" target="1.5">
             <classpath refid="project.classpath"/>
             <include name="**/*.java"/>
             <exclude name="**/PubChemImport.java"/>
@@ -111,9 +111,6 @@
     <!-- Unittest substructure searching                                     -->
     <!-- =================================================================== -->
     <target name="test.substr" depends="compile">
-        <exec dir="." executable="java" >
-          <arg line="-version"/>
-        </exec>
 
         <echo />
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
@@ -135,9 +132,6 @@
     <!-- Unittest similarity searching                                       -->
     <!-- =================================================================== -->
     <target name="test.simsrch" depends="compile">
-        <exec dir="." executable="java" >
-          <arg line="-version"/>
-        </exec>
 
         <echo />
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
@@ -145,7 +139,8 @@
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
 
         <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
-        <junit>
+        <!--junit jvm="/usr/java/jdk1.6.0_14/bin/java" fork="on"-->
+        <junit reloading="false">
            <classpath refid="project.classpath" />
            <formatter type="brief" usefile="false" />
            <test name="uk.ac.ebi.orchem.test.TestSimilaritySearch" />

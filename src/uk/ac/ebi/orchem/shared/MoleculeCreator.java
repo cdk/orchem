@@ -26,8 +26,6 @@ package uk.ac.ebi.orchem.shared;
 
 import java.io.StringReader;
 
-import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,7 +43,6 @@ import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.db.OrChemParameters;
-import uk.ac.ebi.orchem.singleton.DatabaseAgent;
 
 
 /**

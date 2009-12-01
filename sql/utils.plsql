@@ -4,10 +4,7 @@ AS
    (
       query_key           integer
      ,compound_id         varchar2(80)
-     ,single_bond_count   number(5)
-     ,double_bond_count   number(5)
      ,triple_bond_count   number(5)
-     ,aromatic_bond_count number(5)
      ,s_count             number(5)
      ,o_count             number(5)
      ,n_count             number(5)
@@ -19,8 +16,9 @@ AS
      ,atoms               clob
      ,bonds               clob
      ,debug_yn            varchar2(1)
+     ,strict_stereo_yn    varchar2(1)
    );
-   PROCEDURE verify_orchem (p_primary_key varchar2);
+   FUNCTION verify_orchem (p_primary_key varchar2) RETURN CLOB;
    FUNCTION to_hex( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_oct( p_dec IN NUMBER ) RETURN VARCHAR2;
@@ -33,9 +31,10 @@ SHOW ERRORS
 
 CREATE OR REPLACE PACKAGE BODY orchem_utils
 AS 
-   PROCEDURE verify_orchem (p_primary_key varchar2)
+   FUNCTION verify_orchem (p_primary_key varchar2)
+   RETURN CLOB
    IS LANGUAGE JAVA NAME
-   'uk.ac.ebi.orchem.test.VerifyOrchem.verify(java.lang.String)'
+   'uk.ac.ebi.orchem.test.VerifyOrchem.verify(java.lang.String) return java.sql.Clob'
    ;
 
    /*                 */

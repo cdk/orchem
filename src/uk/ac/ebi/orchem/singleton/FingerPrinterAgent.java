@@ -25,11 +25,12 @@ package uk.ac.ebi.orchem.singleton;
 
 import org.openscience.cdk.fingerprint.IFingerprinter;
 
+import uk.ac.ebi.orchem.fingerprint.OrchemExtendedFingerprinter;
 import uk.ac.ebi.orchem.fingerprint.OrchemFingerprinter;
 
 
 /**
- * Singleton to provide a CDK fingerprinter. It would be costly (time-wise) to
+ * Singleton to provide fingerprinters. It would be costly (time-wise) to
  * create a new fingerprinter everytime one is needed, so therefore these
  * are kept available.
  *
@@ -40,17 +41,18 @@ public class FingerPrinterAgent {
 
     public static final FingerPrinterAgent FP = new FingerPrinterAgent();
     private IFingerprinter fingerPrinter;
+    private IFingerprinter extendedFingerPrinter;
 
 
     /**
-     * Private constructor, creates a fingerprinter for OrChem.<BR>
-     * The value of search depth (the second argument of the fingerprinter constructor)
-     * has direct impact on overall performance, especially the
-     * performance of {@link uk.ac.ebi.orchem.load.LoadCDKFingerprints}. <BR>
-     * */
+     * Private constructor, creates fingerprinters for OrChem.<BR>
+     * 
+     */
     private FingerPrinterAgent() {
         fingerPrinter = new OrchemFingerprinter();
-        System.out.println("Fingerprinter ready ");
+        extendedFingerPrinter = new OrchemExtendedFingerprinter();
+
+        System.out.println("Fingerprinters ready ");
 
     }
 
@@ -61,8 +63,12 @@ public class FingerPrinterAgent {
         return OrchemFingerprinter.FINGERPRINT_SIZE;
     }
 
-    public static int getFpSizeStatic() {
-        return FP.fingerPrinter.getSize();
+
+    public IFingerprinter getExtendedFingerPrinter() {
+        return extendedFingerPrinter;
+    }
+    public int getExtendedFpSize() {
+        return OrchemExtendedFingerprinter.FINGERPRINT_SIZE;
     }
 
 

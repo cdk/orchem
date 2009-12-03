@@ -41,8 +41,7 @@ h2 { margin-top: 1em; font-size: 140%; }
 div.left
 {
 	float: left;
-	margin-bottom: 5%;
-	#border : 1px solid black;
+	margin-bottom: 5%;	
 }
 
 div.right

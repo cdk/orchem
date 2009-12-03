@@ -6,6 +6,12 @@ echo
 echo "DROPJAVA.. (ignore warnings)"
 echo
 
+
+
+
+
+
+
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/vecmath.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/commons-collections-3.2.1.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/jgrapht-0.6.0.jar
@@ -15,6 +21,7 @@ dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/inchi_102.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/cdk.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/jcp.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST /tmp/orchem.jar
+
 
 
 echo

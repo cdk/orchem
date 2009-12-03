@@ -19,3 +19,6 @@ tag for first public beta release. has no hashed fingerprints
 
 public1_0
 public release 1.0
+
+rel-1-x-patches
+bug fix branch for 1x

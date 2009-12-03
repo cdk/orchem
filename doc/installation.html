@@ -78,12 +78,12 @@
 		    the database server. These temporary files are deleted after the InChi generation.
 		    <br><br>
 		    Assuming your OrChem schema is called <span style="font-style:italic">ORCHEM</span> (first argument) and your choice for an existing directory 
-		    visible on the server is <span style="font-style:italic">/tmp/orchem/</span> (third argument), then a DBA
+		    visible on the server is <span style="font-style:italic">/var/tmp/</span> (third argument), then a DBA
 		    must grant the following privileges:
 			<PRE>		    
-dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/tmp/orchem/*', 'read' );
-dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/tmp/orchem/*', 'write' );
-dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/tmp/orchem/*', 'delete' );
+dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/var/tmp/*', 'read' );
+dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/var/tmp/*', 'write' );
+dbms_java.grant_permission( 'ORCHEM', 'SYS:java.io.FilePermission', '/var/tmp/*', 'delete' );
 			</PRE>
 
 		    </li>
@@ -313,7 +313,7 @@ SQL> desc COMPOUNDS
 SQL>  insert into orchem_parameters  
                   (comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col,tmp_dir_on_server) 
                   values 
-                  ('COMPOUNDS','MOLREGNO','MOLFILE','/tmp/orchem/');
+                  ('COMPOUNDS','MOLREGNO','MOLFILE','/var/tmp/');
 
 1 row created.
 
@@ -324,7 +324,7 @@ SQL> select * from orchem_parameters;
 
 COMP_TAB_NAME    COMP_TAB_PK_COL    COMP_TAB_MOLFILE_COL    TMP_DIR_ON_SERVER
 ---------------- ------------------ ----------------------  -----------------
-COMPOUNDS        MOLREGNO           MOLFILE                 /tmp/orchem/ 
+COMPOUNDS        MOLREGNO           MOLFILE                 /var/tmp/ 
 
 </pre>
                         </li>
@@ -376,13 +376,9 @@ PL/SQL procedure successfully completed.
                 </li>
              </ul>
 
-        <a href="index.html">Back to main page</a>
         <br></br>
-        <span style="font-size: 8pt;">
-          Author:
-          <a href="mailto:mark_rynbeek@users.sourceforge.net">mark_rynbeek@users.sourceforge.net </a>
-        </span>
-
+        <br></br>
+        <a href="index.html">Back to main page</a>
           </td>
         </tr>
       </table>

@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="orchem.css" type="text/css"></link>
   </head>
   <body>
+    <br>
     <img src="logo.small.jpg"></img>
     <h1>Development </h1> 
 
@@ -95,7 +96,7 @@ ________________________________________________________________
  - Option 3: - fingerprinting
  - Option 4: - JUnit test similarity search
  - Option 5: - JUnit test substructure search
-
+ - Option 6: - JUnit test convert
 
  - Option 0: - EXIT
 
@@ -123,20 +124,74 @@ Enter menu option :
             to have to change the JUnit expected outcome.</li>
             <li>Option 5, same as Option 4 but now testing substructure
             searching.</li>
-            </ul>
-
-
-
+            <li>Option 6 offers JUnit tests for various file conversions</li>
+	    </ul>
             </li>
-
-
-
             </ul>
-          </td>
+	   </td>
         </tr>
 
+	<tr>
+          <td>
+            <h3>Creating an InChi jar file</h3>
+	    The InChi jar file contains on big Java class created by NestedVM. 
+	    The InChi IUPAC software is written in C, and NestedVM is capable of compiling it into a Java class.
+	    What follows are the steps necessary to create the jar file from the C source code.
+	    <UL>
+	    <LI>Download <A href="http://nestedvm.ibex.org/">NestedVm</a> by making a <A href="http://git-scm.com/">Git</A> clone
+	         as decribed on the NestedVM website. 
+	    <LI>Install NestedVM on your computer (we installed it on Linux), by running the make command in the downloaded directory.
+	         You'll need <A href="http://darcs.net/">darcs</a> installed as well. For more info on NestedVM, consult this <A href="http://wiki.brianweb.net/NestedVM/QuickStartGuide">Wiki</A> page</LI>
+	    <LI>WIth NestedVM installed, download the zipped InChi source code from the <A href="http://www.iupac.org/inchi/download/index.html">IUPAC</a> download site.</LI>
+	    <LI></LI>
+	    <LI></LI>
+	    <LI></LI>
+	    </UL>	    
+	    
+	    download nestedvm and darcs
+see Brian's website and nested vm doc, also Rich
+download Iupac Inhci
+build the stdinci-1, with gcc changes
+ INCHI_EXECUTABLE = stdinchi-1.mips
+endif
+
+# === Linker to create Main program =====
+ifndef LINKER
+  LINKER = mips-unknown-elf-gcc
+endif
+
+# === C Compiler ===============
+ifndef C_COMPILER
+  C_COMPILER =mips-unknown-elf-gcc
+
+Get that mips
+Then
+java org.ibex.nestedvm.Compiler -outfile org/iupac/StdInchi102.class org.iupac.StdInchi102  /home/markr/downloads/STDINCHI-1-API/STDINCHI/gcc_makefile/stdinchi-1.mips
+and 
+jar -cvf inchi_102.jar org/iupac/StdInchi102.class
+
+
+            <br></br>
+            <a href="index.html">Back to main page</a>
+            <br></br>
+	   </td>
+        </tr>
+        
+	<tr>
+          <td>
+            <h3>Creating a CDK jar file</h3>
+
+
+	           <br></br>
+            <a href="index.html">Back to main page</a>
+            <br></br>
+	   </td>
+        </tr>
+	
+	
       </table>
     </div>
 
+    
   </body>
 </html>

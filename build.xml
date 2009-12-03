@@ -228,6 +228,9 @@
           <include name="jgrapht-0.6.0.jar"/>
           <include name="log4j-1.2.15.jar"/>
           <include name="cdk.jar"/>
+          <include name="jcp.jar"/>
+          <include name="inchi_102.jar"/>
+          <include name="nestedVm.jar"/>
           <include name="${app.name}.jar"/>
         </tarfileset>
         <tarfileset dir="${dist.dir}/sql" prefix="/orchem/sql/">
@@ -237,7 +240,6 @@
       </tar>
 
       <gzip zipfile="${dist.dir}/${app.name}.tar.gz" src="${dist.dir}/${app.name}.tar" />
-      <!--zip destfile="${dist.dir}/${app.name}.tar.zip" basedir="${dist.dir}" includes="**/*.tar" /-->
 
       <delete file="${dist.dir}/${app.name}.tar"/> 
       <delete dir="${dist.dir}/sql"/> 

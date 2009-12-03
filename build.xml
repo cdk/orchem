@@ -118,7 +118,7 @@
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
 
         <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
-        <junit>
+        <junit maxmemory="1024m" fork="yes">
            <classpath refid="project.classpath" />
            <formatter type="brief" usefile="false" />
            <test name="uk.ac.ebi.orchem.test.TestSubstructureSearch" />
@@ -140,7 +140,7 @@
 
         <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
         <!--junit jvm="/usr/java/jdk1.6.0_14/bin/java" fork="on"-->
-        <junit reloading="false">
+        <junit maxmemory="1024m" fork="yes">
            <classpath refid="project.classpath" />
            <formatter type="brief" usefile="false" />
            <test name="uk.ac.ebi.orchem.test.TestSimilaritySearch" />
@@ -161,7 +161,7 @@
         <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
 
         <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
-        <junit>
+        <junit maxmemory="1024m" fork="yes">
            <classpath refid="project.classpath" />
            <formatter type="brief" usefile="false" />
            <test name="uk.ac.ebi.orchem.test.TestConvert" />

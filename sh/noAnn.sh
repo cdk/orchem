@@ -4,13 +4,13 @@
 # How to use this script
 #
 #  set Java env to 1.5
-#  make a fresh CDK (git) checkout 10-unsorted
+#  make a fresh CDK (git) 
 #  navigate to the src/main folder
 #  uncomment step1 below
 #  from src/main, call this script so it runs step1
 #      ( FYI: step1 replaces 1.6 @Test stuff with blanks)
 #  when finished, continue below
-<< step1
+#<< step1
 find . -name "*.java" -type f | while read filename
 do
   echo file found $filename
@@ -31,7 +31,7 @@ do
   sed 's/@Test//g' < $filename > ${filename}.modified
   mv ${filename}.modified $filename    # omit this line if you want to keep both versions
 done
-step1
+#step1
 
 
 
@@ -41,7 +41,7 @@ step1
 #  make fixes if Test remove gave problems
 #  go to dist/jar dir
 #  call this script, with step2 uncommented.
-#<< step2
+<< step2
 rm *-sources.jar
 find . -name "*.jar" -type f | while read filename
 do
@@ -59,4 +59,4 @@ find . -name "*Tests.class" -exec rm -rf {} \;
 find . -name "*Test\$*.class" -exec rm -rf {} \;
 rm -rf data/
 jar -cvf cdk.jar *
-#step2
+step2

@@ -142,17 +142,13 @@ Enter menu option :
 	         as decribed on the NestedVM website. 
 	    <LI>Install NestedVM on your computer (we installed it on Linux), by running the make command in the downloaded directory.
 	         You'll need <A href="http://darcs.net/">darcs</a> installed as well. For more info on NestedVM, consult this <A href="http://wiki.brianweb.net/NestedVM/QuickStartGuide">Wiki</A> page</LI>
-	    <LI>WIth NestedVM installed, download the zipped InChi source code from the <A href="http://www.iupac.org/inchi/download/index.html">IUPAC</a> download site.</LI>
-	    <LI></LI>
-	    <LI></LI>
-	    <LI></LI>
-	    </UL>	    
-	    
-	    download nestedvm and darcs
-see Brian's website and nested vm doc, also Rich
-download Iupac Inhci
-build the stdinci-1, with gcc changes
- INCHI_EXECUTABLE = stdinchi-1.mips
+	    <LI>With NestedVM installed, download the zipped InChi source code from the <A href="http://www.iupac.org/inchi/download/index.html">IUPAC</a> download site.</LI>
+	    <LI>Unzip InChi download and locate the makefile in ./STDINCHI-1-API/STDINCHI/gcc_makefile/makefile </LI>
+	    <LI>In this makefile, change the lines below accordingly:
+<PRE>
+...
+  
+  INCHI_EXECUTABLE = stdinchi-1.mips
 endif
 
 # === Linker to create Main program =====
@@ -163,26 +159,50 @@ endif
 # === C Compiler ===============
 ifndef C_COMPILER
   C_COMPILER =mips-unknown-elf-gcc
+endif
 
-Get that mips
-Then
-java org.ibex.nestedvm.Compiler -outfile org/iupac/StdInchi102.class org.iupac.StdInchi102  /home/markr/downloads/STDINCHI-1-API/STDINCHI/gcc_makefile/stdinchi-1.mips
-and 
-jar -cvf inchi_102.jar org/iupac/StdInchi102.class
-
-
-            <br></br>
-            <a href="index.html">Back to main page</a>
-            <br></br>
+...
+</PRE>	    
+	    
+	    </LI>
+	    <LI>Run the make command, resulting in a file stdinchi-1.mips </LI>
+	    <LI>Run NestedVM like below (example is run from NestedVM dir, replace YOUR_MAKE_DIR with correct value)
+	    <PRE>
+java org.ibex.nestedvm.Compiler -outfile org/iupac/StdInchi102.class org.iupac.StdInchi102 YOUR_MAKE_DIR/stdinchi-1.mips
+	    </PRE>	    
+	    </LI>
+	    <LI>You can now test the class file:
+	    <PRE>
+make env.sh
+java -cp org/iupac/StdInchi102    
+	    </PRE>	    
+	    </LI>
+	    </UL>	    
 	   </td>
         </tr>
         
 	<tr>
           <td>
-            <h3>Creating a CDK jar file</h3>
-
-
-	           <br></br>
+            <h3>Creating a CDK jar file that loads into Oracle</h3>
+	    The CDK jar file loaded into Oracle is built with one or two hacks, the steps of which are described below.
+	    The steps are necessary because Aurora doesn't really get the various "@Test.." annotations used throughout the CDK,
+	    so these source code lines must be stripped out.
+	    <UL>
+	        <LI>Locate the OrChem file sh/noAnn.sh, open it and make sure step1 is uncommented and step2 is commented.</LI>
+	    	<LI>Git clone git://cdk.git.sourceforge.net/gitroot/cdk/cdk </LI>
+	    	<LI>Navigate to the CDK's src/main folder</LI>
+	    	<LI>Call noAnn.sh from within src/main</LI>
+	    	<LI>Let the script run..</LI>
+		<LI>When done, you have stripped out the "@Test" annotations</LI>
+	    	<LI>Open noAnn.sh, comment step1 and uncomment step2, save file.</LI>
+	    	<LI>Navigate to the CDK top folder where build.xml can be found</LI>
+	    	<LI>Run 'ant clean dist-all'. If there are minor compiler errors (bad stripping), locate the error and fix the problem (should be easy), the run 'ant dist-all' again </LI>
+	    	<LI>When compiled, move into dist/jar directory</LI>
+	    	<LI>Call noAnn.sh from within the dist/jar folder</LI>
+	    	<LI>Let the script run..</LI>
+		<LI>You now have a cdk.jar file you can load into Oracle</LI>
+	    <UL>
+            <br></br>
             <a href="index.html">Back to main page</a>
             <br></br>
 	   </td>

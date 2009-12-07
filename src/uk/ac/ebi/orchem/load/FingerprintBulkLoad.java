@@ -59,7 +59,7 @@ public class FingerprintBulkLoad {
 
         OracleConnection conn = null;
         conn = (OracleConnection)new OracleDriver().defaultConnection();
-        //conn = (OracleConnection)new UnitTestConnection().getDbConnection();
+        //conn = (OracleConnection)new CheztstConnection().getDbConnection();
 
         Statement stmtQueryCompounds =null;
         ResultSet compounds = null;
@@ -113,6 +113,11 @@ public class FingerprintBulkLoad {
     public static void load() throws Exception {
         bulkLoad(null, null);
     }
+
+
+    //public static void main(String[] args) throws Exception {
+    //    bulkLoad("48663","48663");
+    //}
 
 
 }

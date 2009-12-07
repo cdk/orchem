@@ -29,11 +29,13 @@ import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
+import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
+
 
 /**
  * Contains shared utilities for OrChem.<BR>
  * Contains shared constants.
- * 
+ *
  */
 public class Utils {
 
@@ -48,7 +50,9 @@ public class Utils {
      * @return
      */
     public static byte[] toByteArray(BitSet bits, int fixedNumBytes) {
-        byte[] bytes = new byte[fixedNumBytes / 8];
+        Double size = Math.ceil(new Double(fixedNumBytes) / 8);
+        byte[] bytes = new byte[size.intValue()];
+
         for (int i = 0; i < fixedNumBytes; i++) {
             if (bits.get(i)) {
                 bytes[bytes.length - i / 8 - 1] |= 1 << (i % 8);

@@ -90,7 +90,7 @@ public class DatabaseFingerprintPersistence {
             long makeFpTime = 0;
 
             conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //conn = (OracleConnection)new UnitTestConnection().getDbConnection();
+            //conn = (OracleConnection)new CheztstConnection().getDbConnection();
 
             //http://www.oracle-base.com/articles/10g/Commit_10gR2.php
             Statement sql = conn.createStatement();
@@ -251,7 +251,7 @@ public class DatabaseFingerprintPersistence {
                         } catch (SQLException e) {
                             conn.rollback();
                             System.err.println("SQL error for " + compoundTablePkColumn + ": " + compounds.getString(compoundTablePkColumn) + " ="+ e.getMessage());
-                            logMsg.append("\n" + System.currentTimeMillis() + " Loop err " + compoundTablePkColumn + ": " + compounds.getString(compoundTablePkColumn) + " " + e.getMessage());
+                            logMsg.append("\nLoop err " + compoundTablePkColumn + ": " + compounds.getString(compoundTablePkColumn) + " " + e.getMessage());
                             //TODO program should terminate on too many SQL errors (perhaps a counter)
                         }
                     }

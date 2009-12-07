@@ -93,7 +93,7 @@ public class MoleculeCreator {
                 throw new CDKException("Error - nullpointer exception on removeHydrogens()");
             }
             if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
-                throw new CDKException("Error - molfile is null or mol atom count is zero. ");
+                throw new CDKException("Error - Molfile is empty or atom count after hydrogen stripping is zero. ");
         }
         else {
             nnMolecule = new NNMolecule(molecule);

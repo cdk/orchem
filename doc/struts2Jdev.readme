@@ -4,7 +4,12 @@ To get struts2 to work in jdeveloper 11g:
 
 (1)
 In /home/markr/.jdeveloper/system11.1.1.0.31.51.88/DefaultDomain/bin/startWebLogic.sh
-add the struts2 jar files to the classpath (all of them)
+add the struts2 jar files to the classpath (all of them).
+See the copied startWebLogic.sh
+
+(1.1)
+Add the struts tags: Tools -> Manage Libraries -> JSP tag libraries
+In the User section, Add the struts core jar and tabletags jar
 
 
 (2)
@@ -41,11 +46,33 @@ In web.xml add dumb filters for Plexus
 
 
 (3) classpath trouble
+
+NEW:
+the old trick did not work.. was it using another ojdbc file? There are several.
+New (shit) workaround: move all ojdbc files in from the server into ./tmp directories.
+It looked like this make the classloader default to MY ojdbc jar file in WEB-INF/lib. Fine.
+
+
+[markr@localhost wlserver_10.3]$ !find
+find . -name ojdbc*.jar
+./server/ext/jdbc/oracle/11g/tmp/ojdbc6.jar
+./server/ext/jdbc/oracle/11g/tmp/ojdbc5.jar
+./server/adr/tmp/ojdbc6.jar
+./server/adr/tmp/ojdbc5.jar
+./server/lib/tmp/ojdbc6.jar
+
+OLD:
 To get the more advanced stuff in oracle to work, you need to intercept
 the runtime jdbc jar file.
 which is in /oracle/Middleware/wlserver_10.3/server/ext/jdbc/oracle/11g.
-It's the ojdb6.jar - no wonder it gives problems now and then (like for molregno 42375)
-
+Exampla:
+[markr@localhost 11g]$ orc
+[markr@localhost OrChem]$ cd public_html/WEB-INF/classes/
+[markr@localhost classes]$ jar -uvf /var/opt/oracle/middleware/wlserver_10.3/server/ext/jdbc/oracle/11g/ojdbc6.jar uk/ac/ebi/orchem/bean/*
+adding: uk/ac/ebi/orchem/bean/OrChemCompound.class(in = 2977) (out= 1456)(deflated 51%)
+adding: uk/ac/ebi/orchem/bean/OrChemCompoundTanimComparator.class(in = 836) (out= 460)(deflated 44%)
+adding: uk/ac/ebi/orchem/bean/SimHeapElement.class(in = 1325) (out= 597)(deflated 54%)
+adding: uk/ac/ebi/orchem/bean/SimHeapElementTanimComparator.class(in = 854) (out= 464)(deflated 45%)
 
 _________________________________________________
 
@@ -60,6 +87,26 @@ To deploy struts to oc4j10g application server like stan
 - deploy to oas
 
 _________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 details
 
 CLASSPATH="${CLASSPATH}${CLASSPATHSEP}${MEDREC_WEBLOGIC_CLASSPATH}"

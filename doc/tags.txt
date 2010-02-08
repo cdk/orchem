@@ -22,3 +22,6 @@ public release 1.0
 
 rel-1-x-patches
 bug fix branch for 1x
+
+rel-1-1
+release 1.1

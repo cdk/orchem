@@ -3,6 +3,7 @@ AS
    TYPE candidate_rec is RECORD
    (
       query_key           integer
+     ,query_idx           integer
      ,compound_id         varchar2(80)
      ,triple_bond_count   number(5)
      ,s_count             number(5)

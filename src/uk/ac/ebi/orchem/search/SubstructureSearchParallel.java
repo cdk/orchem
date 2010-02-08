@@ -3,7 +3,7 @@
  *  $Date$
  *  $Revision$
  *
- *  Copyright (C) 2008-2009  Mark Rijnbeek
+ *  Copyright (C) 2008-2010  Mark Rijnbeek
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -28,16 +28,14 @@ import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 import oracle.jdbc.OraclePreparedStatement;
 
-import oracle.sql.CLOB;
-
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 
@@ -58,22 +56,11 @@ public class SubstructureSearchParallel extends SubstructureSearch {
      * 
      * @param queryKey   id to store query with
      * @param userQuery  the user query (a string like "O=S=O", or a Mol file)
-     * @param queryType 
+     * @param queryType  SMILES, MOL etc
      * @throws Exception
      */
     public static void storeUserQueryInDB(Integer queryKey, Clob userQuery, String queryType) throws SQLException,
                                                                                                      CDKException {
-
-        IAtomContainer atc = translateUserQueryClob(userQuery, queryType);
-        int pos=0;
-        IAtom[] atoms = new IAtom[atc.getAtomCount()];
-        for (Iterator<IAtom> atItr = atc.atoms().iterator(); atItr.hasNext(); ) {
-            IAtom atom = atItr.next();
-            atoms[pos] = atom;
-            pos++;
-        }
-        String atomString = OrchemMoleculeBuilder.atomsAsString(atoms); 
-        String bondString = OrchemMoleculeBuilder.bondsAsString(atoms,atc);
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
 
@@ -83,69 +70,65 @@ public class SubstructureSearchParallel extends SubstructureSearch {
         psDelUserQuery.setInt(1,queryKey);
         psDelUserQuery.executeUpdate();
         psDelUserQuery.close();
-        
-        CLOB largeAtomsClob= CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
-        CLOB largeBondsClob= CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
-        largeAtomsClob.open(CLOB.MODE_READWRITE);
-        largeBondsClob.open(CLOB.MODE_READWRITE);
 
-        largeAtomsClob.setString(1, atomString);
-        largeBondsClob.setString(1, bondString);
-        
         OraclePreparedStatement psInsertUserQuery = 
-            (OraclePreparedStatement)conn.prepareStatement(
-              "insert into orchem_user_queries (id, timestamp, atoms,bonds) values (?,sysdate,?,?)");
-        
+            (OraclePreparedStatement)conn.prepareStatement( 
+              " insert into orchem_user_queries (id, timestamp, query, query_type ) " +
+              " values (?,sysdate,?,?)");
+
         psInsertUserQuery.setInt(1,queryKey);
-        psInsertUserQuery.setCLOB(2, largeAtomsClob);
-        psInsertUserQuery.setCLOB(3, largeBondsClob);
+        psInsertUserQuery.setClob(2, userQuery);
+        psInsertUserQuery.setString(3, queryType);
+
         psInsertUserQuery.executeUpdate();
-
-        largeAtomsClob.close();
-        largeAtomsClob.freeTemporary();
-        largeBondsClob.close();
-        largeBondsClob.freeTemporary();
-
         psInsertUserQuery.close();
         conn.commit();
     }
     
+
+
     /**
-     * Using a query key (primary key value) selects a user query structure from the database
+     * Using a query key (primary key value) selects a user query structure from the database.
      * @param queryKey
-     * @return user query as CDK IAtomContainer
+     * @return user queries (as CDK IAtomContainer(s) )
      * @throws SQLException
      */
-    private static IAtomContainer retrieveQueryAtcontainerFromDB (Integer queryKey) throws SQLException {
-        IAtomContainer atc=null;
+    private static List<IAtomContainer> retrieveQueriesFromDB (Integer queryKey) throws Exception {
+        List<IAtomContainer> queries = new ArrayList<IAtomContainer>();
+
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
         OraclePreparedStatement psFindUserQuery = 
             (OraclePreparedStatement)conn.prepareStatement(
-              "select id, timestamp, atoms, bonds from orchem_user_queries where id = ?");
+              "select query,query_type from orchem_user_queries where id = ?");
         psFindUserQuery.setInt(1,queryKey);
         ResultSet res = psFindUserQuery.executeQuery();
+
         if (res.next())  {
-            String atoms = res.getString("atoms");
-            String bonds = res.getString("bonds");
-            atc=OrchemMoleculeBuilder.getBasicAtomContainer(atoms,bonds);
+            queries = translateUserQueryClob(res.getClob("query"), res.getString("query_type"));
         }
         else {
             throw new RuntimeException("Orchem parallel query issue! Could not find query with key "+queryKey);
         }
         res.close();
         psFindUserQuery.close();
-        return atc;
+        return queries;
     }
 
     /**
-     * Run by each thread, verifies the user query is available in the queries Map
+     * Run by each thread, verifies the user query is available in the queries map.
      * @param queryKey
+     * @return the number of queries in the map (1..n)
      * @throws SQLException
      */
-    public static void checkThreadEnvironment (Integer queryKey) throws SQLException {
+    public static int setUpEnvironment (Integer queryKey) throws Exception {
+
         if (!queries.containsKey(queryKey))  {
-            IAtomContainer queryMolecule = retrieveQueryAtcontainerFromDB(queryKey);
-            stash(queryKey,queryMolecule);
+            List<IAtomContainer> queries = retrieveQueriesFromDB(queryKey);
+            stash(queryKey,queries,"N");
+            return queries.size();
+        }
+        else {
+            return queries.get(queryKey).size();
         }
     }
 
@@ -153,27 +136,15 @@ public class SubstructureSearchParallel extends SubstructureSearch {
      * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String)}
      * <BR>
      * Method scope=public -> used as Oracle Java stored procedure
-     *
+     * 
      * @param queryKey
-     * @param debugYN
-     * @return
+     * @param queryIdx
+     * @return SQL where clause
      * @throws CDKException
      * @throws SQLException
      */
-    public static String getWhereClause(Integer queryKey, String debugYN) throws CDKException, SQLException {
-        return whereClauseFromFingerPrint(retrieveQueryAtcontainerFromDB(queryKey), debugYN);
-    }
-
-
-    /**
-     * Debug method (to stdout)
-     * @param debugMessage
-     * @param debug
-     */
-    private static void debug(String debugMessage, boolean debug) {
-        if (debug) {
-            System.out.println(new java.util.Date() + " debug: " + debugMessage);
-        }
+    public static String getWhereClause(Integer queryKey, Integer queryIdx) throws CDKException, SQLException {
+        return whereClauseFromFingerPrint(queries.get(queryKey).get(queryIdx).mol, "N" );
     }
 
 }

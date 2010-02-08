@@ -65,10 +65,10 @@ AS
   /*___________________________________________________________________________
    Procedure to get a WHERE clause for a particular user query
    ___________________________________________________________________________*/
-   FUNCTION getWhereClause (query_key number, debug_YN VARCHAR2)
+   FUNCTION getWhereClause (query_key number, query_idx number)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.getWhereClause (java.lang.Integer, java.lang.String) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.getWhereClause (java.lang.Integer, java.lang.Integer) return java.lang.String ';
 
 
   /*____________________________________________________________________________
@@ -103,7 +103,6 @@ AS
        FROM   dual;
        
        store_query_in_db (query_key, user_query, query_type);
-       
        return query_key;
    END;
 
@@ -111,31 +110,33 @@ AS
    Procedure to check if the environment (context) of a thread has been set up
    already and if not, does set it up
    ___________________________________________________________________________*/
-   PROCEDURE check_thread_env (query_key number)
+   
+   FUNCTION setup_environment (query_key number)
+   RETURN NUMBER
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.checkThreadEnvironment(java.lang.Integer)';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.setUpEnvironment(java.lang.Integer) return java.lang.integer';
 
 
   /*___________________________________________________________________________
    Procedure to get get a quick verdict if a candidate compound can be a 
    a superstructure of the user's query. 
    ___________________________________________________________________________*/
-   FUNCTION is_possible_candidate (query_key number, compoundId varchar2
-                       , tripleBondCount number, sCount number, oCount number 
-                       , nCount number, fCount number, clCount number, brCount number, iCount number
-                       , cCount number, debugYN varchar2)
+   FUNCTION  is_possible_candidate (query_key number, query_idx number, compoundId varchar2
+           , tripleBondCount number, sCount number, oCount number 
+           , nCount number, fCount number, clCount number, brCount number, iCount number
+           , cCount number, debugYN varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isPossibleCandidate(java.lang.Integer,java.lang.String,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.String) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isPossibleCandidate(java.lang.Integer,java.lang.Integer,java.lang.String,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.String) return java.lang.String ';
 
 
   /*___________________________________________________________________________
    Procedure to invoke graph ismorphism check between query and candidate
    ___________________________________________________________________________*/
-   FUNCTION isomorphism (query_key number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2, strict_stereo_yn varchar2)
+   FUNCTION isomorphism (query_key number, query_idx number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2, strict_stereo_yn varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isomorphismCheck(java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String, java.lang.String) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isomorphismCheck(java.lang.Integer,java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String, java.lang.String) return java.lang.String ';
 
 
   /*___________________________________________________________________________
@@ -167,6 +168,8 @@ AS
       parallel_query_hickup EXCEPTION;
       PRAGMA EXCEPTION_INIT(parallel_query_hickup, -12801);
       checked               boolean :=false;
+      numOfQueries          integer:=0;
+
    BEGIN
       LOOP
          FETCH p_candidate into l_candidate;
@@ -176,16 +179,18 @@ AS
          -- make sure we have the user's query, initially retrieve it once.
          while not checked loop
              begin
-                check_thread_env (l_candidate.query_key);
+                numOfQueries := setup_environment (l_candidate.query_key);
                 checked :=true;
              exception
              when others then -- parallel_query_hickup  then 
                 NULL; -- to do log somewhere
              end;
          end loop;
+
          -- Business as usual:
          IF is_possible_candidate  (
               l_candidate.query_key
+             ,l_candidate.query_idx
              ,l_candidate.compound_id         
              ,l_candidate.triple_bond_count   
              ,l_candidate.s_count             
@@ -209,15 +214,18 @@ AS
              retval := 
              isomorphism (
                   l_candidate.query_key
+                 ,l_candidate.query_idx
                  ,l_candidate.compound_id         
                  ,l_candidate.atoms               
                  ,l_candidate.bonds               
                  ,'N'            
                  ,l_candidate.strict_stereo_yn
              );
-             --IF retval IS NOT NULL THEN
-               PIPE ROW (retval);
-             --END IF;
+             PIPE ROW (retval);
+
+             --DEBUG stuff
+             --PIPE ROW (userenv('sessionid');
+               
          END IF;
       END LOOP;
       RETURN;
@@ -264,7 +272,7 @@ AS
       molecule                 clob;
       numOfResults             integer:=0; 
       full_hint                varchar2(10):='';
-      
+      numOfQueries             integer:=0;
 
    BEGIN
 
@@ -272,100 +280,110 @@ AS
        SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molfile_col 
        INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molfile_col
        FROM   orchem_parameters;
-       
-       --(2)  
-       whereClause := getWhereClause (query_key, 'N' );       
 
-       --(3)
-       /* Note the two hints below. The FULL hint is to force a full table
-          scan, otherwise optimizer MAY bick a btree index. But if a btree
-          is chosen, there will be NO parallelism (you then revert back to
-          the non parallel version essentially). */
+       numOfQueries := setup_environment (query_key);
 
-       
-       if force_full_scan='Y' then
-         full_hint:='full(s)';
-       end if;
-
-       prefilterQuery:=       
-       ' select /*+ NO_QKN_BUFF */  *                    ' ||
-       ' from   table                                    ' ||
-       '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
-       '          ( cursor                               ' ||
-       '           ( select /*+ '||full_hint||' parallel(s) */  ' ||  
-                       query_key                           ||
-       '             , s.id                              ' ||
-       '             , s.triple_bond_count               ' ||
-       '             , s.s_count                         ' ||
-       '             , s.o_count                         ' ||
-       '             , s.n_count                         ' ||
-       '             , s.f_count                         ' ||
-       '             , s.cl_count                        ' ||
-       '             , s.br_count                        ' ||
-       '             , s.i_count                         ' ||
-       '             , s.c_count                         ' ||
-       '             , s.atoms                           ' ||
-       '             , s.bonds                           ' ||
-       '             ,''N'' '                              ||  
-       '             ,'''||strict_stereo_yn||''''          ||  
-       '              from  orchem_fingprint_subsearch s ' ||
-       '              where 1=1                          ' ||
-                     whereClause                           ||
-       '           )                                     ' ||
-       '          )                                      ' ||
-       '         ) t                                      ';
-
-
-      -- debug query back
-      -- pipe row(ORCHEM_COMPOUND (0,  prefilterQuery, 1 ));
-      -- return;
-      
-       --(4)
-       moleculeQuery := ' select '|| compound_tab_molfile_col|| 
-                        ' from  ' || compound_tab_name       ||
-                        ' where  '|| compound_tab_pk_col     ||'=:var01';
-
-       OPEN myRefCur FOR prefilterQuery;
-
-       --(5)
-       << prefilterloop >>
-       LOOP
-          FETCH myRefCur INTO compound_id;
-
-          IF (myRefCur%NOTFOUND) THEN
-             CLOSE myRefcur;
-             EXIT prefilterloop;
-          ELSE
-             --(6)
-
-             if(compound_id IS NOT NULL)
-             then
-                --(7)
-                execute immediate moleculeQuery into molecule using compound_id;
-                pipe row( ORCHEM_COMPOUND (compound_id,  molecule, 1 ) );
-                numOfResults:=numOfResults+1;
-                --(8)
-                IF (topN is not null AND numOfResults >= topN) THEN
-                  CLOSE myRefcur;  
-                  EXIT prefilterloop;
-                END IF;
-             else 
-                --pipe row( ORCHEM_COMPOUND (null,null,0 ) );
-                null;
-             end if;
-
+       << queryLoop >>
+       FOR qIdx in 0..(numOfQueries-1) LOOP
+           
+           --(2)  
+           whereClause := getWhereClause (query_key, qIdx );       
+    
+           --(3)
+           /* Note the two hints below. The FULL hint is to force a full table
+              scan, otherwise optimizer MAY bick a btree index. But if a btree
+              is chosen, there will be NO parallelism (you then revert back to
+              the non parallel version essentially). */
+           
+           if force_full_scan='Y' then
+             full_hint:='full(s)';
+           end if;
+    
+           prefilterQuery:=       
+           ' select /*+ NO_QKN_BUFF */  *                    ' ||
+           ' from   table                                    ' ||
+           '        ( orchem_subsearch_par.parallel_isomorphism_check ' ||
+           '          ( cursor                               ' ||
+           '           ( select /*+ '||full_hint||' parallel(s) */  ' ||  
+                           query_key                           ||
+           '             ,'||qIdx                              ||
+           '             , s.id                              ' ||
+           '             , s.triple_bond_count               ' ||
+           '             , s.s_count                         ' ||
+           '             , s.o_count                         ' ||
+           '             , s.n_count                         ' ||
+           '             , s.f_count                         ' ||
+           '             , s.cl_count                        ' ||
+           '             , s.br_count                        ' ||
+           '             , s.i_count                         ' ||
+           '             , s.c_count                         ' ||
+           '             , s.atoms                           ' ||
+           '             , s.bonds                           ' ||
+           '             ,''N'' '                              ||  
+           '             ,'''||strict_stereo_yn||''''          ||  
+           '              from  orchem_fingprint_subsearch s ' ||
+           '              where 1=1                          ' ||
+                         whereClause                           ||
+           '           )                                     ' ||
+           '          )                                      ' ||
+           '         ) t                                      ';
+    
+    
+          -- DEBUG query back
+          -- pipe row(ORCHEM_COMPOUND (0,  prefilterQuery, 1 ));
+          -- return;
+          
+           --(4)
+           moleculeQuery := ' select '|| compound_tab_molfile_col|| 
+                            ' from  ' || compound_tab_name       ||
+                            ' where  '|| compound_tab_pk_col     ||'=:var01';
+    
+           OPEN myRefCur FOR prefilterQuery;
+    
+           --(5)
+           << prefilterloop >>
+           LOOP
+              FETCH myRefCur INTO compound_id;
+    
+              IF (myRefCur%NOTFOUND) THEN
+                 CLOSE myRefcur;
+                 EXIT prefilterloop;
+              ELSE
+                 --(6)
+                 if(compound_id IS NOT NULL)
+                 then
+                    --(7)
+                    execute immediate moleculeQuery into molecule using compound_id;
+                    pipe row( ORCHEM_COMPOUND (compound_id,  molecule, 1 ) );
+                    numOfResults:=numOfResults+1;
+                    --(8)
+                    IF (topN is not null AND numOfResults >= topN) THEN
+                      CLOSE myRefcur;  
+                      EXIT prefilterloop;
+                    END IF;
+                 else 
+                    --pipe row( ORCHEM_COMPOUND (null,null,0 ) );
+                    null;
+                 end if;
+    
+              END IF;
+           END LOOP;
+  
+          IF (topN is not null AND numOfResults >= topN) THEN
+            exit queryLoop;          
           END IF;
+
        END LOOP;
        remove_query_from_map (query_key);    
-
        RETURN;
 
-     EXCEPTION WHEN OTHERS THEN
-     IF myRefCur is not null AND myRefCur%ISOPEN THEN
-        CLOSE myRefCur;
-     END IF;
-     remove_query_from_map (query_key);    
-     RAISE;
+
+   EXCEPTION WHEN OTHERS THEN
+      IF myRefCur is not null AND myRefCur%ISOPEN THEN
+         CLOSE myRefCur;
+      END IF;
+      remove_query_from_map (query_key);    
+      RAISE;
    END;
 END;
 /   

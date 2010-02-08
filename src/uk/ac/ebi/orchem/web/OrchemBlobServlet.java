@@ -99,7 +99,7 @@ public class OrchemBlobServlet extends HttpServlet {
        generators.add(new PhantomBondGenerator());
     }
 
-    static String url = "jdbc:oracle:thin:@localhost:1521:marx";
+    static String url = "jdbc:oracle:thin:@localhost:1521:orcl";
     static String username = "testuser";
     static String password = "testpw";
 

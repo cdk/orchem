@@ -91,6 +91,8 @@ public class VerifyOrchem {
 
                 String molfile = res.getString(compoundTableMolfileColumn);
 
+                out.append("\nDEBUG: molfile is \n"+molfile);
+
                 if (molfile != null) {
                     NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                     out.append("\nOKAY: CDK molecule created");
@@ -133,6 +135,7 @@ public class VerifyOrchem {
         } catch (Exception e) {
             out.append("\nERROR");
             out.append(Utils.getErrorString(e));
+
         }
         return ConvertMolecule.StringToClob(out.toString());
 

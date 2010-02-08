@@ -350,6 +350,7 @@ COMPOUNDS        MOLREGNO           MOLFILE                 /var/tmp/
                     run the procedure for the first time, but following runs are done much quicker. <br>Replace 12345 with
                     a valid primary key value from your database. </li>
 <pre>                
+SQL> SET LONG 100000
 SQL> select orchem_utils.verify_orchem(12345) from dual;
   
 </pre>        

@@ -18,6 +18,7 @@ delete orchem_big_molecules
 /
 commit;
 
+
 prompt JIT... please wait
 prompt =====================
     declare
@@ -41,6 +42,7 @@ prompt =====================
          end loop;
       end;
 /
+
 
 prompt create new fingerprints
 prompt =============================

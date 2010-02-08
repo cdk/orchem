@@ -15,7 +15,7 @@ prompt creating sequence "orchem_sequence_querykeys"
    create sequence orchem_sequence_querykeys
    increment by 1 
    minvalue 1 
-   maxvalue 5000 
+   maxvalue 1000 
    cycle  --!! important -> roll over sequence
    nocache
 /

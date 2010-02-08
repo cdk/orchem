@@ -56,7 +56,6 @@ import org.iupac.StdInchi102;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -65,7 +64,6 @@ import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;

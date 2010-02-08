@@ -40,6 +40,7 @@ import oracle.jdbc.OraclePreparedStatement;
 import oracle.sql.CLOB;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.io.MDLWriter;
 import org.openscience.cdk.io.iterator.IteratingMDLReader;
@@ -84,25 +85,30 @@ public class LoadCompounds {
                 if (object != null && object instanceof Molecule) {
 
                     molCount++;
-                    Molecule m = (Molecule)object;
-
-                    StringWriter writer = new StringWriter();
-                    MDLWriter mdlWriter = new MDLWriter(writer);
-                    mdlWriter.write(m);
-                    String mdl = writer.toString();
-                    CLOB mdlClob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
-                    mdlClob.open(CLOB.MODE_READWRITE);
-                    mdlClob.setString(1, mdl);
-
                     System.out.print(" id:"+molCount);
-                    if(molCount%15==0)
+                    if(molCount%15 == 0)
                         System.out.println();
-                    
-                    pstmt.setInt(1, molCount);
-                    pstmt.setCLOB(2, mdlClob);
-                    pstmt.executeUpdate();
-                    mdlClob.close();
-                    mdlClob.freeTemporary();
+
+                    try {
+                        Molecule m = (Molecule)object;
+                        StringWriter writer = new StringWriter();
+                        MDLWriter mdlWriter = new MDLWriter(writer);
+
+                        mdlWriter.write(m);
+                        String mdl = writer.toString();
+                        CLOB mdlClob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+                        mdlClob.open(CLOB.MODE_READWRITE);
+                        mdlClob.setString(1, mdl);
+
+                        pstmt.setInt(1, molCount);
+                        pstmt.setCLOB(2, mdlClob);
+                        pstmt.executeUpdate();
+                        mdlClob.close();
+                        mdlClob.freeTemporary();
+
+                    } catch (Exception e) {
+                        System.out.println("\nError! Message="+e.getMessage());                        
+                    }
 
                 }
             }

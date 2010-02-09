@@ -95,7 +95,6 @@ public class SubstructureSearch {
             IChemFormat format=null;
             try {
                 format = new FormatFactory().guessFormat(ins);
-                System.out.println("we guessed "+format.getClass());
 
             } catch (IOException e) {
                 //continue, gues MDL molfile

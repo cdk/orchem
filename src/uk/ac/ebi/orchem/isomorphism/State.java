@@ -35,6 +35,7 @@ package uk.ac.ebi.orchem.isomorphism;
 
 
 import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.PseudoAtom;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
@@ -106,7 +107,8 @@ public abstract class State {
      * @param l
      * @return
      */
-    protected boolean bondMatches(IAtomContainer g1, IAtomContainer g2, int i, int k, int j, int l) {
+    protected boolean bondMatches(IAtomContainer g1, IAtomContainer g2, int i, int k, int j, int l, boolean[] pseudoG1, boolean[] pseudoG2) {
+
         IBond aBond = g1.getBond(g1.getAtom(i), g1.getAtom(k));
         IBond tbond = g2.getBond(g2.getAtom(j), g2.getAtom(l));
         boolean aFlag = aBond.getFlag(CDKConstants.ISAROMATIC);
@@ -127,17 +129,82 @@ public abstract class State {
             return false;
         }
 
-        // next we check bond order, but only if bonds were not aromatic. This is because
+        // Next we check bond order, but only if bonds were not aromatic. This is because
         // bond order may be 1 or 2 which does not indicate aromaticity. Also we only
         // check one bond since at this point, both bonds will have the same value of the
         // aromaticity flag
         if (!aFlag) {
             if (aBond.getOrder() != tbond.getOrder()) return false;
         }
-        if (g1.getAtom(i).getSymbol().equals(g2.getAtom(j).getSymbol()) &&
-                g1.getAtom(k).getSymbol().equals(g2.getAtom(l).getSymbol())) return true;
-        if (g1.getAtom(i).getSymbol().equals(g2.getAtom(l).getSymbol()) &&
-                g1.getAtom(k).getSymbol().equals(g2.getAtom(j).getSymbol())) return true;
+
+        //Symbol matching.. tricky: take pesudo atom flags into account
+        if (matches (g1,g2,i,j,pseudoG1, pseudoG2)&&
+            matches (g1,g2,k,l,pseudoG1, pseudoG2)) 
+                return true;
+
+        if (matches (g1,g2,i,l,pseudoG1, pseudoG2) &&
+            matches (g1,g2,k,j,pseudoG1, pseudoG2)) 
+                return true;
+
         return false;
     }
+
+    /**
+     * TODO..
+     * Instead of just matching 
+     * @return
+     */
+    private boolean matches(IAtomContainer g1, IAtomContainer g2, int idx1, int idx2, boolean[] pseudoG1, boolean[] pseudoG2 ) {
+        IAtom qAtom = g1.getAtom(idx1);
+        IAtom tAtom = g2.getAtom(idx2);
+
+        //Normal match
+        if (qAtom.getSymbol().equals(tAtom.getSymbol()))
+            return true;
+
+        //Pseudo atoms
+        //"A" is any atom, "Q" is a heteroatom (i.e. any atom except C or H)
+        if (pseudoG1[idx1]) {
+            if (pseudoG2[idx2]) {
+                return true;
+            } else {
+                PseudoAtom pseudo = (PseudoAtom)qAtom;
+                if (pseudo.getLabel().equals("Q")) {
+                    if (tAtom.getSymbol().equals("C") ||
+                        tAtom.getSymbol().equals("H")) {
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                        
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        if (pseudoG2[idx2]) {
+            if (pseudoG1[idx1]) {
+                return true;
+            } else {
+                PseudoAtom pseudo = (PseudoAtom)tAtom;
+                if (pseudo.getLabel().equals("Q")) {
+                    if (qAtom.getSymbol().equals("C") ||
+                        qAtom.getSymbol().equals("H")) {
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
+            }
+        }
+        
+        //Default:
+        return false;
+    }
+
 }

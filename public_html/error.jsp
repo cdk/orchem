@@ -25,7 +25,7 @@
                    <BR><BR>
                    <h3>Uhh sorry there was some kind of error !</H3>
                    <BR>
-                     <a href="<s:url value="molSearch.action"/>">Search again with Marvin applet</a>
+                     <a href="<s:url value="molSearch.action"/>">Search again with applet</a>
                      <BR>
                      <a href="<s:url value="smilesSearch.action"/>">Search again with Smiles</a>
                    <BR>

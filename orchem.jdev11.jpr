@@ -425,7 +425,7 @@
             <value n="custom" v="false"/>
             <value n="javaOptions" v=""/>
             <value n="name" v="Load Unit test data"/>
-            <value n="programArguments" v="/home/markr/cvs/sourceforge/OrChem/test/step1_compoundtable.mol 0"/>
+            <value n="programArguments" v="/home/markr/src/OrChem/test/step1_compoundtable.queries.mol 0"/>
             <value n="runActiveFile" v="true"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
             <url n="targetURL" path="src/uk/ac/ebi/orchem/test/LoadCompounds.java"/>

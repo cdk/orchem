@@ -30,7 +30,7 @@
    	    <tbody><tr>
               <td class="contentsarea" id="contentsarea">
                    <h1>OrChem search database <%=DatabaseAgent.DB_AGENT.getDbName()%></h1>
-                    <a href="<s:url value="molSearch.action"/>">Switch to Marvin applet search </a>
+                    <a href="<s:url value="molSearch.action"/>">Switch to applet search </a>
                     
                     <script type="text/javascript" src="inc/browserDetect.js"></script>
                    
@@ -111,7 +111,7 @@
                                              cssClass="submit_button" 
                                              name="action" 
                                              title="Submit this search." 
-                                             onclick="javascript:marvinFromEditor();"/>
+                                             onclick="javascript:molFromEditor();"/>
                                            </td>
                                             </tr>
                                         </table>
@@ -128,10 +128,6 @@
   <script type="text/javascript">
         function loadStructure(){
 
-            if (BrowserDetect.browser=='Firefox' && BrowserDetect.version=='1.5'){
-                    alert("There is an incompatibility of the latest version of MarvinSketch with Firefox 1.5. Please upgrade your browser to use this page.");
-            }
-            else {
                     //alert ("loadStructure");
                     var struc="";
                     struc = document.getElementById('molfileLookedUp').value;
@@ -147,11 +143,10 @@
                     if (edi!=null){
                             edi.setMol(struc);
                     }
-            }
     }
     loadStructure();
                     
-    function marvinFromEditor () {
+    function molFromEditor () {
             document.getElementById('advancedSearchFT_structure').value = document.getElementById("editor").getMol("mol");
     }
 

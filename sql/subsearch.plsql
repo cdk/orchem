@@ -174,7 +174,8 @@ AS
        << queryLoop >>
        FOR qIdx in 0..(numOfQueries-1) LOOP
 
-       --pipe row( ORCHEM_COMPOUND ('loop is'||qIdx,  null, 1 ) );  
+           --Abuse pipe for debug:
+           --pipe row( ORCHEM_COMPOUND ('loop is'||qIdx,  null, 1 ) );  
             
            --(5)
            whereClause := getWhereClause (query_key, qIdx, debug_YN );

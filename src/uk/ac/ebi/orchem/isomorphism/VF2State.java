@@ -40,11 +40,13 @@ import org.openscience.cdk.interfaces.IBond;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openscience.cdk.PseudoAtom;
+
 
 /**
  * Translation of C++ VF2 algprithm from VF lib.<BR>
  * http://amalfi.dis.unina.it/graph/db/vflib-2.0/doc/vflib.html<BR>
- * 
+ *
  * Further simplicfication of CDK VF version.
  *
  * @author      markr
@@ -61,6 +63,7 @@ public class VF2State extends State {
     Integer[] in_query;
     Integer[] out_query;
     int query_both_len, query_in_len, query_out_len;
+    boolean[] pseudoQueryAtomIndicator;
 
     private IAtomContainer targetAtomContainer; //g2
     int targetAtomCount;
@@ -68,6 +71,7 @@ public class VF2State extends State {
     Integer[] in_target;
     Integer[] out_target;
     int targ_both_len, targ_in_len, targ_out_len;
+    boolean[] pseudoTargetAtomIndicator;
 
     int core_len, orig_core_len;
     Integer[] order;
@@ -87,6 +91,23 @@ public class VF2State extends State {
         targetAtomContainer = target;
         queryAtomCount = queryAtomContainer.getAtomCount();
         targetAtomCount = targetAtomContainer.getAtomCount();
+
+        pseudoQueryAtomIndicator = new boolean[queryAtomCount];
+        for (int i = 0; i < queryAtomCount; i++) {
+            if (queryAtomContainer.getAtom(i) instanceof PseudoAtom)
+                pseudoQueryAtomIndicator[i]=true;
+            else
+                pseudoQueryAtomIndicator[i]=false;
+        }
+
+        pseudoTargetAtomIndicator = new boolean[targetAtomCount];
+        for (int i = 0; i < targetAtomCount; i++) {
+            if (targetAtomContainer.getAtom(i) instanceof PseudoAtom)
+                pseudoTargetAtomIndicator[i]=true;
+            else
+                pseudoTargetAtomIndicator[i]=false;
+        }
+
         core_len = 0;
         orig_core_len = 0;
         query_both_len = 0;
@@ -220,7 +241,11 @@ public class VF2State extends State {
         IAtom queryAtom = queryAtomContainer.getAtom(queryNodeIdx);
         IAtom targetAtom = targetAtomContainer.getAtom(targetNodeIdx);
 
-        if (!queryAtom.getSymbol().equals(targetAtom.getSymbol()))
+        //take Pseudo atoms into account.. the symbols don't have to match then
+        if (!queryAtom.getSymbol().equals(targetAtom.getSymbol()) &&
+            !(pseudoQueryAtomIndicator[queryNodeIdx]) &&
+            !(pseudoTargetAtomIndicator[targetNodeIdx])
+        )
             return false;
 
         int termoutQuery = 0, terminQuery = 0, newQuery = 0;
@@ -235,7 +260,7 @@ public class VF2State extends State {
             if (core_query[other1] != null) {
                 other2 = core_query[other1];
                 if (!bondExists(targetAtomContainer, targetNodeIdx, other2) ||
-                    !bondMatches(queryAtomContainer, targetAtomContainer, queryNodeIdx, other1, targetNodeIdx, other2))
+                    !bondMatches(queryAtomContainer, targetAtomContainer, queryNodeIdx, other1, targetNodeIdx, other2,pseudoQueryAtomIndicator, pseudoTargetAtomIndicator))
                     return false;
             } else {
                 if (in_query[other1] != 0)
@@ -253,7 +278,7 @@ public class VF2State extends State {
             if (core_query[other1] != null) {
                 other2 = core_query[other1];
                 if (!bondExists(targetAtomContainer, other2, targetNodeIdx) ||
-                    !bondMatches(queryAtomContainer, targetAtomContainer, queryNodeIdx, other1, other2, targetNodeIdx))
+                    !bondMatches(queryAtomContainer, targetAtomContainer, queryNodeIdx, other1, other2, targetNodeIdx,pseudoQueryAtomIndicator, pseudoTargetAtomIndicator))
                     return false;
             } else {
                 if (in_query[other1] != 0)

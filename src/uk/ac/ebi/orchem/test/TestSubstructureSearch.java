@@ -67,7 +67,7 @@ public class TestSubstructureSearch extends TestCase {
 
     static OracleConnection conn;
     static List<WrappedAtomContainer> targetMolecules;
-    /* connect and suk all the unittest compounds into a working list (for performance)*/
+    /* connect and pull all the unittest compounds into a working list (for performance)*/
     static {
         try {
             System.out.println("___ static : Begin set up target list (once) ");
@@ -225,6 +225,7 @@ public class TestSubstructureSearch extends TestCase {
     /*
      * Start of Junit test methods 
      */
+
     public void testCompoundID_1() throws Exception {
         fingerprintVersusFullScan(1,"N",null);
     }
@@ -388,6 +389,27 @@ public class TestSubstructureSearch extends TestCase {
     public void testCompoundID_43_strict() throws Exception {
         fingerprintVersusFullScan(43,"Y",null);
     }
+
+    public void testCompoundID_44() throws Exception {
+        fingerprintVersusFullScan(44,"N",null);
+    }
+
+    public void testCompoundID_45() throws Exception {
+        fingerprintVersusFullScan(45,"N",null);
+    }
+
+    public void testCompoundID_46() throws Exception {
+        fingerprintVersusFullScan(46,"N",null);
+    }
+
+    public void testCompoundID_47() throws Exception {
+        fingerprintVersusFullScan(47,"N",null);
+    }
+
+    public void testCompoundID_48() throws Exception {
+        fingerprintVersusFullScan(48,"N",null);
+    }
+
     public void testCompoundID_1_idList() throws Exception {
         List<Integer> idList = new ArrayList<Integer>();
         idList.add(10);

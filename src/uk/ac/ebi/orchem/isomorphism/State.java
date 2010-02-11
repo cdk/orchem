@@ -113,14 +113,14 @@ public abstract class State {
         IBond tbond = g2.getBond(g2.getAtom(j), g2.getAtom(l));
         boolean aFlag = aBond.getFlag(CDKConstants.ISAROMATIC);
 
-        // if the aromaticity flags for the two bonds differ, no chance
+        // If the aromaticity flags for the two bonds differ, stop.
         if (aFlag != tbond.getFlag(CDKConstants.ISAROMATIC)) return false;
 
-        // if the strict on stereo isometry and stereo indicators differ, no match
+        // If the strict on stereo isometry and stereo indicators differ, no match
         if (strictStereoIsomorphism 
             && aBond.getStereo()!= null 
             && tbond.getStereo()!=null 
-            // the E Z stereo types are useless .. they can get set for Benze for example. Chose to ignore.
+            // the E Z stereo types are useless .. they can get set for Benzene for example. Chose to ignore.
             && aBond.getStereo()!= IBond.Stereo.E_OR_Z
             && aBond.getStereo()!= IBond.Stereo.E_Z_BY_COORDINATES
             && tbond.getStereo()!= IBond.Stereo.E_OR_Z
@@ -150,9 +150,9 @@ public abstract class State {
     }
 
     /**
-     * TODO..
-     * Instead of just matching 
-     * @return
+     * Bond matching, taking pseudo atoms to a certain extent into account.
+     * 
+     * @return true if g1(idx1) and g2(idx2) are bound.
      */
     private boolean matches(IAtomContainer g1, IAtomContainer g2, int idx1, int idx2, boolean[] pseudoG1, boolean[] pseudoG2 ) {
         IAtom qAtom = g1.getAtom(idx1);

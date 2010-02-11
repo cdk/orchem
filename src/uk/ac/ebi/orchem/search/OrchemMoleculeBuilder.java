@@ -36,6 +36,7 @@ import org.openscience.cdk.Atom;
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.Molecule;
+import org.openscience.cdk.PseudoAtom;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
@@ -66,9 +67,18 @@ public class OrchemMoleculeBuilder {
         List<IBond> bondList = new ArrayList<IBond>();
 
         while (s.hasMoreElements()) {
-            IAtom at = new Atom();
-            at.setSymbol(s.nextToken());
-            atomMap.put(atomPos++, at);
+            String token = s.nextToken();
+            if (token.contains(":")) {
+                PseudoAtom ps = new PseudoAtom();
+                ps.setSymbol("R");
+                ps.setLabel(token.substring(2));
+                atomMap.put(atomPos++, ps);
+            }
+            else {
+                IAtom at = new Atom();
+                at.setSymbol(token);
+                atomMap.put(atomPos++, at);
+            }
         }
 
         s = new StringTokenizer(bondString);
@@ -140,7 +150,9 @@ public class OrchemMoleculeBuilder {
      * The result could look for example like this:<br>
      * "N N C N C N C C C C C O C C C C C C"<P>
      * These strings are persisted in the db and can be used to quickly materialize a molecule
-     * by {@link OrchemMoleculeBuilder}
+     * by {@link OrchemMoleculeBuilder}<br>
+     * Pseudo atoms (like R#, Q and A) get special treatment.
+     * 
      *
      * @param atoms
      * @return atom String listing the periodic element symbols in the atomcontainer
@@ -149,7 +161,13 @@ public class OrchemMoleculeBuilder {
     public static String atomsAsString(IAtom[] atoms) throws SQLException {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < atoms.length; i++) {
-            sb.append(atoms[i].getSymbol()).append(" ");
+            IAtom atom = atoms[i];
+            if (atom instanceof org.openscience.cdk.PseudoAtom ) {
+                sb.append(atom.getSymbol()).append(":").append(((PseudoAtom)atom).getLabel()).append(" ");
+            }
+            else {
+                sb.append(atom.getSymbol()).append(" ");
+            }
         }
         return sb.toString().trim();
 

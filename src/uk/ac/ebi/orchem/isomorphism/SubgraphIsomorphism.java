@@ -36,25 +36,15 @@ package uk.ac.ebi.orchem.isomorphism;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
 
 
 /**
  * Subgraph isomorphism resolver.
- * An example usage is:
- * <pre>
- * SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
- * IAtomContainer target = sp.parseSmiles("C1CCCCC1C(=O)CCOCN");
- * IAtomContainer query1 = sp.parseSmiles("C1CCCCC1");
- * IAtomContainer query2 = sp.parseSmiles("CCOCN");
- * SubgraphIsomorphism checker = new SubgraphIsomorphism(target, query1);
- *
- * if (checker.matchSingle()) {
- *   // matched
- * }
- * </pre>
- *
  * @author      rajarshi/markr
  *
  */
@@ -118,11 +108,59 @@ public class SubgraphIsomorphism {
      * @throws CloneNotSupportedException
      */
     private boolean singleMatch() throws CloneNotSupportedException {
-        if (vf2.getTargetMolecule().getAtomCount() < vf2.getQueryMolecule().getAtomCount())
+        if (vf2.getTargetContainer().getAtomCount() <
+            vf2.getQueryContainer().getAtomCount())
             return false;
 
         if (vf2.isGoal()) {
             NodePair[] pairs = vf2.getCoreSet();
+
+            /*
+            The goal has been reached, so the query has been mapped to target, 
+            therfore query is a substructure of the target.
+
+            However, if this was an R-group query, the result could still be 
+            rejected.If the RestH property is true for some atom with an R-group
+            linked, then the R-group may only be substituted with a member
+            of the Rgroup or with H..
+            This can be verified:
+                - find any atom in the query with RestH flagged
+                - find the atom mapped to it in the target container
+                - see if the target has more (non hydrogen) bonds than the query. 
+                  if so,discard it.
+            */
+
+            IAtomContainer query = vf2.getQueryContainer();
+            IAtomContainer target = vf2.getTargetContainer();
+
+            for (int i = 0; i < query.getAtomCount(); i++) {
+                IAtom queryAtom = query.getAtom(i);
+                if (queryAtom.getProperty(CDKConstants.REST_H) != null &&
+                    queryAtom.getProperty(CDKConstants.REST_H).equals(true)) {
+                    for (NodePair pair : pairs) {
+                        if (pair.getQueryNode() == i) {
+                            IAtom targetAtom =
+                                target.getAtom(pair.getTargetNode());
+
+                            int qConnectivityCount=0, tConnectivityCount = 0;
+                            for (IBond queryBond : query.bonds()) {
+                                if (queryBond.contains(queryAtom) &&
+                                    !queryBond.getConnectedAtom(queryAtom).getSymbol().equals("H"))
+                                    qConnectivityCount++;
+                            }
+                            for (IBond targetBond : target.bonds()) {
+                                if (targetBond.contains(targetAtom) &&
+                                    !targetBond.getConnectedAtom(targetAtom).getSymbol().equals("H"))
+                                    tConnectivityCount++;
+                            }
+                            if (tConnectivityCount>qConnectivityCount) {
+                                //System.out.println("Rejecting based on RestH property");    
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
             mappings.add(pairs);
             return true;
         }
@@ -134,11 +172,13 @@ public class SubgraphIsomorphism {
         Integer targetNodeIdx = null;
         boolean found = false;
         NodePair nodePair;
-        while (!found && (nodePair = vf2.nextPair(queryNodeIdx, targetNodeIdx)) != null) {
+        while (!found &&
+               (nodePair = vf2.nextPair(queryNodeIdx, targetNodeIdx)) !=
+               null) {
 
             queryNodeIdx = nodePair.getQueryNode();
             targetNodeIdx = nodePair.getTargetNode();
-            
+
             // can be used to indent debugging, ignore
             //char[] chars = new char[(vf2.recursionDepth * 5)];
             //Arrays.fill(chars, ' ');
@@ -154,7 +194,6 @@ public class SubgraphIsomorphism {
         }
         return found;
     }
-
 
 
 }

@@ -46,13 +46,7 @@ import org.openscience.cdk.PseudoAtom;
 /**
  * Translation of C++ VF2 algprithm from VF lib.<BR>
  * http://amalfi.dis.unina.it/graph/db/vflib-2.0/doc/vflib.html<BR>
- *
  * Further simplicfication of CDK VF version.
- *
- * @author      markr
- * @cdk.keyword isomorphism
- * @cdk.license MIT-like
- * @cdk.module standard
  *
  */
 public class VF2State extends State {
@@ -159,7 +153,7 @@ public class VF2State extends State {
      * @param targetIdx
      * @return a node pair if the pair defined by the provided indexes looks a valid option, null otherwise
      */
-    protected NodePair nextPair(Integer queryIdx, Integer targetIdx) {
+     NodePair nextPair(Integer queryIdx, Integer targetIdx) {
         if (queryIdx == null)
             queryIdx = 0;
         if (targetIdx == null)
@@ -335,7 +329,7 @@ public class VF2State extends State {
      * @param targetNodeIdx
      * @param undo
      */
-    protected void undoAddPair(Integer queryNodeIdx, Integer targetNodeIdx, VF2UndoBean undo) {
+     void undoAddPair(Integer queryNodeIdx, Integer targetNodeIdx, VF2UndoBean undo) {
         core_len--;
         if (undo.undo_in_query_at_queryNodeIdx) {
             in_query[queryNodeIdx] = 0;
@@ -382,7 +376,7 @@ public class VF2State extends State {
      * @param queryNodeIdx
      * @param targetNodeIdx
      */
-    protected void addPair(Integer queryNodeIdx, Integer targetNodeIdx, VF2UndoBean undo) {
+     void addPair(Integer queryNodeIdx, Integer targetNodeIdx, VF2UndoBean undo) {
         assert (queryNodeIdx < queryAtomCount);
         assert (targetNodeIdx < targetAtomCount);
         assert (core_len < queryAtomCount);
@@ -503,7 +497,7 @@ public class VF2State extends State {
      * Are we done?
      * @return true if all nodes of the query graph r mapped to the target graph.
      */
-    protected boolean isGoal() {
+     boolean isGoal() {
         return core_len == queryAtomCount;
     }
 
@@ -511,19 +505,17 @@ public class VF2State extends State {
      * Can we do any more matches?.
      * @return true if no more matches can be obtained, otherwise false
      */
-    protected boolean isDead() {
+     boolean isDead() {
         return queryAtomCount > targetAtomCount || query_both_len > targ_both_len || query_out_len > targ_out_len ||
             query_in_len > targ_in_len;
     }
-
-
 
 
     /**
      * Getter
      * @return the query
      */
-    protected IAtomContainer getQueryMolecule() {
+     IAtomContainer getQueryContainer() {
         return queryAtomContainer;
     }
 
@@ -531,7 +523,7 @@ public class VF2State extends State {
      * Getter
      * @return the target
      */
-    protected IAtomContainer getTargetMolecule() {
+     IAtomContainer getTargetContainer() {
         return targetAtomContainer;
     }
 
@@ -539,7 +531,7 @@ public class VF2State extends State {
      * Getter
      * @return
      */
-    protected int getCoreLength() {
+     int getCoreLength() {
         return core_len;
     }
 
@@ -547,7 +539,7 @@ public class VF2State extends State {
      * Getter
      * @return
      */
-    protected NodePair[] getCoreSet() {
+     NodePair[] getCoreSet() {
         List<NodePair> pairList = new ArrayList<NodePair>();
         for (int i = 0; i < queryAtomCount; i++) {
             if (core_query[i] != null) {

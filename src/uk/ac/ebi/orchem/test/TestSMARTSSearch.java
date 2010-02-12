@@ -1,54 +1,53 @@
+/*
+ *  $Author$
+ *  $Date$
+ *  $Revision$
+ *
+ *  Copyright (C) 2008-2009  Mark Rijnbeek
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *  All we ask is that proper credit is given for our work, which includes
+ *  - but is not limited to - adding the above copyright notice to the beginning
+ *  of your source code files, and to any copyright notice that you may distribute
+ *  with programs based on this work.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *
+ */
 package uk.ac.ebi.orchem.test;
 
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
-
-import junit.framework.TestCase;
-
-import oracle.jdbc.driver.OracleConnection;
 
 import org.openscience.cdk.exception.CDKException;
 
-import uk.ac.ebi.orchem.PropertyLoader;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
-import uk.ac.ebi.orchem.shared.DatabaseAccess;
 
 
-public class TestSMARTSSearch extends TestCase {
- 
-    private DatabaseAccess dbApi = new DatabaseAccess();
-    private static OracleConnection conn;
-
-    /* connect and get all the unittest compounds into a working list (for performance)*/
-    static {
-        try {
-            System.out.println("___ static : Begin set up target list (once) ");
-            Properties properties = PropertyLoader.getUnittestProperties();
-            DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-            conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+public class TestSMARTSSearch extends AbstractOrchemTest {
 
     private void smartsQuery(String SMARTS, int expectedResults) throws CDKException, SQLException, ClassNotFoundException {
         /* part 1: do a substructure search using the fingerprinter */            
-        System.out.println("Fingerprint SMARTS search:");
+        System.out.println("\nFingerprint SMARTS search "+SMARTS);
         List<OrChemCompound> fprintSearchResults = dbApi.smartsSearch(SMARTS, conn);
         System.out.println("results # : "+fprintSearchResults.size());
         Collections.sort(fprintSearchResults);
         for (OrChemCompound oc : fprintSearchResults) {
             System.out.print(oc.getId() + " ");
         }
+        System.out.println("\n_______");
         assertEquals("Smarts search expected number of results "+expectedResults,
                      fprintSearchResults.size(),expectedResults);
     }
-
 
     /*
      * Actual Junit test methods 

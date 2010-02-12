@@ -24,7 +24,6 @@
 package uk.ac.ebi.orchem.test;
 
 import java.sql.Clob;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,18 +31,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
-
-import junit.framework.TestCase;
 
 import oracle.jdbc.driver.OracleConnection;
 
 import org.openscience.cdk.exception.CDKException;
 
-import uk.ac.ebi.orchem.PropertyLoader;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
-import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
 
 
@@ -61,34 +55,7 @@ import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
  *
  */
 
-public class TestSubstructureSearch extends TestCase {
-
-    private DatabaseAccess dbApi = new DatabaseAccess();
-
-    static OracleConnection conn;
-    static List<WrappedAtomContainer> targetMolecules;
-    /* connect and pull all the unittest compounds into a working list (for performance)*/
-    static {
-        try {
-            System.out.println("___ static : Begin set up target list (once) ");
-            Properties properties = PropertyLoader.getUnittestProperties();
-            DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-            conn = (OracleConnection)DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
-            targetMolecules = new DatabaseAccess().getAllFingerprintedCompounds(conn);
-            System.out.println("Number of target molecules is "+targetMolecules.size());
-            System.out.println("___ static : End set up target list");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void setUp() throws SQLException, CDKException {
-    }
-
-    public void tearDown() throws SQLException {
-    }
+public class TestSubstructureSearch extends AbstractOrchemTest {
 
     /**
      * Tests how a substructure search using a pre-filter plus fingerprint relates to

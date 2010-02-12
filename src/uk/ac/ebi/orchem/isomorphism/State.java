@@ -34,6 +34,9 @@ package uk.ac.ebi.orchem.isomorphism;
  */
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.PseudoAtom;
 import org.openscience.cdk.interfaces.IAtom;
@@ -43,22 +46,30 @@ import org.openscience.cdk.interfaces.IBond;
 
 /**
  * Definition of an abstract class representing a state of the
- * matching process between two IAtomContainers
- * @author      rajarshi
- * @cdk.keyword isomorphism
- * @cdk.license MIT-like
- * @cdk.module standard
+ * matching process between two atom containers, a query and a target.
+ * @author      markr/rajarshi
  */
 public abstract class State {
 
     /**
-     * int to track recursion depth, for debugging purpose
+     * Tracks recursion depth, for debugging purpose
      */
-    public static int recursionDepth=0;
+    static int recursionDepth = 0;
 
-    protected abstract IAtomContainer getTargetMolecule();
-    protected abstract IAtomContainer getQueryMolecule();
-    protected boolean strictStereoIsomorphism;
+    /**
+     * Getter for query atom container
+     */
+    abstract IAtomContainer getQueryContainer();
+
+    /**
+     * Getter for target atom container
+     */
+    abstract IAtomContainer getTargetContainer();
+
+    /**
+     * Indicator if the match should take stereo bond types into account or not.
+     */
+    boolean strictStereoIsomorphism;
 
 
     /**
@@ -71,22 +82,17 @@ public abstract class State {
     abstract boolean isFeasiblePair(Integer node1, Integer node2);
 
 
-    protected abstract boolean isGoal();
-
     /**
-     * Can we do any more matches?.
-     *
-     * @return true if no more matches can be obtained, otherwise false
+     * Returns true if a bond exists between the atoms on the positions provided
+     * in the provided container.
+     * 
+     * @param container atom container
+     * @param idx1 index of first atom
+     * @param idx2 index of second atom
+     * @return
      */
-    protected abstract boolean isDead();
-
-    protected abstract int getCoreLength();
-
-    protected abstract NodePair[] getCoreSet();
-
-    protected abstract NodePair nextPair(Integer prev_n1, Integer prev_n2);
-
-    protected boolean bondExists(IAtomContainer container, int idx1, int idx2) {
+    boolean bondExists(IAtomContainer container, int idx1,
+                                 int idx2) {
         IAtom atom1 = container.getAtom(idx1);
         IAtom atom2 = container.getAtom(idx2);
         return container.getBond(atom1, atom2) != null;
@@ -94,38 +100,47 @@ public abstract class State {
 
 
     /**
-     * Here we check if the bond is a query bond (i.e. from a IQueryAtomContainer). If so,
-     * we coerce to IQueryBond and procede with the match.
-     * If it's not a query bond we then do a manual match considering atom equality and bond
-     * order, I think that's correct.
+     * Checks if a given bond in the query matches a given bond in the target.<BR>
+     * Note the "pseudo" arguments - these indicate if atoms in query and
+     * target repsectively are 'pseudo' atoms. We want that information, but
+     * do not want to test pseudo atoms using the expensive 'instanceof', hence
+     * the reason for having this readily available as flags in an array.
      *
-     * @param g1
-     * @param g2
-     * @param i
-     * @param k
-     * @param j
-     * @param l
-     * @return
+     * @param query query atom container
+     * @param target target atom container
+     * @param qIdx1 index for query, first atom in bond
+     * @param qIdx2 index for query, second atom in bond
+     * @param tIdx1 index for target, first atom in bond
+     * @param tIdx2 index for target, second atom in bond
+     * @param pseudoQ positional indicator for query flagging up pseudo atoms
+     * @param pseudoT positional indicator for target flagging up pseudo atoms
+     * @return true if the bonds match.
      */
-    protected boolean bondMatches(IAtomContainer g1, IAtomContainer g2, int i, int k, int j, int l, boolean[] pseudoG1, boolean[] pseudoG2) {
+    boolean bondMatches(IAtomContainer query, IAtomContainer target,
+                                  int qIdx1, int qIdx2, int tIdx1,
+                                  int tIdx2, boolean[] pseudoQ,
+                                  boolean[] pseudoT) {
 
-        IBond aBond = g1.getBond(g1.getAtom(i), g1.getAtom(k));
-        IBond tbond = g2.getBond(g2.getAtom(j), g2.getAtom(l));
-        boolean aFlag = aBond.getFlag(CDKConstants.ISAROMATIC);
+        IBond qBond =
+            query.getBond(query.getAtom(qIdx1), query.getAtom(qIdx2));
+        IBond tbond =
+            target.getBond(target.getAtom(tIdx1), target.getAtom(tIdx2));
 
         // If the aromaticity flags for the two bonds differ, stop.
-        if (aFlag != tbond.getFlag(CDKConstants.ISAROMATIC)) return false;
+        boolean queryAromaticFlag = qBond.getFlag(CDKConstants.ISAROMATIC);
+        if (queryAromaticFlag != tbond.getFlag(CDKConstants.ISAROMATIC))
+            return false;
 
         // If the strict on stereo isometry and stereo indicators differ, no match
-        if (strictStereoIsomorphism 
-            && aBond.getStereo()!= null 
-            && tbond.getStereo()!=null 
-            // the E Z stereo types are useless .. they can get set for Benzene for example. Chose to ignore.
-            && aBond.getStereo()!= IBond.Stereo.E_OR_Z
-            && aBond.getStereo()!= IBond.Stereo.E_Z_BY_COORDINATES
-            && tbond.getStereo()!= IBond.Stereo.E_OR_Z
-            && tbond.getStereo()!= IBond.Stereo.E_Z_BY_COORDINATES
-            && aBond.getStereo()!=tbond.getStereo()) {
+        if (strictStereoIsomorphism && qBond.getStereo() != null &&
+            tbond.getStereo() != null &&
+            // The E Z stereo types are not useful here .. they can get set for Benzene for example. 
+            // Chose to ignore.
+            qBond.getStereo() != IBond.Stereo.E_OR_Z &&
+            qBond.getStereo() != IBond.Stereo.E_Z_BY_COORDINATES &&
+            tbond.getStereo() != IBond.Stereo.E_OR_Z &&
+            tbond.getStereo() != IBond.Stereo.E_Z_BY_COORDINATES &&
+            qBond.getStereo() != tbond.getStereo()) {
             return false;
         }
 
@@ -133,30 +148,39 @@ public abstract class State {
         // bond order may be 1 or 2 which does not indicate aromaticity. Also we only
         // check one bond since at this point, both bonds will have the same value of the
         // aromaticity flag
-        if (!aFlag) {
-            if (aBond.getOrder() != tbond.getOrder()) return false;
+        if (!queryAromaticFlag) {
+            if (qBond.getOrder() != tbond.getOrder())
+                return false;
         }
 
-        //Symbol matching.. tricky: take pesudo atom flags into account
-        if (matches (g1,g2,i,j,pseudoG1, pseudoG2)&&
-            matches (g1,g2,k,l,pseudoG1, pseudoG2)) 
-                return true;
+        //Now do atom symbol matching.. tricky: take pesudo atom flags into account
+        if (matches(query, target, qIdx1, tIdx1, pseudoQ, pseudoT) &&
+            matches(query, target, qIdx2, tIdx2, pseudoQ, pseudoT))
+            return true;
 
-        if (matches (g1,g2,i,l,pseudoG1, pseudoG2) &&
-            matches (g1,g2,k,j,pseudoG1, pseudoG2)) 
-                return true;
+        if (matches(query, target, qIdx1, tIdx2, pseudoQ, pseudoT) &&
+            matches(query, target, qIdx2, tIdx1, pseudoQ, pseudoT))
+            return true;
 
         return false;
     }
 
     /**
-     * Bond matching, taking pseudo atoms to a certain extent into account.
-     * 
-     * @return true if g1(idx1) and g2(idx2) are bound.
+     * Helper method for bond matching, taking pseudo atoms to a certain extent 
+     * into account.
+     *
+     * @param atc1 atom container 1
+     * @param atc2 atom container 2
+     * @param idx1 atom index for atom container 1
+     * @param idx2 atom index for atom container 2
+     * @param pseudoAtc1 pseudo atom flags for atom container 1
+     * @param pseudoAtc2 pseudo atom flags for atom container 2
+     * @return true if atoms atc1(idx1) and atc2(idx2) match by symbol.
      */
-    private boolean matches(IAtomContainer g1, IAtomContainer g2, int idx1, int idx2, boolean[] pseudoG1, boolean[] pseudoG2 ) {
-        IAtom qAtom = g1.getAtom(idx1);
-        IAtom tAtom = g2.getAtom(idx2);
+     private boolean matches(IAtomContainer atc1, IAtomContainer atc2, int idx1,
+                            int idx2, boolean[] pseudoAtc1, boolean[] pseudoAtc2) {
+        IAtom qAtom = atc1.getAtom(idx1);
+        IAtom tAtom = atc2.getAtom(idx2);
 
         //Normal match
         if (qAtom.getSymbol().equals(tAtom.getSymbol()))
@@ -164,8 +188,8 @@ public abstract class State {
 
         //Pseudo atoms
         //"A" is any atom, "Q" is a heteroatom (i.e. any atom except C or H)
-        if (pseudoG1[idx1]) {
-            if (pseudoG2[idx2]) {
+        if (pseudoAtc1[idx1]) {
+            if (pseudoAtc2[idx2]) {
                 return true;
             } else {
                 PseudoAtom pseudo = (PseudoAtom)qAtom;
@@ -173,19 +197,18 @@ public abstract class State {
                     if (tAtom.getSymbol().equals("C") ||
                         tAtom.getSymbol().equals("H")) {
                         return false;
-                    }
-                    else {
+                    } else {
                         return true;
                     }
-                        
+
                 } else {
                     return true;
                 }
             }
         }
 
-        if (pseudoG2[idx2]) {
-            if (pseudoG1[idx1]) {
+        if (pseudoAtc2[idx2]) {
+            if (pseudoAtc1[idx1]) {
                 return true;
             } else {
                 PseudoAtom pseudo = (PseudoAtom)tAtom;
@@ -193,8 +216,7 @@ public abstract class State {
                     if (qAtom.getSymbol().equals("C") ||
                         qAtom.getSymbol().equals("H")) {
                         return false;
-                    }
-                    else {
+                    } else {
                         return true;
                     }
                 } else {
@@ -202,9 +224,22 @@ public abstract class State {
                 }
             }
         }
-        
+
         //Default:
         return false;
     }
+
+   /**
+    * Indicates if the goal has been reached, that is if query has been mapped
+    * to the target.
+    * @return true if all nodes of the query graph r mapped to the target graph.
+    */
+    abstract boolean isGoal();
+
+    /**
+     * Can we do any more matches?.
+     * @return true if no more matches can be obtained, otherwise false
+     */
+    abstract boolean isDead();
 
 }

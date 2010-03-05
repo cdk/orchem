@@ -52,7 +52,7 @@ import oracle.jdbc.OracleDriver;
 import oracle.sql.BLOB;
 import oracle.sql.CLOB;
 
-import org.iupac.StdInchi102;
+import org.iupac.StdInChI;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
@@ -199,10 +199,10 @@ public class ConvertMolecule {
                     atom.setValency(null); // otherwise ugly picture
                 }
 
-                StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
-                gen2d.generateCoordinates();
+                //StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
+                //gen2d.generateCoordinates();
 
-                AtomContainerRenderer renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+                AtomContainerRenderer renderer = new AtomContainerRenderer(generators, new AWTFontManager(),false);
 
                 Rectangle2D bounds = new Rectangle2D.Double(0, 0, hsize, vsize);
                 BufferedImage bufferedImage = new BufferedImage(hsize, vsize, BufferedImage.TYPE_INT_RGB);
@@ -228,6 +228,7 @@ public class ConvertMolecule {
         }
         return pjpeg;
     }
+
 
     /**
      * Converts MolFile to an InChi string.
@@ -266,7 +267,7 @@ public class ConvertMolecule {
         args[4] = tempProblemFile;
 
         //Call the actual Inchi
-        StdInchi102 i = new StdInchi102();
+        StdInChI i = new StdInChI();
         i.run(args);
 
         /* Read the generated InChi from the output file */

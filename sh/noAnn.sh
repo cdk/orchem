@@ -2,7 +2,7 @@
 
 
 # How to use this script
-#
+#  copy over the CDK directory to some /tmp/ dir
 #  set Java env to 1.5
 #  make a fresh CDK (git) 
 #  navigate to the src/main folder

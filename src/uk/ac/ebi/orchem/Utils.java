@@ -23,8 +23,13 @@
  */
 package uk.ac.ebi.orchem;
 
+import java.io.Reader;
 import java.util.BitSet;
 
+import oracle.jdbc.OracleConnection;
+import oracle.jdbc.OracleDriver;
+import oracle.sql.BLOB;
+import oracle.sql.CLOB;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -109,4 +114,54 @@ public class Utils {
         }
     }
 
+    /**
+     * @param hclob
+     * @return
+     * @throws Exception
+     */
+    public static String ClobToString(CLOB hclob) throws Exception {
+        StringBuffer hstringbuffer;
+        hstringbuffer = new StringBuffer();
+        Reader clobReader = hclob.getCharacterStream();
+        char[] buffer = new char[hclob.getBufferSize()];
+        int read = 0;
+        int bufflen = buffer.length;
+        while ((read = clobReader.read(buffer, 0, bufflen)) > 0) {
+            hstringbuffer.append(new String(buffer, 0, read));
+        }
+        clobReader.close();
+        return hstringbuffer.toString();
+    }
+
+    /**
+     * @param hstring
+     * @return
+     * @throws Exception
+     */
+    public static CLOB StringToClob(String hstring) throws Exception {
+        CLOB hclob;
+        OracleConnection conn = null;
+        conn = (OracleConnection)new OracleDriver().defaultConnection();
+        hclob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
+        hclob.open(CLOB.MODE_READWRITE);
+        hclob.setString(1, hstring);
+        hclob.close();
+        return hclob;
+    }
+
+    /**
+     * @param hbyte
+     * @return
+     * @throws Exception
+     */
+    public static BLOB ByteToBlob(byte[] hbyte) throws Exception {
+        BLOB hblob;
+        OracleConnection conn = null;
+        conn = (OracleConnection)new OracleDriver().defaultConnection();
+        hblob = BLOB.createTemporary(conn, false, BLOB.DURATION_SESSION);
+        hblob.open(CLOB.MODE_READWRITE);
+        hblob.setBytes(1, hbyte);
+        hblob.close();
+        return hblob;
+    }
 }

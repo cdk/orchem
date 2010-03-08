@@ -38,16 +38,12 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.StringWriter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-
-import oracle.jdbc.OracleConnection;
-import oracle.jdbc.OracleDriver;
 
 import oracle.sql.BLOB;
 import oracle.sql.CLOB;
@@ -121,14 +117,14 @@ public class ConvertMolecule {
         CLOB psmiles = null;
         try {
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-            String molfile = ClobToString(Molfile);
+            String molfile = Utils.ClobToString(Molfile);
             if (molfile != null) {
                 NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                 SmilesGenerator sg = new SmilesGenerator();
                 //sg.setUseAromaticityFlag(true);
                 fixCarbonHCount(molecule);
                 String smiles = sg.createSMILES(molecule);
-                psmiles = StringToClob(smiles);
+                psmiles = Utils.StringToClob(smiles);
 
             } else {
                 psmiles = null;
@@ -150,7 +146,7 @@ public class ConvertMolecule {
     public static CLOB smilesToMolfile(CLOB Smiles) throws Exception {
         CLOB cmolfile = null;
         try {
-            String smiles = ClobToString(Smiles);
+            String smiles = Utils.ClobToString(Smiles);
             if (smiles != null) {
                 if (!smiles.trim().equals("")) {
                     SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
@@ -166,7 +162,7 @@ public class ConvertMolecule {
                     mdlWriter.setWriter(out);
                     mdlWriter.write(molecule);
                     mdlWriter.close();
-                    cmolfile = StringToClob(out.toString());
+                    cmolfile = Utils.StringToClob(out.toString());
                     out.close();
                 }
             }
@@ -190,7 +186,7 @@ public class ConvertMolecule {
         BLOB pjpeg = null;
         try {
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-            String molfile = ClobToString(Molfile);
+            String molfile = Utils.ClobToString(Molfile);
             if (molfile != null) {
                 NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                 fixCarbonHCount(molecule);
@@ -217,7 +213,7 @@ public class ConvertMolecule {
                 ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
                 ImageIO.write(bufferedImage, "jpg", baos);
                 byte[] bytesOut = baos.toByteArray();
-                pjpeg = ByteToBlob(bytesOut);
+                pjpeg = Utils.ByteToBlob(bytesOut);
             } else {
                 pjpeg = null;
             }
@@ -255,7 +251,7 @@ public class ConvertMolecule {
         //open it from there
         FileWriter fstream = new FileWriter(tempMolFile);
         BufferedWriter out = new BufferedWriter(fstream);
-        out.write(ClobToString(molfile));
+        out.write(Utils.ClobToString(molfile));
         out.close();
 
         //Prepare an array to shove into the Inchi generator
@@ -291,7 +287,7 @@ public class ConvertMolecule {
         deleteFile(tempLogFile);
         deleteFile(tempProblemFile);
 
-        CLOB inchiAsClob = StringToClob(inchi.toString());
+        CLOB inchiAsClob = Utils.StringToClob(inchi.toString());
         return inchiAsClob;
     }
 
@@ -309,57 +305,6 @@ public class ConvertMolecule {
                 System.err.println("Warning - could not remove file " + fileName);
             }
         }
-    }
-
-    /**
-     * @param hclob
-     * @return
-     * @throws Exception
-     */
-    public static String ClobToString(CLOB hclob) throws Exception {
-        StringBuffer hstringbuffer;
-        hstringbuffer = new StringBuffer();
-        Reader clobReader = hclob.getCharacterStream();
-        char[] buffer = new char[hclob.getBufferSize()];
-        int read = 0;
-        int bufflen = buffer.length;
-        while ((read = clobReader.read(buffer, 0, bufflen)) > 0) {
-            hstringbuffer.append(new String(buffer, 0, read));
-        }
-        clobReader.close();
-        return hstringbuffer.toString();
-    }
-
-    /**
-     * @param hstring
-     * @return
-     * @throws Exception
-     */
-    public static CLOB StringToClob(String hstring) throws Exception {
-        CLOB hclob;
-        OracleConnection conn = null;
-        conn = (OracleConnection)new OracleDriver().defaultConnection();
-        hclob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
-        hclob.open(CLOB.MODE_READWRITE);
-        hclob.setString(1, hstring);
-        hclob.close();
-        return hclob;
-    }
-
-    /**
-     * @param hbyte
-     * @return
-     * @throws Exception
-     */
-    public static BLOB ByteToBlob(byte[] hbyte) throws Exception {
-        BLOB hblob;
-        OracleConnection conn = null;
-        conn = (OracleConnection)new OracleDriver().defaultConnection();
-        hblob = BLOB.createTemporary(conn, false, BLOB.DURATION_SESSION);
-        hblob.open(CLOB.MODE_READWRITE);
-        hblob.setBytes(1, hbyte);
-        hblob.close();
-        return hblob;
     }
 
     private static void fixCarbonHCount(Molecule mol) {

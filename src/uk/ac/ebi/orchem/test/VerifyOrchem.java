@@ -41,7 +41,6 @@ import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
 
 import uk.ac.ebi.orchem.Utils;
-import uk.ac.ebi.orchem.convert.ConvertMolecule;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
@@ -137,7 +136,7 @@ public class VerifyOrchem {
             out.append(Utils.getErrorString(e));
 
         }
-        return ConvertMolecule.StringToClob(out.toString());
+        return Utils.StringToClob(out.toString());
 
     }
 

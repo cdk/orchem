@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 
 import java.io.InputStream;
 
-import javax.imageio.ImageIO;
-
 import oracle.sql.BLOB;
 import oracle.sql.CLOB;
 
@@ -23,7 +21,7 @@ public class TestFromJava {
      CLOB csmiles=null;
      BLOB cjpeg=null;
      System.out.println("Begin Test");
-     csmiles=ConvertMolecule.StringToClob("O=C(N)CCC1NC(=O)C(NC(=O)C(N5C=CC(NC(=O)C(NC(=O)C(NC1(=O))CC3=CNC=2C=CC=CC=23)CC=4C=CC=CC=4)C5(=O))CC(C)C)CCSC");
+     csmiles= Utils.StringToClob("O=C(N)CCC1NC(=O)C(NC(=O)C(N5C=CC(NC(=O)C(NC(=O)C(NC1(=O))CC3=CNC=2C=CC=CC=23)CC=4C=CC=CC=4)C5(=O))CC(C)C)CCSC");
      cmolfile=ConvertMolecule.smilesToMolfile(csmiles);
      cjpeg=ConvertMolecule.molfileToJpeg(cmolfile,200,200);
      System.out.println(cjpeg.length());

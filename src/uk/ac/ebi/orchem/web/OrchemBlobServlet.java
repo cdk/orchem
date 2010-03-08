@@ -215,7 +215,7 @@ public class OrchemBlobServlet extends HttpServlet {
                     gen2d.generateCoordinates();
 
                     AtomContainerRenderer renderer = new AtomContainerRenderer
-                        (generators,new AWTFontManager());
+                        (generators,new AWTFontManager(),false);
 
                     Rectangle2D bounds = new Rectangle2D.Double(0, 0, hsize, vsize);
                     BufferedImage bufferedImage = new BufferedImage(hsize, vsize, BufferedImage.TYPE_INT_RGB);

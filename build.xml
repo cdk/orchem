@@ -172,6 +172,27 @@
     </target>
 
     <!-- =================================================================== -->
+    <!-- Unittest qsar descriptors                                           -->
+    <!-- =================================================================== -->
+    <target name="test.qsar" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: qsar      "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <!-- easiest way to make this work is to put junit.jar in the ANT_HOME/lib dir. But see also ant manual .. -->
+        <junit maxmemory="1024m" fork="yes">
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestQSAR" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
+    <!-- =================================================================== -->
     <!-- Make a tarball for people to download and install OrChem.           -->
     <!-- Not all classes are required, just the 'core' set that go into DB   -->
     <!-- =================================================================== -->

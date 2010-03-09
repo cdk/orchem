@@ -84,7 +84,8 @@ sub printMenu
 	print " - Option 3: - fingerprinting \n";
 	print " - Option 4: - JUnit test similarity search \n";
 	print " - Option 5: - JUnit test substructure search  \n";
-	print " - Option 6: - JUnit test convert \n\n\n";
+	print " - Option 6: - JUnit test convert \n";
+	print " - Option 7: - JUnit test qsar descriptors \n\n\n";
 	print " - Option 0: - EXIT \n\n";
 	print "________________________________________________________________\n\n";
 }
@@ -197,7 +198,7 @@ sub processMenuChoice
    {
 
       $_ = &promptUser("Enter menu option ");
-      if(m/[0-6]/)
+      if(m/[0-7]/)
       {
          $menuChoice=$_;
       }
@@ -253,7 +254,7 @@ sub processMenuChoice
       }
    }
 
-   if ("$menuChoice" eq "6") 
+   if ("$menuChoice" eq "6")
    {
       &clearScreen;
       print( "\n\n> Part of this step will test InChi conversion."); 
@@ -273,6 +274,17 @@ sub processMenuChoice
          system ("ant -f ../build.xml test.conv");
       }
    }
+
+   if ("$menuChoice" eq "7")
+   {
+      if ($os eq "MSWin32") {
+         system ("ant -f ..\\build.xml test.qsar");
+      }
+      else {
+         system ("ant -f ../build.xml test.qsar");
+      }
+   }
+
 
    $_ = &promptUser("\n\nHit ENTER to return to main menu ..");
 

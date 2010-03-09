@@ -39,3 +39,4 @@ jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/test/VerifyOrchem.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/isomorphism/*.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/load/*.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/convert/ConvertMolecule.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/qsar/*.class

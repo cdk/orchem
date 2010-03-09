@@ -108,6 +108,25 @@
     </target>
 
     <!-- =================================================================== -->
+    <!-- Generate code for QSAR descriptors                                  -->
+    <!-- =================================================================== -->
+    <target name="dev.qsar.codegen" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" Generating QSAR descriptors Java and SQL source                                   "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+
+        <java  dir="${project.root}" maxmemory="1024m" classname="uk.ac.ebi.orchem.codegen.QSARGenerator" fork="true">
+            <classpath refid="project.classpath" />
+        </java>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
+    <!-- =================================================================== -->
     <!-- Unittest substructure searching                                     -->
     <!-- =================================================================== -->
     <target name="test.substr" depends="compile">

@@ -26,12 +26,12 @@
 		<li>Molfile &rarr; InChi</li>
             </ul>
             You interact with these classes through PL/SQL packages that 
-            wrap the classes as Java stored procedures/functions. These packages will be 
+            wrap the classes as Java stored functions. These functions will be 
             explained in the following sections and some example queries will be given.
             <br></br>
             <hr align="left">
             <h3>Smiles To Molfile </h3>
-            Package orchem_convert.SmilesToMolfile.<br></br>
+            Package.function: orchem_convert.SmilesToMolfile.<br></br>
             The function SmilesToMolfile converts a Smiles to Molfile string:
             <ul>
                  <li>SMILES (CLOB): a string SMILES </li> 
@@ -46,7 +46,7 @@ select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('CC1CCCC1')
             <br></br>
             <hr align="left">
             <h3>Molfile To Smiles</h3>
-            Package orchem_convert.MolfileToSmiles.<br></br>
+            Package.function: orchem_convert.MolfileToSmiles.<br></br>
             The function MolfileToSmiles converts a Molfile to Smiles string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL mol file</li> 
@@ -61,7 +61,7 @@ select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('CC1CCCC1')
             <br></br>
             <hr align="left">
             <h3>Molfile To Jpeg </h3>
-            Package orchem_convert.SmilesToMolfile.<br></br>
+            Package.function: orchem_convert.SmilesToMolfile.<br></br>
             The function SmilesToMolfile converts a Smiles to Molfile string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL molfile</li> 
@@ -83,7 +83,7 @@ select orchem_convert.molfiletojpeg(orchem_convert.smilestomolfile('CC1CCCC1'),2
             <br></br>
             <hr align="left">
             <h3>Molfile To InChi </h3>
-            Package orchem_convert.MolFileToInchi.<br></br>
+            Package.function: orchem_convert.MolFileToInchi.<br></br>
             The function MolFileToInchi converts a Molfile to an InChi string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL molfile</li> 

@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>OrChem user manual</title>
+    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+  </head>
+  <body>
+    <br>
+    <img src="logo.small.jpg"></img>
+    <h1>QSAR descriptors</h1>
+     
+   <div class="main" style="width:70%">
+      <a href="index.html">Back to main page</a>
+
+      <table width="100%" border="0" cellspacing="10" cellpadding="10">
+        <tr>
+          <td >
+            <h3>Descriptor calculation</h3>
+            Orchem exposes the CDK's QSAR descriptor calculations through a PL/SQL API which wraps
+            the class "DescriptorCalculate" located in Java package 'uk.ac.ebi.orchem.qsar'.
+            This class can invoke hundreds of methods for descriptor calculation offered by the CDK:
+            <ul>
+                <li>ALOGP</li>
+                <li>VP1</li>
+                <li>kier1</li>
+		<li>etc.. </li>
+            </ul>
+            You can invoke the descriptor calculation through a PL/SQL package called "ORCHEM_QSAR".
+            <br>Here's an example getting aLogP for a certain SMILES (combining with ORCHEM_CONVERT):
+<pre>
+> select orchem_qsar.alogp (orchem_convert.smilesToMolfile ('NCC(=O)O')) alogp  from dual;
+
+     ALOGP
+----------
+   -1.1915
+
+</pre>
+           <br>Another example, getting vp0 by passing in the molfile (selected from some example compound table called "ORCHEM_COMPOUN_SAMPLE").
+
+<pre>
+> desc orchem_compound_sample
+ Name                                                                    Null?    Type
+ ----------------------------------------------------------------------- -------- -------------------------------------------------
+ ID                                                                      NOT NULL NUMBER(38)
+ MOLFILE                                                                 NOT NULL CLOB
+
+>@ORCL select orchem_qsar.vp0(molfile) vp0 from orchem_compound_sample where id =3;
+
+       VP0
+----------
+10.5351694
+
+</pre>
+            <br></br>
+            <br></br>
+	    <a href="index.html">Back to main page</a>
+
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
+
+
+
+
+
+
+

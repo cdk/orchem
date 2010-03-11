@@ -9,6 +9,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ *  This class generates qsar descriptor class and PL/SQL script.
+ *  @see uk.ac.ebi.orchem.qsar.DescriptorCalculate
+ *
+ */
 public class QSARGenerator {
     public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         List<String> classNames = DescriptorEngine.getDescriptorClassNameByPackage("org.openscience.cdk.qsar.descriptors.molecular", null);
@@ -103,7 +108,7 @@ public class QSARGenerator {
                 String descriptorName = filterDescriptorName(descriptorNames[i]);
                 sbJava.append("    public static NUMBER " + descriptorName + "(CLOB Molfile) throws Exception {\n" +
                         "        DoubleArrayResult result= (DoubleArrayResult) invokeDescriptor(\"" + descriptorClassSimpleName + "\",Molfile);\n" +
-                        "        return new NUMBER(result.get(" + i + "));\n" +
+                        "        return wrapNumber(result.get(" + i + "));\n" +
                         "    }");
                 sbJava.append("\n");
                 addSQLDeclare(sbSQLPackage, sbSQLPackageBody, descriptorName);
@@ -113,7 +118,7 @@ public class QSARGenerator {
                 String descriptorName = filterDescriptorName(descriptorNames[i]);
                 sbJava.append("    public static NUMBER " + descriptorName + "(CLOB Molfile) throws Exception {\n" +
                         "        IntegerArrayResult result= (IntegerArrayResult) invokeDescriptor(\"" + descriptorClassSimpleName + "\",Molfile);\n" +
-                        "        return new NUMBER(result.get(" + i + "));\n" +
+                        "        return wrapNumber(result.get(" + i + "));\n" +
                         "    }");
                 sbJava.append("\n");
                 addSQLDeclare(sbSQLPackage, sbSQLPackageBody, descriptorName);
@@ -122,7 +127,7 @@ public class QSARGenerator {
             String descriptorName = filterDescriptorName(descriptorNames[0]);
             sbJava.append("    public static NUMBER " + descriptorName + "(CLOB Molfile) throws Exception {\n" +
                     "        DoubleResult result= (DoubleResult) invokeDescriptor(\"" + descriptorClassSimpleName + "\",Molfile);\n" +
-                    "        return new NUMBER(result.doubleValue());\n" +
+                    "        return wrapNumber(result.doubleValue());\n" +
                     "    }");
             sbJava.append("\n");
             addSQLDeclare(sbSQLPackage, sbSQLPackageBody, descriptorName);
@@ -130,7 +135,7 @@ public class QSARGenerator {
             String descriptorName = filterDescriptorName(descriptorNames[0]);
             sbJava.append("    public static NUMBER " + descriptorName + "(CLOB Molfile) throws Exception {\n" +
                     "        IntegerResult result= (IntegerResult) invokeDescriptor(\"" + descriptorClassSimpleName + "\",Molfile);\n" +
-                    "        return new NUMBER(result.intValue());\n" +
+                    "        return wrapNumber(result.intValue());\n" +
                     "    }");
             sbJava.append("\n");
             addSQLDeclare(sbSQLPackage, sbSQLPackageBody, descriptorName);
@@ -173,6 +178,33 @@ public class QSARGenerator {
                 "        return resultArray;\n" +
                 "    }");
         sbJava.append("\n");
+        sbJava.append("    /**\n" +
+                "     * Wrap Java double to Oracl NUMBER.\n" +
+                "     *\n" +
+                "     * @param value   Java double value to wrap\n" +
+                "     * @return       Oracle NUMBER\n"+
+                "     */\n" +
+                "\n" +
+                "    public static NUMBER wrapNumber(double value) throws Exception {\n" +
+                "        if(value==Double.NaN){\n" +
+                "            return null;\n" +
+                "        }\n" +
+                "        else{\n" +
+                "            return new NUMBER(value);\n" +
+                "        }\n" +
+                "    }\n" +
+                "    /**\n" +
+                "     * Wrap Java int to Oracl NUMBER.\n" +
+                "     *\n" +
+                "     * @param value   Java double value to wrap\n" +
+                "     * @return       Oracle NUMBER\n"+                
+                "     */\n" +
+                "\n" +
+                "    public static NUMBER wrapNumber(int value){\n" +
+                "            return new NUMBER(value);\n" +
+                "    }");
+        sbJava.append("\n");
+        
     }
 
     private static void addJavaClassDeclare(StringBuffer sbJava) {
@@ -209,7 +241,7 @@ public class QSARGenerator {
         sbJava.append("import org.openscience.cdk.io.MDLV2000Reader;\n" +
                 "import org.openscience.cdk.nonotify.NNMolecule;\n" +
                 "import org.openscience.cdk.qsar.IMolecularDescriptor;\n" +
-                "import org.openscience.cdk.qsar.result.*;;\n" +
+                "import org.openscience.cdk.qsar.result.*;\n" +
                 "import uk.ac.ebi.orchem.Utils;\n" +
                 "import uk.ac.ebi.orchem.shared.MoleculeCreator;\n");
         sbJava.append("\n");

@@ -271,6 +271,7 @@
           <include name="jcp.jar"/>
           <include name="inchi_102.jar"/>
           <include name="nestedVm.jar"/>
+          <include name="jama-1.0.2.jar"/>
           <include name="${app.name}.jar"/>
         </tarfileset>
         <tarfileset dir="${dist.dir}/sql" prefix="/orchem/sql/">

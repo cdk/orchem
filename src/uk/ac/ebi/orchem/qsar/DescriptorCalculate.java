@@ -27,7 +27,7 @@ import oracle.sql.NUMBER;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.qsar.IMolecularDescriptor;
-import org.openscience.cdk.qsar.result.*;;
+import org.openscience.cdk.qsar.result.*;
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 

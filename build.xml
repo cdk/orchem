@@ -258,6 +258,7 @@
                      **/uk/ac/ebi/orchem/convert/*
                      **/uk/ac/ebi/orchem/isomorphism/*
                      **/uk/ac/ebi/orchem/convert/*
+                     **/uk/ac/ebi/orchem/qsar/*                     
                      " />
 
       <!-- Put all required jar files and DDL in a tar file -->

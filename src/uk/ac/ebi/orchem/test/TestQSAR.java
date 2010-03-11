@@ -102,4 +102,9 @@ public class TestQSAR extends TestCase {
         assertEquals(22.4206,evalDescriptor(11,"AMR"),0.0001);
     }
 
+    public void testCompoundID_1111_ALOGP() throws Exception {
+        assertEquals(0,evalDescriptor(1111,"ALOGP"),0.0001);
+    }
+
+
 }

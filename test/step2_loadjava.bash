@@ -20,6 +20,7 @@ dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/log4j-1.2.15.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/nestedVm.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/inchi_102.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/cdk.jar
+dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/ambit2.smarts.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST $JARDIR/jcp.jar
 dropjava  -nowarn -user $DBUSER/$DBPASS\@$DBINST /tmp/orchem.jar
 
@@ -36,5 +37,6 @@ loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST $JARDIR/log4j-1.2.15.jar
 loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST $JARDIR/nestedVm.jar
 loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST $JARDIR/inchi_102.jar
 loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST $JARDIR/cdk.jar
+loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST $JARDIR/ambit2.smarts.jar
 loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST $JARDIR/jcp.jar
 loadjava -f  -verbose -user $DBUSER/$DBPASS\@$DBINST /tmp/orchem.jar

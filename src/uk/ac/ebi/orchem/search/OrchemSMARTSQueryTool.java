@@ -58,6 +58,7 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  */
 
 public class OrchemSMARTSQueryTool {
+/*
     private static ILoggingTool logger = LoggingToolFactory.createLoggingTool(OrchemSMARTSQueryTool.class);
     private String smarts;
     private IAtomContainer atomContainer = null;
@@ -354,4 +355,5 @@ public class OrchemSMARTSQueryTool {
 
         return atomMapping;
     }
+*/
 }

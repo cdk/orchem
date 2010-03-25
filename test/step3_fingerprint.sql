@@ -32,7 +32,7 @@ prompt =====================
              then
 
                 begin
-                  --i:=dbms_java.compile_class (r_java.name);
+                  i:=dbms_java.compile_class (r_java.name);
                   dbms_output.put_line ('Compiled '||r_java.name);
                 exception
                 when others then

@@ -24,10 +24,14 @@
 
 package uk.ac.ebi.orchem.search;
 
+import ambit2.smarts.SmartsParser;
+
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import oracle.jdbc.driver.OracleDriver;
@@ -36,11 +40,17 @@ import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
+import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
+import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
+import org.openscience.cdk.isomorphism.mcss.RMap;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
-import org.openscience.cdk.smiles.smarts.parser.SMARTSParser;
+//import org.openscience.cdk.smiles.smarts.parser.SMARTSParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
@@ -69,11 +79,17 @@ public class SMARTS_Search extends SubstructureSearch {
      * @throws CDKException
      * @throws SQLException
      */
-    public static String getWhereClause(Clob smartsQuery, String debugYN) throws CDKException, SQLException {
+    public static String getWhereClause(Clob smartsQuery,
+                                        String debugYN) throws CDKException,
+                                                               SQLException {
         int clobLen = new Long(smartsQuery.length()).intValue();
         String query = (smartsQuery.getSubString(1, clobLen));
-        IAtomContainer qat = SMARTSParser.parse(query);
-        IAtomContainer hStrippedAtc = new NNMolecule(AtomContainerManipulator.removeHydrogens(qat));
+        //IAtomContainer qat = SMARTSParser.parse(query);
+        SmartsParser smartsParser = new SmartsParser();
+        IAtomContainer qat = smartsParser.parse(query);
+
+        IAtomContainer hStrippedAtc =
+            new NNMolecule(AtomContainerManipulator.removeHydrogens(qat));
         return whereClauseFromFingerPrint(hStrippedAtc, debugYN);
     }
 
@@ -84,30 +100,43 @@ public class SMARTS_Search extends SubstructureSearch {
      * @param vReturnArray
      * @throws Exception
      */
-    public static void getAtomAndBondCounts(Clob smartsQuery, oracle.sql.ARRAY[] vReturnArray) throws Exception {
+    public static void getAtomAndBondCounts(Clob smartsQuery,
+                                            oracle.sql.ARRAY[] vReturnArray) throws Exception {
 
         int clobLen = new Long(smartsQuery.length()).intValue();
         String query = (smartsQuery.getSubString(1, clobLen));
-        IAtomContainer qat = SMARTSParser.parse(query);
+        //IAtomContainer qat = SMARTSParser.parse(query);
+        SmartsParser smartsParser = new SmartsParser();
+        IAtomContainer qat = smartsParser.parse(query);
+
         Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(qat);
-        
+
         Integer[] countsArray = new Integer[9];
-        int idx=0;
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT);
-        countsArray[idx++]=(Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT);
+        int idx = 0;
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT);
+        countsArray[idx++] =
+                (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT);
 
         Connection conn = new OracleDriver().defaultConnection();
-        ArrayDescriptor desc = ArrayDescriptor.createDescriptor("ORCHEM_NUMBER_TABLE", conn);
+        ArrayDescriptor desc =
+            ArrayDescriptor.createDescriptor("ORCHEM_NUMBER_TABLE", conn);
         vReturnArray[0] = new ARRAY(desc, conn, countsArray);
     }
-
 
 
     /**
@@ -115,41 +144,55 @@ public class SMARTS_Search extends SubstructureSearch {
      *
      *
      */
-    public static String smartsMatch(String compoundId, Clob dbMolecule, Clob smartsQuery) {
+    public static String smartsMatch(String compoundId, Clob dbMolecule,
+                                     Clob smartsQuery) {
 
         String retVal = "N";
         try {
+
+            //Get db molecule
             int clobLenAtoms = new Long(dbMolecule.length()).intValue();
             String dbMol = (dbMolecule.getSubString(1, clobLenAtoms));
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-            NNMolecule databaseMolecule = MoleculeCreator.getNNMolecule(mdlReader, dbMol, false);
-
+            NNMolecule databaseMolecule =
+                MoleculeCreator.getNNMolecule(mdlReader, dbMol, false);
             try {
-                CDKHydrogenAdder adder = CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
+                CDKHydrogenAdder adder =
+                    CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
                 adder.addImplicitHydrogens(databaseMolecule);
             } catch (CDKException e) {
-                debug("CDK warning for ID " + compoundId + ":" + e.getMessage());
+                debug("CDK warning for ID " + compoundId + ":" +
+                      e.getMessage());
             }
 
+            //Parse SMARTS
             int clobLenBonds = new Long(smartsQuery.length()).intValue();
             String SMARTS = (smartsQuery.getSubString(1, clobLenBonds));
+            SmartsParser smartsParser = new SmartsParser();
+            QueryAtomContainer query = smartsParser.parse(SMARTS);
 
-            //SMARTSQueryTool querytool=null;
-            OrchemSMARTSQueryTool querytool=null;
-            try {
-                //querytool = new SMARTSQueryTool(SMARTS);
-                querytool = new OrchemSMARTSQueryTool(SMARTS);
+            smartsParser.setSMARTSData(databaseMolecule);
+            List matchingAtoms = null;
 
-            } catch (Exception e) {
-                throw new RuntimeException ("Could not instantiate SMARTSQueryTool "+ e.getMessage());
+            if (query.getAtomCount() == 1) {
+                IQueryAtom queryAtom = (IQueryAtom)query.getAtom(0);
+                matchingAtoms = new ArrayList<List<Integer>>();
+                for (IAtom atom : databaseMolecule.atoms()) {
+                    if (queryAtom.matches(atom)) {
+                        List<Integer> tmp = new ArrayList<Integer>();
+                        tmp.add(databaseMolecule.getAtomNumber(atom));
+                        matchingAtoms.add(tmp);
+                    }
+                }
+            } else {
+                List bondMapping =
+                    UniversalIsomorphismTester.getSubgraphMaps(databaseMolecule,
+                                                               query);
+                matchingAtoms = getAtomMappings(bondMapping, databaseMolecule);
             }
+            if (matchingAtoms.size() != 0)
+                retVal = "Y";
 
-            try {
-                if (querytool.matches(databaseMolecule))
-                    retVal = "Y";
-            } catch (Exception e) {
-                throw new RuntimeException ("Could not perform match with SMARTSQueryTool "+ e.getMessage());
-            }
 
         } catch (Exception e) {
             debug("Error for ID " + compoundId + ": " + e.getMessage());
@@ -159,6 +202,48 @@ public class SMARTS_Search extends SubstructureSearch {
     }
 
 
+    private static List<List<Integer>> getAtomMappings(List bondMapping,
+                                                       IAtomContainer atomContainer) {
+        List<List<Integer>> atomMapping = new ArrayList<List<Integer>>();
+        // loop over each mapping
+        for (Object aBondMapping : bondMapping) {
+            List list = (List)aBondMapping;
+
+            List<Integer> tmp = new ArrayList<Integer>();
+            IAtom atom1 = null;
+            IAtom atom2 = null;
+            // loop over this mapping
+            for (Object aList : list) {
+                RMap map = (RMap)aList;
+                int bondID = map.getId1();
+
+                // get the atoms in this bond
+                IBond bond = atomContainer.getBond(bondID);
+                atom1 = bond.getAtom(0);
+                atom2 = bond.getAtom(1);
+
+                Integer idx1 = atomContainer.getAtomNumber(atom1);
+                Integer idx2 = atomContainer.getAtomNumber(atom2);
+
+                if (!tmp.contains(idx1))
+                    tmp.add(idx1);
+                if (!tmp.contains(idx2))
+                    tmp.add(idx2);
+            }
+            if (tmp.size() > 0)
+                atomMapping.add(tmp);
+
+            // If there is only one bond, check if it matches both ways.
+            if (list.size() == 1 &&
+                atom1.getAtomicNumber() == atom2.getAtomicNumber()) {
+                List<Integer> tmp2 = new ArrayList<Integer>();
+                tmp2.add(tmp.get(0));
+                tmp2.add(tmp.get(1));
+                atomMapping.add(tmp2);
+            }
+        }
+        return atomMapping;
+    }
 }
 
 

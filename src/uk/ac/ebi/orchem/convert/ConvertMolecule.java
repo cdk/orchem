@@ -182,6 +182,15 @@ public class ConvertMolecule {
      * @return Joint Photographic Experts Group file type
      * @throws Exception
      */
+
+    /**
+     * Invoke JChempaint to create a picture for a given molecule
+     * @param Molfile
+     * @param hsize horizontal size of picture
+     * @param vsize vertical size of picture
+     * @return Joint Photographic Experts Group file type
+     * @throws Exception
+     */
     public static BLOB molfileToJpeg(CLOB Molfile, Integer hsize, Integer vsize) throws Exception {
         BLOB pjpeg = null;
         try {

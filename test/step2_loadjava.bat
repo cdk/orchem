@@ -20,6 +20,7 @@ call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\log4j-1.2.15.jar
 call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\nestedVm.jar
 call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\inchi_102.jar
 call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\cdk.jar
+call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\ambit2.smarts.jar
 call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\jcp.jar
 call dropjava -nowarn -user %DBUSER%/%DBPASS%@%DBINST% c:\orchem.jar
 
@@ -36,6 +37,7 @@ call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\log4j-1.2.15.
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\nestedVm.jar
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\inchi_102.jar
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\cdk.jar
+call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\ambit2.smarts.jar
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% %JARDIR%\jcp.jar
 call loadjava   -verbose -user %DBUSER%/%DBPASS%@%DBINST% c:\orchem.jar
 

@@ -60,10 +60,12 @@ import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 /**
  * Class that provides functionality for performing SMARTS searches.<BR>
+ * Uses the (the CDK based) ambit2 implementation of SMARTS matching, as this turned out
+ * to be faster than the CDK SMARTS matching.
  * Extends {@link SubstructureSearch}.
  * Some methods in this class are called from PL/SQL and are wrapped as "Java stored procedures".
  *
- * @author markr@ebi.ac.uk, 2009
+ * @author markr@ebi.ac.uk, 2010
  */
 
 public class SMARTS_Search extends SubstructureSearch {
@@ -84,7 +86,6 @@ public class SMARTS_Search extends SubstructureSearch {
                                                                SQLException {
         int clobLen = new Long(smartsQuery.length()).intValue();
         String query = (smartsQuery.getSubString(1, clobLen));
-        //IAtomContainer qat = SMARTSParser.parse(query);
         SmartsParser smartsParser = new SmartsParser();
         IAtomContainer qat = smartsParser.parse(query);
 
@@ -95,7 +96,8 @@ public class SMARTS_Search extends SubstructureSearch {
 
 
     /**
-     * TODO JAVADOC
+     * Calculates certain elements and bond types and returns the counted
+     * results in an array.
      * @param smartsQuery
      * @param vReturnArray
      * @throws Exception
@@ -105,7 +107,6 @@ public class SMARTS_Search extends SubstructureSearch {
 
         int clobLen = new Long(smartsQuery.length()).intValue();
         String query = (smartsQuery.getSubString(1, clobLen));
-        //IAtomContainer qat = SMARTSParser.parse(query);
         SmartsParser smartsParser = new SmartsParser();
         IAtomContainer qat = smartsParser.parse(query);
 
@@ -140,9 +141,11 @@ public class SMARTS_Search extends SubstructureSearch {
 
 
     /**
-     * TODO javadoc
-     *
-     *
+     * Tries to match a SMARTS pattern with a database compound.
+     * @param compoundId
+     * @param dbMolecule
+     * @param smartsQuery
+     * @return Y/N indicating yes or no
      */
     public static String smartsMatch(String compoundId, Clob dbMolecule,
                                      Clob smartsQuery) {
@@ -202,6 +205,12 @@ public class SMARTS_Search extends SubstructureSearch {
     }
 
 
+    /**
+     * Helper method for the SMARTS matching. Taken from Ambit.
+     * @param bondMapping
+     * @param atomContainer
+     * @return
+     */
     private static List<List<Integer>> getAtomMappings(List bondMapping,
                                                        IAtomContainer atomContainer) {
         List<List<Integer>> atomMapping = new ArrayList<List<Integer>>();

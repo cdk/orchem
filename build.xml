@@ -169,6 +169,29 @@
         <echo />
     </target>
 
+
+    <!-- =================================================================== -->
+    <!-- Unittest Smartie pants searching                                    -->
+    <!-- =================================================================== -->
+    <target name="test.smartsrch" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: SMARTS searching       "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <junit maxmemory="1024m" fork="yes">
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestSMARTSSearch" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
+
+
     <!-- =================================================================== -->
     <!-- Unittest convert                                                    -->
     <!-- =================================================================== -->

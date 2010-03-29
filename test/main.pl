@@ -85,7 +85,8 @@ sub printMenu
 	print " - Option 4: - JUnit test similarity search \n";
 	print " - Option 5: - JUnit test substructure search  \n";
 	print " - Option 6: - JUnit test convert \n";
-	print " - Option 7: - JUnit test qsar descriptors \n\n\n";
+	print " - Option 7: - JUnit test qsar descriptors \n";
+	print " - Option 8: - JUnit test SMARTS search \n\n\n";
 	print " - Option 0: - EXIT \n\n";
 	print "________________________________________________________________\n\n";
 }
@@ -198,7 +199,7 @@ sub processMenuChoice
    {
 
       $_ = &promptUser("Enter menu option ");
-      if(m/[0-7]/)
+      if(m/[0-8]/)
       {
          $menuChoice=$_;
       }
@@ -282,6 +283,17 @@ sub processMenuChoice
       }
       else {
          system ("ant -f ../build.xml test.qsar");
+      }
+   }
+
+
+   if ("$menuChoice" eq "8")
+   {
+      if ($os eq "MSWin32") {
+         system ("ant -f ..\\build.xml test.smartsrch");
+      }
+      else {
+         system ("ant -f ../build.xml test.smartsrch");
       }
    }
 

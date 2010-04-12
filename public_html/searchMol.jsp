@@ -30,7 +30,7 @@
    	    <tbody><tr>
               <td class="contentsarea" id="contentsarea">
                    <h1>OrChem search database <%=DatabaseAgent.DB_AGENT.getDbName()%></h1>
-                    <a href="<s:url value="smilesSearch.action"/>">Switch to Smiles search </a>
+                    <a href="<s:url value="smilesSearch.action"/>">Switch to SMILES/SMARTS search </a>
                     
                     <script type="text/javascript" src="inc/browserDetect.js"></script>
                    
@@ -134,7 +134,7 @@
                                            <td >
                                    
                                              <s:hidden name="wsr.structure" id="advancedSearchFT_structure" value="%{#session.wsr.structure}" />
-                                             <s:hidden name="wsr.smilesOrMol" id="som" value="mol" />
+                                             <s:hidden name="wsr.inputFormat" id="som" value="MOL" />
                                              <s:submit
                                              cssStyle="vertical-align:middle;" 
                                              cssClass="submit_button" 

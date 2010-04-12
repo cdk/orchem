@@ -219,86 +219,80 @@ AS
                  CLOSE myRefcur;
                  EXIT prefilterloop;
               ELSE
-                 countCompoundsLooped:=countCompoundsLooped+1;
-                --(9)
-                 IF l_candidate.atoms IS NULL THEN
-                   SELECT atoms, bonds
-                   INTO   l_candidate.atoms, l_candidate.bonds
-                   FROM   orchem_big_molecules
-                   WHERE  id = l_candidate.compound_id;
-                 END IF;
-    
-                --(10)
-                 IF is_possible_candidate  (
-                      l_candidate.query_key          
-                     ,l_candidate.query_idx
-                     ,l_candidate.compound_id         
-                     ,l_candidate.triple_bond_count   
-                     ,l_candidate.s_count             
-                     ,l_candidate.o_count             
-                     ,l_candidate.n_count             
-                     ,l_candidate.f_count             
-                     ,l_candidate.cl_count            
-                     ,l_candidate.br_count            
-                     ,l_candidate.i_count             
-                     ,l_candidate.c_count             
-                     ,l_candidate.debug_yn            
-                     ) = 'Y' 
-                 THEN
-                    --(11)
-                    compound_id :=isomorphism (
-                      l_candidate.query_key          
-                     ,l_candidate.query_idx
-                     ,l_candidate.compound_id         
-                     ,l_candidate.atoms               
-                     ,l_candidate.bonds               
-                     ,l_candidate.debug_yn            
-                     ,l_candidate.strict_stereo_yn
-                    ); 
-    
-                    IF compound_id IS NOT NULL
-                    THEN
-                       --(12)
-                        BEGIN
-                            /*
-                              TODO : remove DEBUG. Make this id_already_returned
-                              only there for RG files (new java boolean function).
-                              Reproduce this solution to limited set and the parallel query
-                            */
-                        
-                            id_already_returned:=true;
-                            --was ID already returned? could be for RGroup multiple query scenario
-                            BEGIN
-                               returned_id := returned_ids(compound_id);
-                            EXCEPTION 
-                                WHEN NO_DATA_FOUND THEN
-                                 id_already_returned:=false;
-                            END;       
+                countCompoundsLooped:=countCompoundsLooped+1;
 
-                            if not id_already_returned then
-                                if return_ids_only_YN='N' then
+                --was ID already returned? could be for RGroup multiple query scenario
+                id_already_returned:=true;
+                BEGIN
+                   returned_id := returned_ids(l_candidate.compound_id);
+                EXCEPTION 
+                    WHEN NO_DATA_FOUND THEN
+                     id_already_returned:=false;
+                END;       
+                IF NOT id_already_returned THEN
+                    --(9)
+                     IF l_candidate.atoms IS NULL THEN
+                       SELECT atoms, bonds
+                       INTO   l_candidate.atoms, l_candidate.bonds
+                       FROM   orchem_big_molecules
+                       WHERE  id = l_candidate.compound_id;
+                     END IF;
+        
+                    --(10)
+                     IF is_possible_candidate  (
+                          l_candidate.query_key          
+                         ,l_candidate.query_idx
+                         ,l_candidate.compound_id         
+                         ,l_candidate.triple_bond_count   
+                         ,l_candidate.s_count             
+                         ,l_candidate.o_count             
+                         ,l_candidate.n_count             
+                         ,l_candidate.f_count             
+                         ,l_candidate.cl_count            
+                         ,l_candidate.br_count            
+                         ,l_candidate.i_count             
+                         ,l_candidate.c_count             
+                         ,l_candidate.debug_yn            
+                         ) = 'Y' 
+                     THEN
+                        --(11)
+                        compound_id :=isomorphism (
+                          l_candidate.query_key          
+                         ,l_candidate.query_idx
+                         ,l_candidate.compound_id         
+                         ,l_candidate.atoms               
+                         ,l_candidate.bonds               
+                         ,l_candidate.debug_yn            
+                         ,l_candidate.strict_stereo_yn
+                        ); 
+        
+                        IF compound_id IS NOT NULL
+                        THEN
+                           --(12)
+                            BEGIN
+                                IF return_ids_only_YN='N' THEN
                                        execute immediate moleculeQuery into molecule using l_candidate.compound_id;    
                                        pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );  
-                                else 
+                                ELSE
                                     pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );  
-                                end if;
+                                END IF;
                                 returned_ids(compound_id):=null; -- null entry, hash key is what matters
                                 numOfResults:=numOfResults+1;
-                            end if;
-
-                        EXCEPTION
-                            WHEN NO_DATA_FOUND THEN
-                                 dbms_output.put_line ('>> Warning: compound could not be found '||l_candidate.compound_id);
-                            WHEN TOO_MANY_ROWS THEN
-                               raise_application_error (-20001, 'Query in compound table/view with id '||l_candidate.compound_id||' gave more than one row. Aborting!');
-                        END;
-                       --(13)
-                        IF (topN is not null AND numOfResults >= topN) THEN
-                          CLOSE myRefcur;  
-                          EXIT prefilterloop;
+        
+                            EXCEPTION
+                                WHEN NO_DATA_FOUND THEN
+                                     dbms_output.put_line ('>> Warning: compound could not be found '||l_candidate.compound_id);
+                                WHEN TOO_MANY_ROWS THEN
+                                   raise_application_error (-20001, 'Query in compound table/view with id '||l_candidate.compound_id||' gave more than one row. Aborting!');
+                            END;
+                           --(13)
+                            IF (topN is not null AND numOfResults >= topN) THEN
+                              CLOSE myRefcur;  
+                              EXIT prefilterloop;
+                            END IF;
                         END IF;
-                    END IF;
-                 END IF;
+                     END IF; --
+                END IF;
               END IF;
            END LOOP;
 
@@ -356,6 +350,11 @@ AS
       countCompoundsLooped     integer:=0;
       numOfQueries             integer:=0;
 
+      TYPE returned_id_type IS TABLE OF VARCHAR2(1) INDEX BY VARCHAR2(30);
+      returned_ids returned_id_type;
+      returned_id varchar2(30);
+      id_already_returned      boolean;
+
    BEGIN
        IF input_type NOT IN ('SMILES','MOL') THEN
           raise_application_error (-20013,'The provided input type '||input_type||' is not valid.');
@@ -404,72 +403,82 @@ AS
     
            << id_loop >>
            FOR x in 1.. id_list.last LOOP
-    
-              OPEN myRefCur FOR prefilterQuery USING id_list(x);
-              FETCH myRefCur INTO l_candidate;
-    
-              IF (myRefCur%FOUND) THEN
-                 countCompoundsLooped:=countCompoundsLooped+1;
-                 IF l_candidate.atoms IS NULL THEN
-                   SELECT atoms, bonds
-                   INTO   l_candidate.atoms, l_candidate.bonds
-                   FROM   orchem_big_molecules
-                   WHERE  id = l_candidate.compound_id;
-                 END IF;
-    
-                 IF is_possible_candidate  (
-                      l_candidate.query_key
-                     ,l_candidate.query_idx
-                     ,l_candidate.compound_id
-                     ,l_candidate.triple_bond_count
-                     ,l_candidate.s_count
-                     ,l_candidate.o_count
-                     ,l_candidate.n_count
-                     ,l_candidate.f_count
-                     ,l_candidate.cl_count
-                     ,l_candidate.br_count
-                     ,l_candidate.i_count
-                     ,l_candidate.c_count
-                     ,l_candidate.debug_yn
-                     ) = 'Y'
-                 THEN
-                    IF (isomorphism (
+
+              id_already_returned:=true;
+              BEGIN
+                returned_id := returned_ids(id_list(x));
+              EXCEPTION 
+                 WHEN NO_DATA_FOUND THEN
+                 id_already_returned:=false;
+              END;       
+              IF NOT id_already_returned THEN
+        
+                  OPEN myRefCur FOR prefilterQuery USING id_list(x);
+                  FETCH myRefCur INTO l_candidate;
+        
+                  IF (myRefCur%FOUND) THEN
+                     countCompoundsLooped:=countCompoundsLooped+1;
+                     IF l_candidate.atoms IS NULL THEN
+                       SELECT atoms, bonds
+                       INTO   l_candidate.atoms, l_candidate.bonds
+                       FROM   orchem_big_molecules
+                       WHERE  id = l_candidate.compound_id;
+                     END IF;
+        
+                     IF is_possible_candidate  (
                           l_candidate.query_key
                          ,l_candidate.query_idx
                          ,l_candidate.compound_id
-                         ,l_candidate.atoms
-                         ,l_candidate.bonds
+                         ,l_candidate.triple_bond_count
+                         ,l_candidate.s_count
+                         ,l_candidate.o_count
+                         ,l_candidate.n_count
+                         ,l_candidate.f_count
+                         ,l_candidate.cl_count
+                         ,l_candidate.br_count
+                         ,l_candidate.i_count
+                         ,l_candidate.c_count
                          ,l_candidate.debug_yn
-                         ,l_candidate.strict_stereo_yn
-                     )) IS NOT NULL
-                    THEN
-                        BEGIN
-                        if return_ids_only_YN='N' then
+                         ) = 'Y'
+                     THEN
+                        IF (isomorphism (
+                              l_candidate.query_key
+                             ,l_candidate.query_idx
+                             ,l_candidate.compound_id
+                             ,l_candidate.atoms
+                             ,l_candidate.bonds
+                             ,l_candidate.debug_yn
+                             ,l_candidate.strict_stereo_yn
+                         )) IS NOT NULL
+                        THEN
                             BEGIN
-                               execute immediate moleculeQuery into molecule using l_candidate.compound_id;
-                               pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );
+                            if return_ids_only_YN='N' then
+                                BEGIN
+                                   execute immediate moleculeQuery into molecule using l_candidate.compound_id;
+                                   pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  molecule, 1 ) );
+                                EXCEPTION
+                                WHEN NO_DATA_FOUND THEN
+                                     dbms_output.put_line ('>> Warning: compound could not be found '||l_candidate.compound_id);
+                                END;
+                            else
+                                pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );
+                            end if;
+                            
+                            returned_ids(l_candidate.compound_id):=null; -- null entry, hash key is what matters
+                            numOfResults:=numOfResults+1;
                             EXCEPTION
-                            WHEN NO_DATA_FOUND THEN
-                                 dbms_output.put_line ('>> Warning: compound could not be found '||l_candidate.compound_id);
+                            WHEN TOO_MANY_ROWS THEN
+                               raise_application_error (-20001, 'Query in compound table/view with id '||l_candidate.compound_id||' gave more than one row. Aborting!');
                             END;
-                        else
-                            pipe row( ORCHEM_COMPOUND (l_candidate.compound_id,  null, 1 ) );
-                        end if;
-                        
-    
-                        numOfResults:=numOfResults+1;
-                        EXCEPTION
-                        WHEN TOO_MANY_ROWS THEN
-                           raise_application_error (-20001, 'Query in compound table/view with id '||l_candidate.compound_id||' gave more than one row. Aborting!');
-                        END;
-                        IF (topN is not null AND numOfResults >= topN) THEN
-                          CLOSE myRefcur;
-                          EXIT id_loop;
+                            IF (topN is not null AND numOfResults >= topN) THEN
+                              CLOSE myRefcur;
+                              EXIT id_loop;
+                            END IF;
                         END IF;
-                    END IF;
-                 END IF;
+                     END IF;
+                  END IF;
+                  CLOSE myRefcur;
               END IF;
-              CLOSE myRefcur;
            END LOOP;
 
            IF (topN is not null AND numOfResults >= topN) THEN

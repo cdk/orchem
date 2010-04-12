@@ -16,9 +16,6 @@
    <script src="inc/contents.js" type="text/javascript"></script><link rel="alternate" title="EBI News RSS" href="http://www.ebi.ac.uk/Information/News/rss/ebinews.xml" type="application/rss+xml"><style type="text/css">@media print { body, .contents, .header, .contentsarea, .head{ position: relative;}  } </style>
    <script type="text/javascript" src="inc/chebi.js"></script>
 
-   <link rel="SHORTCUT ICON" href="http://www.ebi.ac.uk/chebi/images/chebi.ico">
-   <link rel="search" href="http://www.ebi.ac.uk/chebi/plugins/openSearch/openSearch.xml" type="application/opensearchdescription+xml" title="ChEBI">
-   <link rel="alternate" type="application/rss+xml" title="ChEBI RSS feed" href="http://sourceforge.net/export/rss2_projnews.php?group_id=125463&amp;rss_fulltext=1">
 </head>
 
 <body>
@@ -49,15 +46,28 @@
 
                                            <tr>
                                            <td >
-                                            Smiles
+                                            SMILES and SMARTS searching
                                            </td>
                                            <td >
                                             <s:textfield 
                                                  required="true"
-                                                 value="%{#session.wsr.smiles}"
-                                                 name="wsr.smiles" 
+                                                 value="%{#session.wsr.textInput}"
+                                                 name="wsr.textInput" 
                                                  size="100" 
                                                  cssStyle="vertical-align: middle;" />
+                                           </td>
+                                            </tr>
+
+                                           <tr>
+                                           <td >
+                                            SMILES/SMARTS
+                                            </td>
+                                           <td >
+                                            <s:select 
+                                                name="wsr.inputFormat"
+                                                value="%{#session.wsr.inputFormat}"
+                                                list="#{'SMILES':'SMILES' ,'SMARTS':'SMARTS'}"
+                                                required="true" size="2"	 />
                                            </td>
                                             </tr>
 
@@ -104,8 +114,6 @@
                                            <tr>
                                            <td ></td>
                                            <td >
-
-                                             <s:hidden name="wsr.smilesOrMol" id="som" value="smiles" />
                                              <s:submit
                                              cssStyle="vertical-align:middle;" 
                                              cssClass="submit_button" 

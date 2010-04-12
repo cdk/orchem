@@ -45,11 +45,8 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @param strictStereo Y/N indicates whether matching should take stereo-isomerism into account
      * @param expectedResults expected number of results for the Orchem test set database
      */
-    public void performQuery(String rgFile, String strictStereo,
-                             int expectedResults) throws SQLException,
-                                                         CDKException,
-                                                         ClassNotFoundException {
-
+    public void performQuery(String rgFile, String strictStereo, int expectedResults) 
+                             throws Exception {
         List<OrChemCompound> fprintSearchResults =
             dbApi.substructureSearch(rgFile, "MOL", conn, strictStereo, null);
         int numberOfResults = fprintSearchResults.size();
@@ -63,7 +60,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
     }
 
     /**
-     * Test r-group query, restH false
+     * Test r-group query 1, restH false
      * @throws Exception
      */
     public void testRgroupQuery1() throws Exception {
@@ -71,15 +68,66 @@ public class TestRgroupQuery extends AbstractOrchemTest {
     }
 
     /**
-     * Test r-group query, restH true -> fewer results
+     * Test r-group query 1, restH true -> fewer results
      * @throws Exception
      */
     public void testRgroupQuery1_restH() throws Exception {
         String restHquery = RGROUP_QUERY_1;
-        restHquery=restHquery.replaceFirst("M  LOG  1   1   0   0","M  LOG  1   1   0   1");
+        restHquery =
+                restHquery.replaceFirst("M  LOG  1   1   0   0", "M  LOG  1   1   0   1");
         System.out.println(restHquery);
         performQuery(restHquery, "N", 4);
     }
+
+
+    /**
+     * Test r-group query 2
+     * @throws Exception
+     */
+    public void testRgroupQuery2() throws Exception {
+        performQuery(RGROUP_QUERY_2, "N", 54);
+    }
+
+    /**
+     * Test r-group query 2 - wih modified occurrence: 0,1 -> 1
+     * @throws Exception
+     */
+    public void testRgroupQuery2_occR1_1() throws Exception {
+        String modifiedQuery=RGROUP_QUERY_2.replace("M  LOG  1   1   0   0   0,1","M  LOG  1   1   0   0   1");
+        performQuery(modifiedQuery, "N", 28);
+    }
+
+
+    /**
+     * Test r-group query 2 - wih modified occurrences
+     * @throws Exception
+     */
+    public void testRgroupQuery2_occR1_1_occR2_1() throws Exception {
+        String modifiedQuery=RGROUP_QUERY_2.replace("M  LOG  1   1   0   0   0,1","M  LOG  1   1   0   0   1");
+        modifiedQuery=modifiedQuery.replace("M  LOG  1   2   0   0   0,1","M  LOG  1   2   0   0   1");
+        performQuery(modifiedQuery, "N", 25);
+    }
+
+    /**
+     * Test r-group query 2 - wih modified occurrences and stereo sensitive
+     * @throws Exception
+     */
+    public void testRgroupQuery2_occR1_1_occR2_1_stereo() throws Exception {
+        String modifiedQuery=RGROUP_QUERY_2.replace("M  LOG  1   1   0   0   0,1","M  LOG  1   1   0   0   1");
+        modifiedQuery=modifiedQuery.replace("M  LOG  1   2   0   0   0,1","M  LOG  1   2   0   0   1");
+        performQuery(modifiedQuery, "Y", 14);
+    }
+
+    /**
+     * Test r-group query 2
+     * @throws Exception
+     */
+    public void testRgroupQuery3() throws Exception {
+        performQuery(RGROUP_QUERY_3, "N", 7);
+    }
+
+
+
 
     private final String RGROUP_QUERY_1 = "$MDL  REV  1 0118101730\n" +
         "$MOL\n" +
@@ -138,6 +186,129 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         "$END CTAB\n" +
         "$END RGP\n" +
         "$END MOL\n";
+
+
+
+    private final String RGROUP_QUERY_2 = 
+    "$MDL  REV  1   0412101541\n"+
+    "$MOL\n"+
+    "$HDR\n"+
+    "  Rgroup query file (RGFile)\n"+
+    "  CDK    04121015412D\n"+
+    "\n"+
+    "$END HDR\n"+
+    "$CTAB\n"+
+    "  7  7  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    0.4525    1.2216    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    1.6661    0.3400    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    1.2025   -1.0866    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -0.2975   -1.0866    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -0.7610    0.3400    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    0.4525    2.7216    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.7267    1.4007    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  1  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  1  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  1  1  0  0  0  0 \n"+
+    "  1  6  1  1  0  0  0 \n"+
+    "  2  7  1  0  0  0  0 \n"+
+    "M  RGP  2   6   1   7   2\n"+
+    "M  LOG  1   1   0   0   0,1\n"+
+    "M  LOG  1   2   0   0   0,1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$RGP\n"+
+    "   1\n"+
+    "$CTAB\n"+
+    "  1  0  0  0  0  0  0  0  0  0999 V2000\n"+
+    "   -0.7610   -3.0866    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$CTAB\n"+
+    "  1  0  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    1.2390   -3.0866    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$CTAB\n"+
+    "  2  1  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    3.2390   -4.1473    0.0000 P   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    4.2996   -3.0866    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  1  0  0  0  0 \n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$END RGP\n"+
+    "$RGP\n"+
+    "   2\n"+
+    "$CTAB\n"+
+    "  1  0  0  0  0  0  0  0  0  0999 V2000\n"+
+    "   -0.7610   -6.1473    0.0000 Cl  0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$CTAB\n"+
+    "  1  0  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    1.2390   -6.1473    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$END RGP\n"+
+    "$END MOL\n";
+
+
+    private final String RGROUP_QUERY_3 = 
+    "$MDL  REV  1   0412101715\n"+
+    "$MOL\n"+
+    "$HDR\n"+
+    "  Rgroup query file (RGFile)\n"+
+    "  CDK    04121017152D\n"+
+    "\n"+
+    "$END HDR\n"+
+    "$CTAB\n"+
+    "  7  7  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    3.6359    1.5749    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    4.9349    0.8249    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    4.9349   -0.6751    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    3.6359   -1.4251    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.3368   -0.6751    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.3368    0.8249    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    1.0378   -1.4251    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  1  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  1  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  6  1  0  0  0  0 \n"+
+    "  6  1  1  0  0  0  0 \n"+
+    "  5  7  1  0  0  0  0 \n"+
+    "M  RGP  1   7   1\n"+
+    "M  LOG  1   1   0   0   >0\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$RGP\n"+
+    "   1\n"+
+    "$CTAB\n"+
+    "  6  6  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    3.0448   -3.7057    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    4.3438   -4.4557    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    4.3438   -5.9557    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    3.0448   -6.7057    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    1.7457   -5.9557    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    1.7457   -4.4557    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  2  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  2  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  6  2  0  0  0  0 \n"+
+    "  6  1  1  0  0  0  0 \n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$END RGP\n"+
+    "$END MOL\n";
+
 }
 
 

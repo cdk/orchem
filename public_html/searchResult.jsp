@@ -19,7 +19,7 @@
     <body>
      <a href="<s:url value="molSearch.action"/>">Search again with Jchempaint applet</a>
      <BR>
-     <a href="<s:url value="smilesSearch.action"/>">Search again with Smiles</a>
+     <a href="<s:url value="smilesSearch.action"/>">Search again with SMILES/SMARTS</a>
 
      <TABLE border="0" style="border:0px; margin-top:0; margin-bottom:0">
         <TR>

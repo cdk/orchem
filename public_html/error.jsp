@@ -27,7 +27,7 @@
                    <BR>
                      <a href="<s:url value="molSearch.action"/>">Search again with applet</a>
                      <BR>
-                     <a href="<s:url value="smilesSearch.action"/>">Search again with Smiles</a>
+                     <a href="<s:url value="smilesSearch.action"/>">Search again with SMILES/SMARTS</a>
                    <BR>
                    <BR>
 

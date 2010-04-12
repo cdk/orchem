@@ -62,41 +62,41 @@ public class SearchAction extends SessionAwareAction {
             List compounds = new ArrayList();
             long time = System.currentTimeMillis();
 
-            String queryType = null;
+            String inputFormat = wsr.getInputFormat();
             String query = null;
+            System.out.println("INPUT FORMAT IS "+inputFormat);
 
-            if (wsr.getSmilesOrMol().equals("mol")) {
-                queryType = Utils.QUERY_TYPE_MOL;
+            if (inputFormat.equals(Utils.QUERY_TYPE_MOL)) {
                 query = wsr.getStructure();
             } else {
-                queryType = Utils.QUERY_TYPE_SMILES;
-                query = wsr.getSmiles();
+                if (inputFormat.equals(Utils.QUERY_TYPE_SMARTS) && wsr.getStructureSearchMethod().equals("sim")) {
+                    this.setExceptionMsg(Utils.getErrorString(new RuntimeException("Can not do a similarity search for SMARTS")));
+                    return "error";
+                }
+                query = wsr.getTextInput();
             }
 
-
+            conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
             if (wsr.getStructureSearchMethod().equals("sim")) {
 
-                conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
                 debugMsg.append(wsr.getDebugMessage() + "<br>Invoking similarity search  .." + new java.util.Date());
                 compounds =
-                        new DatabaseAccess().similaritySearch(query, queryType, conn, new Float(wsr.getMinTanCoeff()).floatValue(),
+                        new DatabaseAccess().similaritySearch(query, inputFormat, conn, new Float(wsr.getMinTanCoeff()).floatValue(),
                                                               new Integer(wsr.getTopN()).intValue());
 
             } else {
-                conn = (OracleConnection)DatabaseAgent.DB_AGENT.getCachedConnection();
-                debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +
-                                new java.util.Date());
-
-                compounds =
-                        new DatabaseAccess().substructureSearchParallel(query, queryType, conn, new Integer(wsr.getTopN()).intValue(),
-                                                                        wsr.getStrictStereoYN());
-
-                /*
-             new DatabaseAccess().substructureSearch(query,
-                                                  queryType,
-                                                  conn,
-                                                  new Integer(wsr.getTopN()).intValue());
-             */
+                
+                if (inputFormat.equals(Utils.QUERY_TYPE_SMARTS)) {
+                    debugMsg.append(wsr.getDebugMessage() + "<br>SMARTS search .." +new java.util.Date());
+                    compounds = new DatabaseAccess().smartsSearch(query, conn);
+                }
+                else  {
+                    debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +
+                                    new java.util.Date());
+                    compounds = 
+                             // new DatabaseAccess().substructureSearchParallel(query, inputFormat, conn, new Integer(wsr.getTopN()).intValue(),wsr.getStrictStereoYN());
+                                new DatabaseAccess().substructureSearch(query, inputFormat, conn, wsr.getStrictStereoYN(), null);
+                }
             }
 
             wsr.setDebugMessage(debugMsg.toString());

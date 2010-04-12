@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -48,6 +49,7 @@ import org.openscience.cdk.io.RGroupQueryReader;
 import org.openscience.cdk.io.formats.IChemFormat;
 import org.openscience.cdk.io.formats.RGroupQueryFormat;
 import org.openscience.cdk.isomorphism.matchers.RGroupQuery;
+import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
@@ -91,8 +93,8 @@ public class SubstructureSearch {
 
         if (queryType.equals(Utils.QUERY_TYPE_MOL)) {
 
-            InputStream ins = new ByteArrayInputStream( query.getBytes() );
-            IChemFormat format=null;
+            InputStream ins = new ByteArrayInputStream(query.getBytes());
+            IChemFormat format = null;
             try {
                 format = new FormatFactory().guessFormat(ins);
 
@@ -100,15 +102,33 @@ public class SubstructureSearch {
                 //continue, gues MDL molfile
                 e.printStackTrace();
             }
-            if (format!=null && format.getClass().equals(RGroupQueryFormat.class))  {
+            if (format != null &&
+                format.getClass().equals(RGroupQueryFormat.class)) {
                 RGroupQueryReader reader = new RGroupQueryReader(ins);
-                RGroupQuery rGroupQuery = (RGroupQuery)reader.read(new RGroupQuery());
-                userQueries = rGroupQuery.getAllConfigurations();
-            }
-            else {
+                RGroupQuery rGroupQuery =(RGroupQuery)reader.read(new RGroupQuery());
+                List<IAtomContainer> allConfigurations = rGroupQuery.getAllConfigurations();
+                userQueries = new ArrayList<IAtomContainer>();
+
+                // Detect aromaticity etc on RGroup Query configurations
+                for (IAtomContainer atc : allConfigurations) {
+                    IAtomContainer nnMolecule = null;
+                    try {
+                        nnMolecule =new NNMolecule(AtomContainerManipulator.removeHydrogens(atc));
+                    } catch (NullPointerException e) {
+                        throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+                    }
+                    if (nnMolecule != null && nnMolecule.getAtomCount() != 0) {
+                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
+                        CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
+                        userQueries.add(nnMolecule);
+                    }
+                }
+
+            } else {
                 MDLV2000Reader mdlReader = new MDLV2000Reader();
                 userQueries = new ArrayList<IAtomContainer>();
-                userQueries.add(MoleculeCreator.getNNMolecule(mdlReader, query));
+                userQueries.add(MoleculeCreator.getNNMolecule(mdlReader,
+                                                              query));
             }
         } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
             SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());

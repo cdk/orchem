@@ -25,10 +25,12 @@ package uk.ac.ebi.orchem.web;
 
 import java.util.List;
 
+import uk.ac.ebi.orchem.Utils;
+
 /**
  * Bean to store the results of a compound search in the database.
  * @author markr@ebi.ac.uk
- * 
+ *
  */
 public class WebSearchResults {
     private String structureSearchMethod;
@@ -37,14 +39,19 @@ public class WebSearchResults {
     private String structure;
     private List searchResults;
     private String debugMessage;
-    private String smiles;
-    private String smilesOrMol;
+    private String textInput;
+    private String inputFormat;
     private String strictStereoYN;
 
     private int pageNum;
 
     private final int RESULT_PAGE_SIZE=9;
 
+    public WebSearchResults () {
+        inputFormat= Utils.QUERY_TYPE_SMILES;
+        minTanCoeff="0.6"; 
+        
+    }
 
     public void setStructureSearchMethod(String structureSearchMethod) {
         this.structureSearchMethod = structureSearchMethod;
@@ -125,20 +132,20 @@ public class WebSearchResults {
             return true;
     }
 
-    public void setSmiles(String smiles) {
-        this.smiles = smiles;
+    public void setTextInput(String input) {
+        this.textInput = input;
     }
 
-    public String getSmiles() {
-        return smiles;
+    public String getTextInput() {
+        return textInput;
     }
 
-    public void setSmilesOrMol(String smileOrMol) {
-        this.smilesOrMol = smileOrMol;
+    public void setInputFormat(String smileOrMol) {
+        this.inputFormat = smileOrMol;
     }
 
-    public String getSmilesOrMol() {
-        return smilesOrMol;
+    public String getInputFormat() {
+        return inputFormat;
     }
 
     public void setStrictStereoYN(String strictStereoYN) {

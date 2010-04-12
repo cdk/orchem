@@ -421,6 +421,16 @@
    </hash>
    <hash n="oracle.jdeveloper.runner.RunConfigurations">
       <hash n="runConfigurationDefinitions">
+         <hash n="Benchmark SMARRTS">
+            <value n="custom" v="false"/>
+            <value n="javaOptions" v=""/>
+            <value n="name" v="Benchmark SMARRTS"/>
+            <value n="programArguments" v=""/>
+            <value n="runActiveFile" v="true"/>
+            <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
+            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/SMARTStest.java"/>
+            <value n="VMName" v="hotspot"/>
+         </hash>
          <hash n="Load Unit test data">
             <value n="custom" v="false"/>
             <value n="javaOptions" v=""/>
@@ -439,6 +449,7 @@
          </hash>
       </hash>
       <list n="runConfigurationList">
+         <string v="Benchmark SMARRTS"/>
          <string v="Load Unit test data"/>
          <string v="non-parallel benchmark"/>
       </list>

@@ -166,10 +166,10 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
 
 
     /**
-     * Substructure search testing with SMILES input. 
-     * @param SMILES smiles substructure
+     * Substructure search testing with SMILES input.
+     * @param SMILES textInput substructure
      * @param strictStereo Y or N to indicate exact stereoisomeric matching
-     * @param idList limited list of IDs in database to consider; leave null if you 
+     * @param idList limited list of IDs in database to consider; leave null if you
      * @param expectedCount expected number of results to hit in the test set
      * @throws Exception
      */

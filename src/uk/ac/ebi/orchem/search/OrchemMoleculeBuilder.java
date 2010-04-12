@@ -35,12 +35,12 @@ import java.util.StringTokenizer;
 import org.openscience.cdk.Atom;
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.Molecule;
 import org.openscience.cdk.PseudoAtom;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.nonotify.NNMolecule;
 
 
 /**
@@ -59,7 +59,7 @@ public class OrchemMoleculeBuilder {
      */
     public static IMolecule getBasicAtomContainer(String atomString, String bondString) {
 
-        Molecule mol = new Molecule();
+        NNMolecule mol = new NNMolecule();
 
         StringTokenizer s = new StringTokenizer(atomString);
         int atomPos = 0;

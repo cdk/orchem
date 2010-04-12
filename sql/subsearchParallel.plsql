@@ -274,6 +274,11 @@ AS
       full_hint                varchar2(10):='';
       numOfQueries             integer:=0;
 
+      TYPE returned_id_type IS TABLE OF VARCHAR2(1) INDEX BY VARCHAR2(30);
+      returned_ids             returned_id_type;
+      returned_id              varchar2(30);
+      id_already_returned      boolean;
+
    BEGIN
 
        --(1)
@@ -350,16 +355,29 @@ AS
                  EXIT prefilterloop;
               ELSE
                  --(6)
+                 
                  if(compound_id IS NOT NULL)
                  then
-                    --(7)
-                    execute immediate moleculeQuery into molecule using compound_id;
-                    pipe row( ORCHEM_COMPOUND (compound_id,  molecule, 1 ) );
-                    numOfResults:=numOfResults+1;
-                    --(8)
-                    IF (topN is not null AND numOfResults >= topN) THEN
-                      CLOSE myRefcur;  
-                      EXIT prefilterloop;
+                    --was ID already returned? could be for RGroup multiple query scenario
+                    id_already_returned:=true;
+                    BEGIN
+                       returned_id := returned_ids(compound_id);
+                    EXCEPTION 
+                        WHEN NO_DATA_FOUND THEN
+                         id_already_returned:=false;
+                    END;       
+                    IF NOT id_already_returned THEN
+
+                        --(7)
+                        execute immediate moleculeQuery into molecule using compound_id;
+                        pipe row( ORCHEM_COMPOUND (compound_id,  molecule, 1 ) );
+                        numOfResults:=numOfResults+1;
+                        returned_ids(compound_id):=null; -- null entry, hash key is what matters
+                        --(8)
+                        IF (topN is not null AND numOfResults >= topN) THEN
+                          CLOSE myRefcur;  
+                          EXIT prefilterloop;
+                        END IF;
                     END IF;
                  else 
                     --pipe row( ORCHEM_COMPOUND (null,null,0 ) );

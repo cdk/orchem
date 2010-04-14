@@ -209,16 +209,17 @@ public class DatabaseAccess {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    public List<OrChemCompound> smartsSearch(String smartsQuery, OracleConnection conn) throws SQLException, ClassNotFoundException {
+    public List<OrChemCompound> smartsSearch(String smartsQuery, OracleConnection conn, int topN) throws SQLException, ClassNotFoundException {
 
        conn.setDefaultRowPrefetch(10);
 
        List<OrChemCompound> compounds = new ArrayList<OrChemCompound>();
        OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement(
-             "select * from table ( orchem_smarts_search.search(?,'N') )",
+             "select * from table ( orchem_smarts_search.search(?,'N',?) )",
               ResultSet.TYPE_FORWARD_ONLY, 
               ResultSet.CONCUR_READ_ONLY);
        pstmt.setCLOB(1, getCLOB (smartsQuery,conn)); 
+       pstmt.setInt(2,topN);
 
        ResultSet res = pstmt.executeQuery();
        while (res.next())  {

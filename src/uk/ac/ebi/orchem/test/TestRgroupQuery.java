@@ -23,16 +23,13 @@
  */
 package uk.ac.ebi.orchem.test;
 
-import java.sql.SQLException;
-
 import java.util.Collections;
 import java.util.List;
 
 import junit.framework.Assert;
 
-import org.openscience.cdk.exception.CDKException;
-
 import uk.ac.ebi.orchem.bean.OrChemCompound;
+
 
 /**
  * Junit test for OrChem substructure searching with R-groups. <P>
@@ -40,23 +37,20 @@ import uk.ac.ebi.orchem.bean.OrChemCompound;
 public class TestRgroupQuery extends AbstractOrchemTest {
 
     /**
-     * Tests an r-group query.
+     * Tests RGroup queries.
      * @param rgFile Symyx RGFile
      * @param strictStereo Y/N indicates whether matching should take stereo-isomerism into account
      * @param expectedResults expected number of results for the Orchem test set database
      */
-    public void performQuery(String rgFile, String strictStereo, int expectedResults) 
-                             throws Exception {
-        List<OrChemCompound> fprintSearchResults =
-            dbApi.substructureSearch(rgFile, "MOL", conn, strictStereo, null);
+    public void performQuery(String rgFile, String strictStereo, int expectedResults) throws Exception {
+        List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(rgFile, "MOL", conn, strictStereo, null);
         int numberOfResults = fprintSearchResults.size();
-        System.out.println("results # : " + numberOfResults);
+        System.out.println("\nresults # : " + numberOfResults);
         Collections.sort(fprintSearchResults);
         for (OrChemCompound oc : fprintSearchResults) {
             System.out.print(oc.getId() + " ");
         }
-        Assert.assertEquals("Expected number of results for rgroupQuery ",
-                            numberOfResults, expectedResults);
+        Assert.assertEquals("Expected number of results for rgroupQuery ", numberOfResults, expectedResults);
     }
 
     /**
@@ -73,9 +67,9 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      */
     public void testRgroupQuery1_restH() throws Exception {
         String restHquery = RGROUP_QUERY_1;
-        restHquery =
-                restHquery.replaceFirst("M  LOG  1   1   0   0", "M  LOG  1   1   0   1");
-        System.out.println(restHquery);
+        restHquery =restHquery.replaceFirst(
+            "M  LOG  1   1   0   0", 
+            "M  LOG  1   1   0   1");
         performQuery(restHquery, "N", 4);
     }
 
@@ -93,7 +87,9 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery2_occR1_1() throws Exception {
-        String modifiedQuery=RGROUP_QUERY_2.replace("M  LOG  1   1   0   0   0,1","M  LOG  1   1   0   0   1");
+        String modifiedQuery=RGROUP_QUERY_2.replace(
+            "M  LOG  1   1   0   0   0,1",
+            "M  LOG  1   1   0   0   1");
         performQuery(modifiedQuery, "N", 28);
     }
 
@@ -103,8 +99,12 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery2_occR1_1_occR2_1() throws Exception {
-        String modifiedQuery=RGROUP_QUERY_2.replace("M  LOG  1   1   0   0   0,1","M  LOG  1   1   0   0   1");
-        modifiedQuery=modifiedQuery.replace("M  LOG  1   2   0   0   0,1","M  LOG  1   2   0   0   1");
+        String modifiedQuery=RGROUP_QUERY_2.replace(
+            "M  LOG  1   1   0   0   0,1",
+            "M  LOG  1   1   0   0   1");
+        modifiedQuery=modifiedQuery.replace(
+            "M  LOG  1   2   0   0   0,1",
+            "M  LOG  1   2   0   0   1");
         performQuery(modifiedQuery, "N", 25);
     }
 
@@ -113,13 +113,17 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery2_occR1_1_occR2_1_stereo() throws Exception {
-        String modifiedQuery=RGROUP_QUERY_2.replace("M  LOG  1   1   0   0   0,1","M  LOG  1   1   0   0   1");
-        modifiedQuery=modifiedQuery.replace("M  LOG  1   2   0   0   0,1","M  LOG  1   2   0   0   1");
+        String modifiedQuery=RGROUP_QUERY_2.replace(
+            "M  LOG  1   1   0   0   0,1",
+            "M  LOG  1   1   0   0   1");
+        modifiedQuery=modifiedQuery.replace(
+            "M  LOG  1   2   0   0   0,1",
+            "M  LOG  1   2   0   0   1");
         performQuery(modifiedQuery, "Y", 14);
     }
 
     /**
-     * Test r-group query 2
+     * Test r-group query 3
      * @throws Exception
      */
     public void testRgroupQuery3() throws Exception {
@@ -127,9 +131,40 @@ public class TestRgroupQuery extends AbstractOrchemTest {
     }
 
 
+    /**
+     * Test r-group query 4
+     * @throws Exception
+     */
+    public void testRgroupQuery4() throws Exception {
+        performQuery(RGROUP_QUERY_4, "N", 70);
+    }
+
+    /**
+     * Test r-group query 4, restH trie
+     * @throws Exception
+     */
+    public void testRgroupQuery4_restH() throws Exception {
+        String modifiedQuery=RGROUP_QUERY_4.replace(
+              "M  LOG  1   4   0   0   0,>0",
+              "M  LOG  1   4   0   1   0,>0");
+        performQuery(modifiedQuery, "N", 4);
+    }
 
 
-    private final String RGROUP_QUERY_1 = "$MDL  REV  1 0118101730\n" +
+    /**
+     * Test r-group query 4, restH trie
+     * @throws Exception
+     */
+    public void testRgroupQuery4_R1zero() throws Exception {
+        String modifiedQuery=RGROUP_QUERY_4.replace(
+              "0   0   >0",
+              "0   0   0,>0");
+        performQuery(modifiedQuery, "N", 87);
+    }
+
+
+
+    final String RGROUP_QUERY_1 = "$MDL  REV  1 0118101730\n" +
         "$MOL\n" +
         "$HDR\n" +
         "  RGroup query unit test: simple query test.\n" +
@@ -189,7 +224,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
 
 
 
-    private final String RGROUP_QUERY_2 = 
+    final String RGROUP_QUERY_2 = 
     "$MDL  REV  1   0412101541\n"+
     "$MOL\n"+
     "$HDR\n"+
@@ -259,7 +294,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
     "$END MOL\n";
 
 
-    private final String RGROUP_QUERY_3 = 
+    final String RGROUP_QUERY_3 = 
     "$MDL  REV  1   0412101715\n"+
     "$MOL\n"+
     "$HDR\n"+
@@ -303,6 +338,108 @@ public class TestRgroupQuery extends AbstractOrchemTest {
     "  4  5  1  0  0  0  0 \n"+
     "  5  6  2  0  0  0  0 \n"+
     "  6  1  1  0  0  0  0 \n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$END RGP\n"+
+    "$END MOL\n";
+
+    final String RGROUP_QUERY_4 = 
+    "$MDL  REV  1   0413101426\n"+
+    "$MOL\n"+
+    "$HDR\n"+
+    "  Rgroup query file (RGFile)\n"+
+    "  CDK    04131014262D\n"+
+    "\n"+
+    "$END HDR\n"+
+    "$CTAB\n"+
+    "  8  8  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    1.0992    1.8384    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.3982    1.0884    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.3982   -0.4116    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    1.0992   -1.1616    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -0.1999   -0.4116    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -0.1999    1.0884    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    3.6972    1.8384    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -1.6999   -0.4116    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  1  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  1  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  6  1  0  0  0  0 \n"+
+    "  6  1  1  0  0  0  0 \n"+
+    "  2  7  1  0  0  0  0 \n"+
+    "  5  8  1  0  0  0  0 \n"+
+    "M  RGP  2   7   4   8   1\n"+
+    "M  LOG  1   1   0   0   >0\n"+
+    "M  LOG  1   4   0   0   0,>0\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$RGP\n"+
+    "   1\n"+
+    "$CTAB\n"+
+    "  6  6  0  0  0  0  0  0  0  0999 V2000\n"+
+    "   -0.4008   -3.1616    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    0.8982   -3.9116    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    0.8982   -5.4116    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -0.4008   -6.1616    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -1.6999   -5.4116    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -1.6999   -3.9116    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  2  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  2  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  6  2  0  0  0  0 \n"+
+    "  6  1  1  0  0  0  0 \n"+
+    "M  APO  1  1  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$CTAB\n"+
+    "  7  7  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    4.1972   -3.4722    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    5.4963   -4.2222    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    5.4963   -5.7222    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    4.1972   -6.4722    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.8982   -5.7222    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    2.8982   -4.2222    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    6.5569   -3.1616    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  2  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  2  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  6  2  0  0  0  0 \n"+
+    "  6  1  1  0  0  0  0 \n"+
+    "  2  7  1  0  0  0  0 \n"+
+    "M  APO  1  7  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$CTAB\n"+
+    "  6  6  0  0  0  0  0  0  0  0999 V2000\n"+
+    "    9.8650   -3.1616    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   11.1730   -3.9168    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   11.1730   -5.4272    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    9.8650   -6.1824    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    8.5569   -5.4272    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "    8.5569   -3.9168    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  2  0  0  0  0 \n"+
+    "  2  3  1  0  0  0  0 \n"+
+    "  3  4  2  0  0  0  0 \n"+
+    "  4  5  1  0  0  0  0 \n"+
+    "  5  6  2  0  0  0  0 \n"+
+    "  6  1  1  0  0  0  0 \n"+
+    "M  APO  1  2  1\n"+
+    "M  END\n"+
+    "$END CTAB\n"+
+    "$END RGP\n"+
+    "$RGP\n"+
+    "   4\n"+
+    "$CTAB\n"+
+    "  3  2  0  0  0  0  0  0  0  0999 V2000\n"+
+    "   -1.6521   -9.9722    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -1.6521   -8.4722    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "   -1.6999  -11.5250    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n"+
+    "  1  2  2  0  0  0  0 \n"+
+    "  1  3  2  0  0  0  0 \n"+
     "M  APO  1  1  1\n"+
     "M  END\n"+
     "$END CTAB\n"+

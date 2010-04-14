@@ -64,7 +64,6 @@ public class SearchAction extends SessionAwareAction {
 
             String inputFormat = wsr.getInputFormat();
             String query = null;
-            System.out.println("INPUT FORMAT IS "+inputFormat);
 
             if (inputFormat.equals(Utils.QUERY_TYPE_MOL)) {
                 query = wsr.getStructure();
@@ -88,7 +87,7 @@ public class SearchAction extends SessionAwareAction {
                 
                 if (inputFormat.equals(Utils.QUERY_TYPE_SMARTS)) {
                     debugMsg.append(wsr.getDebugMessage() + "<br>SMARTS search .." +new java.util.Date());
-                    compounds = new DatabaseAccess().smartsSearch(query, conn);
+                    compounds = new DatabaseAccess().smartsSearch(query, conn,new Integer(wsr.getTopN()).intValue());
                 }
                 else  {
                     debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +

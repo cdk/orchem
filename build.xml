@@ -234,6 +234,27 @@
         <echo />
     </target>
 
+
+    <!-- =================================================================== -->
+    <!-- Unittest RGroup queries                                             -->
+    <!-- =================================================================== -->
+    <target name="test.rgroup" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: RGroup queries      "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <junit maxmemory="1024m" fork="yes">
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestRgroupQuery" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
     <!-- =================================================================== -->
     <!-- Make a tarball for people to download and install OrChem.           -->
     <!-- Not all classes are required, just the 'core' set that go into DB   -->

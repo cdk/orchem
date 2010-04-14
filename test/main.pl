@@ -85,8 +85,9 @@ sub printMenu
 	print " - Option 4: - JUnit test similarity search \n";
 	print " - Option 5: - JUnit test substructure search  \n";
 	print " - Option 6: - JUnit test convert \n";
-	print " - Option 7: - JUnit test qsar descriptors \n";
-	print " - Option 8: - JUnit test SMARTS search \n\n\n";
+	print " - Option 7: - JUnit test QSAR descriptors \n";
+	print " - Option 8: - JUnit test SMARTS search \n";
+	print " - Option 9: - JUnit test RGroup Query substructure search\n\n\n";
 	print " - Option 0: - EXIT \n\n";
 	print "________________________________________________________________\n\n";
 }
@@ -199,7 +200,7 @@ sub processMenuChoice
    {
 
       $_ = &promptUser("Enter menu option ");
-      if(m/[0-8]/)
+      if(m/[0-9]/)
       {
          $menuChoice=$_;
       }
@@ -296,6 +297,17 @@ sub processMenuChoice
          system ("ant -f ../build.xml test.smartsrch");
       }
    }
+
+   if ("$menuChoice" eq "9")
+   {
+      if ($os eq "MSWin32") {
+         system ("ant -f ..\\build.xml test.rgroup");
+      }
+      else {
+         system ("ant -f ../build.xml test.rgroup");
+      }
+   }
+
 
 
    $_ = &promptUser("\n\nHit ENTER to return to main menu ..");

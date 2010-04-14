@@ -32,6 +32,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import java.sql.SQLException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +52,7 @@ import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
+import org.openscience.jchempaint.renderer.RenderingParameters;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
 import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
 import org.openscience.jchempaint.renderer.generators.ExternalHighlightGenerator;
@@ -66,6 +69,7 @@ import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
+import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 
@@ -80,7 +84,6 @@ import uk.ac.ebi.orchem.shared.MoleculeCreator;
  */
 public class ImageServlet extends HttpServlet {
 
-    private static MDLV2000Reader mdlReader = new MDLV2000Reader();
 
     private static List<IGenerator> generators;
     static {
@@ -175,51 +178,61 @@ public class ImageServlet extends HttpServlet {
      */
     public static byte[] getImageFromMol(String molfile) throws Exception {
 
-        byte[] image;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] image=null;
 
-        int hsize = 256;
-        int vsize = 256;
-
-        NNMolecule molecule =null;
         try {
-            molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+    
+            int hsize = 256;
+            int vsize = 256;
+    
+            MDLV2000Reader mdlReader = new MDLV2000Reader();
+
+            NNMolecule molecule =null;
+                molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+            for(IAtom atom : molecule.atoms()) {
+                atom.setValency(null); // otherwise ugly picture
+            }
+    
+            // Inspect the first atom, check for 2D coords. If there, assume all present
+            IAtom firstAtom = molecule.getAtom(0);
+            if(firstAtom.getPoint2d()==null) {
+                System.out.println("generating 2d coords");
+                StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
+                gen2d.generateCoordinates();
+            }
+    
+            AtomContainerRenderer renderer = new AtomContainerRenderer
+                (generators,new AWTFontManager(),false);
+            
+            // A few drawing preferences get set here:
+            renderer.getRenderer2DModel().setShowAromaticityCDKStyle(false);
+            renderer.getRenderer2DModel().setShowAromaticity(false);
+            renderer.getRenderer2DModel().setCompactShape(RenderingParameters.AtomShape.OVAL);
+            renderer.getRenderer2DModel().setIsCompact(true);
+            
+            Rectangle2D bounds = new Rectangle2D.Double(0, 0, hsize, vsize);
+            BufferedImage bufferedImage = new BufferedImage(hsize, vsize, BufferedImage.TYPE_INT_RGB);
+            Graphics2D graphics = bufferedImage.createGraphics();
+            graphics.setBackground(Color.WHITE);
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(0, 0, hsize, hsize);
+    
+            renderer.paintMolecule(molecule, new AWTDrawVisitor(graphics), bounds, true);
+    
+            bufferedImage.flush();
+            ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "jpg", baos);
+            byte[] bytesOut = baos.toByteArray();
+            out.write(bytesOut);
+            out.flush();
+
+            image = out.toByteArray();
         } catch (CDKException cdke) {
             cdke.printStackTrace();
             System.out.println("PROBLEM MOLFILE WAS:\n---------\n"+molfile+"---------------\n");
         }
-        for(IAtom atom : molecule.atoms()) {
-            atom.setValency(null); // otherwise ugly picture
-        }
-
-        // Inspect the first atom, check for 2D coords. If there, assume all present
-        IAtom firstAtom = molecule.getAtom(0);
-        if(firstAtom.getPoint2d()==null) {
-            System.out.println("generating 2d coords");
-            StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
-            gen2d.generateCoordinates();
-        }
-
-        AtomContainerRenderer renderer = new AtomContainerRenderer
-            (generators,new AWTFontManager(),false);
-
-        Rectangle2D bounds = new Rectangle2D.Double(0, 0, hsize, vsize);
-        BufferedImage bufferedImage = new BufferedImage(hsize, vsize, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = bufferedImage.createGraphics();
-        graphics.setBackground(Color.WHITE);
-        graphics.setColor(Color.WHITE);
-        graphics.fillRect(0, 0, hsize, hsize);
-
-        renderer.paintMolecule(molecule, new AWTDrawVisitor(graphics), bounds, true);
-
-        bufferedImage.flush();
-        ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "jpg", baos);
-        byte[] bytesOut = baos.toByteArray();
-        out.write(bytesOut);
-        out.flush();
-
-        image = out.toByteArray();
         return image;
     }
 }

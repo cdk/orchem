@@ -83,7 +83,7 @@
                                                       <s:select name="wsr.minTanCoeff"
                                                                 value="%{#session.wsr.minTanCoeff}"
                                                                 list="#{'0.95':'0.95' ,'0.90':'0.90' ,'0.85':'0.85' ,'0.80':'0.80' ,'0.75':'0.75' ,'0.60':'0.60' ,'0.50':'0.50','0.25':'0.25' }"
-                                                                required="true" size="2"/>
+                                                                required="true" size="5"/>
                                                    </td>
                                                 </tr>
                                                  

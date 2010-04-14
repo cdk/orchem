@@ -38,7 +38,7 @@ public class TestSMARTSSearch extends AbstractOrchemTest {
     private void smartsQuery(String SMARTS, int expectedResults) throws CDKException, SQLException, ClassNotFoundException {
         /* part 1: do a substructure search using the fingerprinter */            
         System.out.println("\nFingerprint SMARTS search "+SMARTS);
-        List<OrChemCompound> fprintSearchResults = dbApi.smartsSearch(SMARTS, conn);
+        List<OrChemCompound> fprintSearchResults = dbApi.smartsSearch(SMARTS, conn,9999999);
         System.out.println("results # : "+fprintSearchResults.size());
         Collections.sort(fprintSearchResults);
         for (OrChemCompound oc : fprintSearchResults) {

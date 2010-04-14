@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -180,7 +181,13 @@ public class ImageServlet extends HttpServlet {
         int hsize = 256;
         int vsize = 256;
 
-        NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+        NNMolecule molecule =null;
+        try {
+            molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+        } catch (CDKException cdke) {
+            cdke.printStackTrace();
+            System.out.println("PROBLEM MOLFILE WAS:\n---------\n"+molfile+"---------------\n");
+        }
         for(IAtom atom : molecule.atoms()) {
             atom.setValency(null); // otherwise ugly picture
         }

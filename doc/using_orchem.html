@@ -1,8 +1,8 @@
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>OrChem user manual</title>
-    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+      <title>OrChem user manual</title>
+      <link rel="stylesheet" href="orchem.css" type="text/css"></link>
   </head>
   <body>
     <br>
@@ -21,7 +21,7 @@
                 <li>SimilaritySearch.java</li>
                 <li>SubstructureSearch.java</li>
                 <li>SMARTS_Search.java</li>
-		<li>SubstructureSearchParallel.java</li>
+                <li>SubstructureSearchParallel.java</li>
             </ul>
             You interact with these classes through PL/SQL packages that 
             wrap the classes as Java stored procedures/functions. These packages will be 
@@ -33,6 +33,7 @@
             up the cache a bit. 
             <br></br>
 
+            <a name="simsearch" />
             <h3>Similarity searching</h3>
             Package orchem_simsearch : 
 <pre>
@@ -55,10 +56,9 @@
                  <li>CUTOFF: the cutoff similarity score 0..1. The search will stop if the cutoff is reached.</li> 
                  <li>TOPN: (optional) maximum number of results required </li> 
                  <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.
-      		 <span style="font-style:italic"> 
-                 In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
-		 <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will return IDs but no structures</li>
-
+                 <span style="font-style:italic"> 
+                   In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
+                 <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will return IDs but no structures</li>
             </ul>     
             <h5>Examples</h5>
             <hr align="left" style="width:50%">
@@ -66,16 +66,15 @@
 select * from 
 table(orchem_simsearch.search(
         'OC4=C(C(=C3OC(C)(COC=1C=CC(=CC=1)CC2C(=O)NC(=O)S2)CCC3=C4C)C)C'
-	,'SMILES',0.8,null,'N'))
+  ,'SMILES',0.8,null,'N'))
 </pre>
             <div style="width:50%">
-	    This query performs a similarity search for a compound described with a Smiles string.
-            The cutoff is set to 0.8, so only results with similarity of 80% or higher will be returned.
-            There is no topN value, so the query will not limit the result set. Debugging is set to 'N'.
-	    </div>
+              This query performs a similarity search for a compound described with a Smiles string.
+              The cutoff is set to 0.8, so only results with similarity of 80% or higher will be returned.
+              There is no topN value, so the query will not limit the result set. Debugging is set to 'N'.
+            </div>
             <br></br>
             <hr align="left" style="width:50%">
-		            
 
 <pre>
 select * from 
@@ -83,7 +82,7 @@ table(orchem_simsearch.search(
         'O(C=1C=CC=C2C=1CCCC2CN(C)CCC3=CC=C4C(=C3)NCC4)C','SMILES',0.5,5,'Y'))  
 </pre>       
            <div style="width:50%">
-	    A bit like the previous one, with different Smiles and cutoff. This time, debugging is switched on and
+            A bit like the previous one, with different Smiles and cutoff. This time, debugging is switched on and
             topN=5, so the search will stop if the 5 best scoring results have been found.
             By using topN you can make the query more responsive.</div>
             <br></br>
@@ -102,7 +101,7 @@ select orchem_simsearch.search(MOLFILE,'MOL',0.75,50,'N')
 from COMPOUNDS where MOLREGNO=666
 </pre>
             <div style="width:50%">
-	    This query you'd have to adapt to make it work for you. For completeness the particular compound 
+            This query you'd have to adapt to make it work for you. For completeness the particular compound 
             table is described first (desc compounds) <br>
             The query finds all compounds that are similar
             to compound with id ('MOLREGNO') 666. The MOLFILE column is fed into the search 
@@ -111,19 +110,19 @@ from COMPOUNDS where MOLREGNO=666
             and finally MOLREGNO with your primary key name.<br>
             By the way, you can run a TABLE() function over the previous query as shown here.
             This make JDBC access more straightforward.
-	    </div>
+            </div>
 <pre>
-        select * from table
-	  ( select orchem_simsearch.search(molfile,'MOL',0.7,5,'N') 
-	    from compounds where molregno=1000
-	  )  
+  select * from table
+    ( select orchem_simsearch.search(molfile,'MOL',0.7,5,'N') 
+      from compounds where molregno=1000
+    )  
 </pre>
             <hr align="left" style="width:50%">
             <br></br>
             <br></br>
-
-	    
-	    
+     
+      
+            <a name="subsearch" />
             <h3>Substructure searching</h3>
             Package orchem_subsearch : 
 <pre>
@@ -145,12 +144,11 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
                  <li>USER_QUERY: a Smiles string or an MDL mol file </li> 
                  <li>INPUT_TYPE: choose 'SMILES' or 'MOL'  </li> 
                  <li>TOPN: (optional) maximum number of results required  </li> 
-                 <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.		 <span style="font-style:italic"> 
+                 <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.     <span style="font-style:italic"> 
 
                      In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
-		 <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will only return ID's, not structures</li>
-		 <li>STRICT_STEREO_YN: (optional) choose 'Y' or 'N'. If 'Y', stereoisomerism is part of the isomorphism check.</li>
-
+                 <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will only return ID's, not structures</li>
+                 <li>STRICT_STEREO_YN: (optional) choose 'Y' or 'N'. If 'Y', stereoisomerism is part of the isomorphism check.</li>
             </ul>     
 
             The substructure search is 'pipelined'. This means that results come back as soon as they are 
@@ -166,9 +164,9 @@ select * from
 table(orchem_subsearch.search('N#CC2=CC=1C=CC=CC=1N3C=C(N=C23)C(=O)OCC','SMILES',50,'Y'))
 </pre>
             <div style="width:50%">
-	    This query performs a substructure search for a structure described with a Smiles string.
-            TopN=50, so after 50 results have been found the query exits. The query will debug some info back to you.
-	    </div>
+            This query performs a substructure search for a structure described with a Smiles string.
+                  TopN=50, so after 50 results have been found the query exits. The query will debug some info back to you.
+            </div>
             <br></br>
             <hr align="left" style="width:60%">
 
@@ -178,11 +176,11 @@ select orchem_subsearch.search(molfile,'MOL',50,'Y') from compounds where molreg
             Refer to the <A href="#sim_mol">similarity search section</a> for an explanation of this type of query.
             <hr align="left" style="width:60%">
             
-	    <br></br>
+            <br></br>
             <br></br>
 
 
-<h3>Parallel substructure searching</h3>
+            <h3>Parallel substructure searching</h3>
             Package orchem_subsearch_par: 
 <pre>
 FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
@@ -203,15 +201,16 @@ FUNCTION SETUP RETURNS NUMBER(38)
             purely for technical reasons: with the implementation using a piped parallel function and parallel Java slave processes,
             the extra 'preparation' step is necessary. The reward may be in the performance: the parallel
             function can run significantly faster, but not always (!) depending on many things.
-<h5>Examples</h5>
+
+            <h5>Examples</h5>
             <hr align="left" style="width:50%">
             <div style="width:50%">
             
-	    To prepare the query, you use SETUP. This function takes in a query and a query type, and
+            To prepare the query, you use SETUP. This function takes in a query and a query type, and
             then returns a number (the 'key'). The key is then fed into the parallel search.
             See the next example, where a parallel search for S:C-O-C-C-C is prepared
             an then executed with TopN 100. 
-	    </div>
+          </div>
 <pre>
 SQL> var key number;
 
@@ -219,14 +218,16 @@ SQL> exec :key :=orchem_subsearch_par.setup('S:C-O-C-C-C','SMILES')
 
 SQL> select id from table (orchem_subsearch_par.search(:key,100) )
 </pre>
-<hr align="left" style="width:50%">
+
+            <hr align="left" style="width:50%">
             <br></br>
             <br></br>
 
-            <h3>SMARTS searching</h3>
+            <a name="smarts" />
+            <h3>Substructure searching with SMARTS</h3>
             Package orchem_smarts_search : 
+
 <pre>
- 
  FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  Argument Name                  Type                    In/Out Default?
  ------------------------------ ----------------------- ------ --------
@@ -239,29 +240,90 @@ SQL> select id from table (orchem_subsearch_par.search(:key,100) )
             <ul>
                  <li>SMARTS_QUERY: a <a href="http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html">SMARTS</a> query </li> 
                  <li>DEBUG_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will debug back some info.
-      		 <span style="font-style:italic"> 
+           <span style="font-style:italic"> 
                  In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
                  <li>TOPN: (optional) maximum number of results required  </li> 
             </ul>     
             SMARTS searching is slower than regular substructure searching; performance depends on how specific the query is
-	    and thus how much can be fingerprinted. Again, this type of search is 'pipelined': results come back as soon as they are available. 
-	    To see this effect in SQL*plus you should set arraysize 1, or in JDBC use an OracleConnection and use setDefaultRowPrefetch(1);
-
-	    
-	    <h5>Example</h5>
-            <hr align="left" style="width:50%">
+            and thus how much can be fingerprinted. Again, this type of search is 'pipelined': results come back as soon as they are available. 
+            To see this effect in SQL*plus you should set arraysize 1, or in JDBC use an OracleConnection and use setDefaultRowPrefetch(1);
+      
+           <h5>Example</h5>
+           <hr align="left" style="width:50%">
 <pre>
 select * from table ( orchem_smarts_search.search('N1CC[O,N]CC1') )
 </pre>
 
             <hr align="left" style="width:50%">
+            <br></br>
+            <br></br>
+      
 
-            <br></br>
-            <br></br>
-	    
-            <h3>JDBC examples</h3>
+          <a name="rgroup">
+          <h3>Substructure searching with RGroup Queries</h3>
+              RGroup queries are defined by the Symyx RGfile format, more details for which can be found 
+              in the "CTfile Formats" manual downloadable from <a href="http://www.symyx.com/downloads/public/ctfile/ctfile.pdf">Symyx</a>.<br>
+              Editors such as JChempaint and Marvin Sketch can
+              save drawings in this RGfile format, and OrChem accepts it as input and can run substructure
+              searches for them. Because RGroup queries are saved as "Molfiles", the way to invoke
+              an RGroup search is the same as for <a href="subsearch">a regular substructure search</a>, with the INPUT_TYPE set to MOL. OrChem
+              will figure out if the given USERQUERY is a regular molecule or an RGroup query by inspecting the file contents.
+              <br><br>
+              In essence, an RGroup query allows you to define multiple molecules in one data structure 
+              by combining a root structure that contains one or more pseudo atoms with different substituent options for each of these pseudo atoms.
+              A JChemPaint screenshot may help to clarify this:
+            <br><br>   
+              <img src="rgroupQuery.png" border="1">
+            <br<b>Figure: an RGroup query</b> (see corresponding RGFile <a href="rgroupQuery.html">here</a>)
+              <br><br><br>   
+              This given example contains a root structure (or scaffold) with two 
+              RGroups labeled "R1" and "R4".
+              For R1, two substituents are defined and drawn under the root, R4 has three substituents. A number of different molecules
+              can thus be derived by substituting R1 and R4 with one of their substituents.<br> 
+              Substituents are to be attached to the root by replacing the R-atom with the atom marked with an asterisk in the substituent. 
+              It will connect to the root using the bond that is also marked with an asterisk, although in the example this is trivial.
+             <br>
+              If an R-atom has multiple bonds connecting it to the root, then a second 
+              root attachment can be chosen. Be aware that the RGfile format allows for only two attaching bonds per R-atom to be identified, not more.
+              <br><br>
+              Furthemore, "advanced RGroup logic" in the RGfile format allows you to define extra logic on top of the drawn structures.
+              For each group you can indicate:
+              <ul>
+                <li>Occurrence: the occurrence value determines the number of times that a member of that an RGroup must appear in the retrieved
+                        structures. It can be relevant for more elaborate queries, for instance when you have multiple pseudo atoms 
+                        labeled R1 in your root structure and want to specify the substitution occurrence.<br>
+                  Allowed values are:
+                  <ul>
+                    <li>n: exactly n</li>
+                        <li>n - m: n through m</li>
+                        <li>< n: fewer than n</li>
+            
+                  </ul>
+                 The default is ">0". Any non-contradictory combination of the preceding values is also allowed; for example: "1,3-7,9,>11".
+                </li>
+                  <li>RestH: with RestH set to true, only hydrogen atoms are permitted at the unsatisfied RGroup sites of retrieved structures. If RestH is set to false (the default),
+                    unsatisfied RGroup sites can be filled by hydrogen atoms or other molecule fragments.
+                    This becomes relevant when you allow the occurrence for a certain group to be lower than the total amount of R-atoms you have drawn for that group.
+                  </li>
+                  <li>If..Then: you can define dependencies between RGroups. If a root structure contains for example R2 and R10, you can make the condition
+                    IF R2 THEN R10 (or the other way around). So if a substituent for R2 occurs in a retrieved structure, then it must
+                    also have a substituent for R11.</li>
+            </ul>
+            <br>
+            To continue the example, assuming Occurrence is ">0" (so, effectively 1) for both R1 and R4, OrChem would let the CDK create all possible
+            configurations and then run a substructure search for each of these. So in effect, an RGroup query results in a run of 
+            sequential substructure searches for each valid configuration. The example has six valid configurations depicted below, so six searches are performed.
+            <br><br>   
+              <img src="rgroupConfigs.jpg" border="1">
+            <br<b>Figure: valid configurations for the previous RGroup query example</b>
+            
+            <br><br><br><br><br>
+
+            <a name="jdbc">
+            <h3>A quick note on JDBC</h3>
             Java developers, please refer to the OrChem CVS repository to find Java classes that
-            use the search packages with JDBC calls. Class uk.ac.ebi.orchem.shared.DatabaseAccess has a few examples.
+            use the search packages through JDBC calls. Examples can be found in classes such as <span style="font-family:Monospace">uk.ac.ebi.orchem.shared.DatabaseAccess</span>.
+
             <br></br>
             <a href="index.html">Back to main page</a>
  

@@ -378,6 +378,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     }
 
     public void testCompoundID_1_idList() throws Exception {
+        System.out.println("testCompoundID_1_idList()");
         List<Integer> idList = new ArrayList<Integer>();
         idList.add(10);
         idList.add(11);
@@ -389,6 +390,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     }
 
     public void testBenzeneSMILES() throws Exception {
+        System.out.println("testBenzeneSMILES() - limited ID list");
         List<Integer> idList = new ArrayList<Integer>();
         idList.add(10);
         idList.add(11);
@@ -398,6 +400,24 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
         idList.add(27);
         smilesTest("c1ccccc1", "Y", idList, 3);
     }
+
+    /**
+     * A test to make sure a particular bug is now fixed.
+     * The bug was that the fingerprint for the given SMILES did not match
+     * the target molecule labeled "SMILES bug test 1" in the unit test data set.
+     * The bug was rooted in a ringLayout issue.
+     * 
+     * @throws Exception
+     */
+    public void testSMILESBug1() throws Exception {
+        System.out.println("test SMILES Bug 1");
+        smilesTest("C1CC2CCC3C(CCc4ccccc34)C2C1", "N", null, 2);
+        
+    }
+
+
+//
+
 
 }
 

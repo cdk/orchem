@@ -923,6 +923,7 @@ public class OrchemFingerprinter implements IFingerprinter {
                                                         bondOverlap = "M";
                                                     
                                                     int bitPos = BitPosApi.bp.ringLayout.get(fiveSix + singleDouble + connectivity +bondOverlap);
+                                                    //System.out.println(fiveSix + singleDouble + connectivity +bondOverlap);
                                                     fingerprint.set(bitPos, true);
                                                 }
                                             }
@@ -1000,7 +1001,7 @@ public class OrchemFingerprinter implements IFingerprinter {
             IBond bond = bonds.next();
             if (bond.getOrder()==null)
                 return null; // break out and give up
-            if (bond.getOrder()==IBond.Order.DOUBLE) 
+            if (bond.getOrder()==IBond.Order.DOUBLE || bond.getFlag(CDKConstants.ISAROMATIC)==true) 
                 doubleBondsFound=true;
             if ( sharedAtoms.containsKey(bond.getAtom(0))&& sharedAtoms.containsKey(bond.getAtom(1)))  {
                     sharedBonds.add(bond);

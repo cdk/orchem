@@ -79,7 +79,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery2() throws Exception {
-        performQuery(RGROUP_QUERY_2, "N", 54);
+        performQuery(RGROUP_QUERY_2, "N", 55);
     }
 
     /**
@@ -90,7 +90,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         String modifiedQuery=RGROUP_QUERY_2.replace(
             "M  LOG  1   1   0   0   0,1",
             "M  LOG  1   1   0   0   1");
-        performQuery(modifiedQuery, "N", 28);
+        performQuery(modifiedQuery, "N", 29);
     }
 
 
@@ -105,7 +105,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         modifiedQuery=modifiedQuery.replace(
             "M  LOG  1   2   0   0   0,1",
             "M  LOG  1   2   0   0   1");
-        performQuery(modifiedQuery, "N", 25);
+        performQuery(modifiedQuery, "N", 26);
     }
 
     /**
@@ -119,7 +119,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         modifiedQuery=modifiedQuery.replace(
             "M  LOG  1   2   0   0   0,1",
             "M  LOG  1   2   0   0   1");
-        performQuery(modifiedQuery, "Y", 14);
+        performQuery(modifiedQuery, "Y", 15);
     }
 
     /**

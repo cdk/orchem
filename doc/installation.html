@@ -290,7 +290,7 @@ SQL> desc orchem_parameters
                         Use an insert statement like this one to accomplish this (with proper values substituted), 
                         and commit the insert to the database. <br>
 <pre>
-insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col) values ('x','y','z','dirname');
+insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col,tmp_dir_on_server) values ('x','y','z','dirname');
 </pre>
                         </li>
                         <li> Alternatively, for example if your compound data is split over more than 

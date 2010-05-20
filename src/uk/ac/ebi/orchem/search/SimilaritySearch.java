@@ -67,7 +67,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  */
 public class SimilaritySearch {
 
-    private static SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+    static final int extFpSize = FingerPrinterAgent.FP.getExtendedFpSize();
 
     /**
      * Mama's little helper: array to quickly assess how many bits are set to one for an int between 0 and 255.
@@ -162,7 +162,6 @@ public class SimilaritySearch {
             debugging=true;
 
         debug("started",debugging);
-        final int extFpSize = FingerPrinterAgent.FP.getExtendedFpSize();
 
        /**********************************************************************
         * Similarity search algorithm section                                *
@@ -208,7 +207,6 @@ public class SimilaritySearch {
             ResultSet resFp = null;
             boolean done = false;
             byte[] dbByteArray = null;
-            float bitsInCommon = 0;
             float tanimotoCoeff = 0f;
             heap = new PriorityBuffer(true, heapComparator);
             int bucksSearched=0;
@@ -220,6 +218,7 @@ public class SimilaritySearch {
                 pstmtFp.setFloat(1, currBucketNum);
                 bucksSearched++;
                 resFp = pstmtFp.executeQuery();
+                
     
                 float bound = 0f;
                 if (currBucketNum < queryBitCount)
@@ -237,28 +236,8 @@ public class SimilaritySearch {
                 if (!done) {
                     //Algorithm 15-26
                     while (resFp.next()) { 
-    
-                        bitsInCommon = 0;
                         dbByteArray = resFp.getBytes("fp");
-
-                        int dbByteArrLen = dbByteArray.length;
-                        int arrLen = 0;
-                        if (dbByteArrLen < queryByteArrLen)
-                            arrLen = dbByteArrLen;
-                        else
-                            arrLen = queryByteArrLen;
-
-                        for (int i = 0; i < arrLen; i++) {
-                            int bAnd = dbByteArray[i] & queryBytes[i];
-                            if (bAnd < 0) {
-                                bAnd += 128;
-                                bitsInCommon += BIT_COUNT[bAnd] + 1;
-                            } else {
-                                bitsInCommon += BIT_COUNT[bAnd];
-                            }
-                        }
-                        
-                        tanimotoCoeff = bitsInCommon / (queryBitCount + currBucketNum - bitsInCommon);
+                        tanimotoCoeff = calcTanimoto (queryBytes, queryByteArrLen, dbByteArray, queryBitCount, currBucketNum) ;
 
                         if (tanimotoCoeff >= cutOff) {
                             SimHeapElement elm = new SimHeapElement();
@@ -373,7 +352,27 @@ public class SimilaritySearch {
             if (conn != null)
                 conn.close();
         }
+    }
 
+
+    private static float calcTanimoto (byte[] queryBytes, int queryByteArrLen, byte[] dbByteArray, float queryBitCount, float targetBitCount ) {
+        int bitsInCommon = 0;
+        int dbByteArrLen = dbByteArray.length;
+        int arrLen = 0;
+        if (dbByteArrLen < queryByteArrLen)
+            arrLen = dbByteArrLen;
+        else
+            arrLen = queryByteArrLen;
+        for (int i = 0; i < arrLen; i++) {
+            int bAnd = dbByteArray[i] & queryBytes[i];
+            if (bAnd < 0) {
+                bAnd += 128;
+                bitsInCommon += BIT_COUNT[bAnd] + 1;
+            } else {
+                bitsInCommon += BIT_COUNT[bAnd];
+            }
+        }
+        return ( bitsInCommon / (queryBitCount + targetBitCount - bitsInCommon));
     }
 
     /**
@@ -407,6 +406,7 @@ public class SimilaritySearch {
      * @throws Exception
      */
     private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN, String idsOnlyYN) throws Exception {
+        SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
         IAtomContainer molecule = sp.parseSmiles(smiles);
         BitSet fp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN,idsOnlyYN);
@@ -428,6 +428,7 @@ public class SimilaritySearch {
     /**
      * Java interface to PL/SQL for similarity searching
      * @param userQuery  query structure in some chemical format
+     * @param queryType  MOL or SMILES
      * @param cutOff     break out when similarity goes under this cut off
      * @param topN       only find first top N results
      * @param debugYN    debug info back to user Y/N
@@ -445,7 +446,71 @@ public class SimilaritySearch {
         else 
             throw new RuntimeException("Query type not recognized");
     }
-    
+
+
+    /**
+     * Similarity score calculation between one database compound and a user's query compound.
+     * @param userQuery  query structure in SMILES or MOL
+     * @param queryType  MOL or SMILES
+     * @param compoundId ID of database compound to calculate similarity with
+     * @return tanimoto similarity score
+     * @throws Exception
+     */
+    public static float singleCompoundSimilarity(Clob userQuery, String queryType, String compoundId) throws Exception {
+
+        OracleConnection conn = null;
+        PreparedStatement pstmtFp = null;
+        ResultSet resFp = null;
+        float tanimotoCoeff=0;
+        
+        try {
+            //User query
+            int clobLen = new Long(userQuery.length()).intValue();
+            String query = (userQuery.getSubString(1, clobLen));
+            IAtomContainer molecule = null;
+            if (queryType.equals(Utils.QUERY_TYPE_MOL)) {
+                MDLV2000Reader mdlReader = new MDLV2000Reader();
+                molecule = MoleculeCreator.getNNMolecule(mdlReader, query);
+            } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
+                SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+                molecule = sp.parseSmiles(query);
+            } else
+                throw new RuntimeException("Query type not recognized");
+            BitSet queryFp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
+            float queryBitCount = queryFp.cardinality();
+            byte[] queryBytes = Utils.toByteArray(queryFp, extFpSize);
+
+            //Database comound
+            conn = (OracleConnection)new OracleDriver().defaultConnection();
+            String compoundQuery = "select bit_count, fp from orchem_fingprint_simsearch s where id=?";
+            pstmtFp = conn.prepareStatement(compoundQuery);
+            pstmtFp.setFetchSize(1);
+            pstmtFp.setString(1, compoundId);
+            resFp = pstmtFp.executeQuery();
+            
+            if(resFp.next()) {
+                byte[] dbByteArray = resFp.getBytes("fp");
+                float compoundBitCount=resFp.getFloat("bit_count");
+                tanimotoCoeff = calcTanimoto (queryBytes, queryBytes.length, dbByteArray, queryBitCount, compoundBitCount);
+            }
+            else
+                throw new RuntimeException("Compound "+compoundId+" not found in similarity table");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        finally {
+            if (resFp!=null) 
+                resFp.close();
+            if (pstmtFp!=null) 
+                pstmtFp.close();
+            if (conn != null)
+                conn.close();
+        }
+        return tanimotoCoeff;
+    }
+
 
 
 }

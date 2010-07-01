@@ -1,4 +1,4 @@
-<html>
+html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>OrChem installation</title>
@@ -154,7 +154,9 @@ PL/SQL procedure successfully completed.
                     <ul>
                     <li>Navigate to the unzipped orchem/lib directory and issue the following "loadjava" commands, with
                     the values for USER, PW and INSTANCE substituted with valid values<br>
+
 <pre>
+loadjava -verbose -user USER/PW@INSTANCE ambit2.smarts.jar
 loadjava -verbose -user USER/PW@INSTANCE vecmath.jar
 loadjava -verbose -user USER/PW@INSTANCE commons-collections-3.2.1.jar
 loadjava -verbose -user USER/PW@INSTANCE jgrapht-0.6.0.jar

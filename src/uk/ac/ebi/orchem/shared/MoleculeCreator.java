@@ -36,8 +36,11 @@ import java.util.regex.Pattern;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -59,13 +62,14 @@ public class MoleculeCreator {
      * @return
      * @throws CDKException
      */
-    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString, boolean removeHydrogens) throws CDKException {
+    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString,
+                                           boolean removeHydrogens) throws CDKException {
         NNMolecule molecule = null;
         mdlReader.setReader(new StringReader(mdlString));
         molecule = new NNMolecule();
 
         try {
-            molecule = (NNMolecule)mdlReader.read(molecule);
+            molecule = mdlReader.read(molecule);
         } catch (NullPointerException e) {
             /* Fix for NullPointer due to occurence of D or T (Deuterium or Tritium) with massNumber null
              * as happens now and then in Starlite (Chembl)
@@ -81,12 +85,12 @@ public class MoleculeCreator {
             mdlString = sb.toString();
             mdlReader.setReader(new StringReader(mdlString));
             molecule = new NNMolecule();
-            molecule = (NNMolecule)mdlReader.read(molecule);
+            molecule = mdlReader.read(molecule);
+
         }
-        
+
         NNMolecule nnMolecule = null;
-        
-        if (removeHydrogens)  {
+        if (removeHydrogens) {
             try {
                 nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
             } catch (NullPointerException e) {
@@ -94,9 +98,8 @@ public class MoleculeCreator {
             }
             if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
                 throw new CDKException("Error - Molfile is empty or atom count after hydrogen stripping is zero. ");
-        }
-        else {
-            nnMolecule = new NNMolecule(molecule);
+        } else {
+            nnMolecule = molecule;
         }
 
         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
@@ -108,7 +111,7 @@ public class MoleculeCreator {
      * Overload for {@link # getNNMolecule(MDLV2000Reader, String, boolean}
      */
     public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString) throws CDKException {
-        return getNNMolecule(mdlReader, mdlString, true) ;
+        return getNNMolecule(mdlReader, mdlString, true);
     }
 
     /**
@@ -129,9 +132,8 @@ public class MoleculeCreator {
         String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
 
         String query =
-            " select " + compoundTableMolfileColumn + 
-            " from " + compoundTableName + 
-            " where " + compoundTablePkColumn + "=? ";
+            " select " + compoundTableMolfileColumn + " from " + compoundTableName + " where " + compoundTablePkColumn +
+            "=? ";
 
         PreparedStatement psst = conn.prepareStatement(query);
         psst.setString(1, id);
@@ -141,24 +143,53 @@ public class MoleculeCreator {
         }
         res.close();
         psst.close();
-        result = getNNMolecule(new MDLV2000Reader(), molfile,removeHydrogens);
+        result = getNNMolecule(new MDLV2000Reader(), molfile, removeHydrogens);
         return result;
     }
 
+    public final static String BACKUP_ORIGINAL_HYDROGEN_COUNT="BOHC";
+    /**
+     * Backup the explicit hydrogen count before stripping them off..
+     * Uses one of the properties of the atom to store the explicit H count
+     * @param molecule
+     */
+    public static void backupExplicitHcount(IAtomContainer molecule) {
+        
+        for (IAtom atom : molecule.atoms() ) {
+            int explicitHydrogens = AtomContainerManipulator.countExplicitHydrogens(molecule,atom);
+            if (explicitHydrogens!=0)
+                atom.setProperty(BACKUP_ORIGINAL_HYDROGEN_COUNT, new Integer(explicitHydrogens));
+            else
+                atom.setProperty(BACKUP_ORIGINAL_HYDROGEN_COUNT, null);
+        }
+    }
+    
+    /**
+     * Related to previous method. Creates an array corresponding to the atom array,
+     * each position holds the original explicit H count for that atom.
+     * This can then be used in the isomorpism algorithm, to make sure that any
+     * explicitly set hydrogens in the query matches the database compound.
+     * It prevents a query CO[H] matching COC
+     * 
+     * @param queryStructure
+     * @return array with counts for each atom (default 0)
+     */
+    public static int[] createExplHydrogenArray (IAtomContainer queryStructure) {
+        int atCount=queryStructure.getAtomCount();
+        int[] explHydrogenCountBackup=new int[atCount];
+        for (int i = 0; i < atCount; i++) {
+            IAtom atom =queryStructure.getAtom(i);
+            
+            Object explHCount = atom.getProperty(BACKUP_ORIGINAL_HYDROGEN_COUNT);
+            if (explHCount!=null) 
+                explHydrogenCountBackup[i]=(Integer)explHCount;
+            else
+                explHydrogenCountBackup[i]=0;
+        }
+        return explHydrogenCountBackup;
+    }
+
+
 }
 
-
-
-
-
-/*
-     //Alternative
-     Object object = reader.next();
-     if (object != null && object instanceof Molecule) {
-         m = (Molecule)object;
-         nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(m));
-         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
-         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
-     }
- */
 

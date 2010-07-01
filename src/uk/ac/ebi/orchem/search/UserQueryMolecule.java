@@ -36,4 +36,6 @@ class UserQueryMolecule {
     IAtomContainer mol;
     Map atomsAndBonds;
     String originalQuery;
+
+    int[] explicitHydrogenCountBackup;
 }

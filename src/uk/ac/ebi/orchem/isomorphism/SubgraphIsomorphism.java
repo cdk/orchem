@@ -59,10 +59,11 @@ public class SubgraphIsomorphism {
      * @param  target  target molecule. 
      * @param  query  query molecule. 
      * @param  strictStereoIsomorphismYN indicates if matching should be strict with regards to stereo isometry
+     * @param queryExplHydrogenCountBackup bakcup array with original explicit hydrogen counts of the (hydrogen stripped) query
      * @throws CDKException
      */
-    public SubgraphIsomorphism(IAtomContainer target, IAtomContainer query, String strictStereoIsomorphismYN) throws CDKException {
-        this.vf2 = new VF2State(target, query, strictStereoIsomorphismYN );
+    public SubgraphIsomorphism(IAtomContainer target, IAtomContainer query, String strictStereoIsomorphismYN, int[] queryExplHydrogenCountBackup) throws CDKException {
+        this.vf2 = new VF2State(target, query, strictStereoIsomorphismYN,queryExplHydrogenCountBackup);
     }
 
     /**
@@ -71,10 +72,14 @@ public class SubgraphIsomorphism {
      *
      * @param  target  target molecule. 
      * @param  query  query molecule. 
+     * @param queryExplHydrogenCountBackup bakcup array with original explicit hydrogen counts of the (hydrogen stripped) query
      * @throws CDKException
      */
-    public SubgraphIsomorphism(IAtomContainer target, IAtomContainer query) throws CDKException {
-        this.vf2 = new VF2State(target, query, "N" );
+    /**
+     * 
+     */
+    public SubgraphIsomorphism(IAtomContainer target, IAtomContainer query,int[] queryExplHydrogenCountBackup) throws CDKException {
+        this.vf2 = new VF2State(target, query, "N", queryExplHydrogenCountBackup );
     }
 
 

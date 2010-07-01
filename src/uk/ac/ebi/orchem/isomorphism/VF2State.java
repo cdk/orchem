@@ -33,14 +33,16 @@
 
 package uk.ac.ebi.orchem.isomorphism;
 
-import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IBond;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.PseudoAtom;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.tools.CDKHydrogenAdder;
 
 
 /**
@@ -78,9 +80,10 @@ public class VF2State extends State {
      * @param target
      * @param query
      */
-    public VF2State(IAtomContainer target, IAtomContainer query, String strictStereoIsomrph) {
+    public VF2State(IAtomContainer target, IAtomContainer query, String strictStereoIsomrph, int[] _explHydrogenCountBackup) {
         
         strictStereoIsomorphism = strictStereoIsomrph.equals("Y") ? true: false;
+        queryExplHydrogenCountBackup= _explHydrogenCountBackup;
         queryAtomContainer = query;
         targetAtomContainer = target;
         queryAtomCount = queryAtomContainer.getAtomCount();
@@ -227,20 +230,24 @@ public class VF2State extends State {
      */
     boolean isFeasiblePair(Integer queryNodeIdx, Integer targetNodeIdx) {
 
-        assert queryNodeIdx < queryAtomCount;
-        assert targetNodeIdx < targetAtomCount;
-        assert core_query[queryNodeIdx] == null;
-        assert core_target[targetNodeIdx] == null;
-
         IAtom queryAtom = queryAtomContainer.getAtom(queryNodeIdx);
         IAtom targetAtom = targetAtomContainer.getAtom(targetNodeIdx);
 
-        //take Pseudo atoms into account.. the symbols don't have to match then
-        if (!queryAtom.getSymbol().equals(targetAtom.getSymbol()) &&
+        // first of all compare symbols (elements), they should match 
+        if (!queryAtom.getSymbol().equals(targetAtom.getSymbol()))
+            return false;
+
+
+        // Take query's explicit hydrogens into account
+        if (queryExplHydrogenCountBackup[queryNodeIdx]!=0 && 
             !(pseudoQueryAtomIndicator[queryNodeIdx]) &&
             !(pseudoTargetAtomIndicator[targetNodeIdx])
-        )
-            return false;
+        ) {
+            int queryExplHcount = queryExplHydrogenCountBackup[queryNodeIdx];
+            if (queryExplHcount>targetAtom.getHydrogenCount()) {
+                return false;
+            }
+        }
 
         int termoutQuery = 0, terminQuery = 0, newQuery = 0;
         int termoutTarget = 0, terminTarget = 0, newTarget = 0;

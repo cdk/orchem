@@ -41,11 +41,14 @@ import oracle.jdbc.OraclePreparedStatement;
 
 import oracle.sql.CLOB;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
+
+import org.openscience.cdk.tools.CDKHydrogenAdder;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
@@ -143,6 +146,7 @@ public class DatabaseFingerprintPersistence {
             CLOB largeAtomsClob=null;
             CLOB largeBondsClob=null;
 
+            CDKHydrogenAdder hydrogenAdder = CDKHydrogenAdder.getInstance(DefaultChemObjectBuilder.getInstance());
             /* Start the main loop over the base compound table */
             while (compounds.next()) {
                 try {
@@ -156,12 +160,20 @@ public class DatabaseFingerprintPersistence {
                         bef = System.currentTimeMillis();
                         /* Create a CDK molecule from the molfile */
                         NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                        
+                        for(IAtom atom : molecule.atoms()){
+                            try {
+                                hydrogenAdder.addImplicitHydrogens(molecule,atom);
+                            } catch (CDKException cdke) {
+                                atom.setHydrogenCount(99);
+                            }
+                        }
+
                         makeMolTime += (System.currentTimeMillis() - bef);
 
                         /* Sort the container to speed up substructure searches */
                         IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(molecule));
                         molecule.setAtoms(sortedAtoms);
-
 
                         /* Fingerprint the molecule */
                         bef = System.currentTimeMillis();

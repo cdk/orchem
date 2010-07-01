@@ -71,12 +71,14 @@ public class OrchemMoleculeBuilder {
             if (token.contains(":")) {
                 PseudoAtom ps = new PseudoAtom();
                 ps.setSymbol("R");
+                ps.setHydrogenCount(new Integer(s.nextToken()));
                 ps.setLabel(token.substring(2));
                 atomMap.put(atomPos++, ps);
             }
             else {
                 IAtom at = new Atom();
                 at.setSymbol(token);
+                at.setHydrogenCount(new Integer(s.nextToken()));
                 atomMap.put(atomPos++, at);
             }
         }
@@ -168,6 +170,7 @@ public class OrchemMoleculeBuilder {
             else {
                 sb.append(atom.getSymbol()).append(" ");
             }
+            sb.append(atom.getHydrogenCount()).append(" ");
         }
         return sb.toString().trim();
 

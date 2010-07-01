@@ -32,12 +32,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import java.util.Map;
+
 import oracle.jdbc.driver.OracleConnection;
 
 import org.openscience.cdk.exception.CDKException;
 
+import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.io.MDLV2000Reader;
+
+import org.openscience.cdk.nonotify.NNMolecule;
+
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
 import uk.ac.ebi.orchem.bean.OrChemCompound;
 import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
+import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.shared.WrappedAtomContainer;
 
 
@@ -94,7 +105,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
 
             /* part 2: find all substructures by doing a full scan on the data set */            
             System.out.println("\nFull isomorphism test : ");
-            List<Integer> fullScanResults = fullScan(res.getInt("id"), targetMolecules, conn, strictStereo, idList);
+            List<Integer> fullScanResults = fullScan(targetMolecules, strictStereo, idList, mdl);
             Collections.sort(fullScanResults);
             System.out.println("results # : "+fullScanResults.size());
 
@@ -111,38 +122,35 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     }
 
 
-
     /**
      * Performs a complete substructure search between a query compound 
      * and target compounds. This can be used to find all substructures and 
      * validate this against the prefilter result from a fingerprinter.
-     *
-     * @param id query compound database id
-     * @param conn database connection
-     * @return list of ids of compounds of which compound with arg "id" is a substructure
-     * @throws SQLException
-     * @throws CDKException
-     * @throws CloneNotSupportedException
+     * 
+     * @param targetMolecules
+     * @param strictStereo
+     * @param idList
+     * @param mdl
+     * @return
      */
     private List<Integer> fullScan
-    (int id, List<WrappedAtomContainer> targetMolecules, OracleConnection conn, String strictStereo, List<Integer> idList)
+    (List<WrappedAtomContainer> targetMolecules, String strictStereo, List<Integer> idList, String mdl)
     throws SQLException, CDKException, CloneNotSupportedException {
         List<Integer> result = new ArrayList<Integer>();
 
-        System.out.println("+++++++++++++++++++++++++");
+        MDLV2000Reader mdlReader = new MDLV2000Reader();
+        IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader,mdl,false);
+        
+        MoleculeCreator.backupExplicitHcount(queryMolecule);
+        queryMolecule=AtomContainerManipulator.removeHydrogens(queryMolecule);
+        int[] explHydrogenCountBackup = MoleculeCreator.createExplHydrogenArray(queryMolecule);
 
-        List<WrappedAtomContainer> queryMol = dbApi.getFingerprintedCompounds(conn, id);
-        if (queryMol.size() == 1) {
-
-            WrappedAtomContainer query = queryMol.get(0);
-            for (WrappedAtomContainer target : targetMolecules) {
-                
-                if (idList==null || idList.contains(target.getDbId()+"")) {
-                    SubgraphIsomorphism s = new SubgraphIsomorphism
-                        (target.getAtomContainer(), query.getAtomContainer(), strictStereo );
-                    if (s.matchSingle()) {
-                        result.add(target.getDbId());
-                    }
+        for (WrappedAtomContainer target : targetMolecules) {
+            if (idList==null || idList.contains(target.getDbId()+"")) {
+                SubgraphIsomorphism s = new SubgraphIsomorphism
+                    (target.getAtomContainer(), queryMolecule, strictStereo, explHydrogenCountBackup);
+                if (s.matchSingle()) {
+                    result.add(target.getDbId());
                 }
             }
         }
@@ -196,11 +204,10 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     public void testCompoundID_1() throws Exception {
         fingerprintVersusFullScan(1,"N",null);
     }
-
     public void testCompoundID_2() throws Exception {
         fingerprintVersusFullScan(2,"N",null);
     }
-
+    
     public void testCompoundID_3() throws Exception {
         fingerprintVersusFullScan(3,"N",null);
     }
@@ -220,7 +227,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     public void testCompoundID_7() throws Exception {
         fingerprintVersusFullScan(7,"N",null);
     }
-
+    
     public void testCompoundID_8() throws Exception {
         fingerprintVersusFullScan(8,"N",null);
     }
@@ -415,9 +422,11 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
         
     }
 
-
-//
-
+    public void testSMILESExplHydrogens() throws Exception {
+        System.out.println("test SMILES Explicit hydrogens missing");
+        smilesTest("CP", "N", null, 6);
+        smilesTest("CP[H]", "N", null, 2);
+   }
 
 }
 

@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.sql.Clob;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
@@ -37,6 +39,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import oracle.jdbc.OracleConnection;
+import oracle.jdbc.OracleDriver;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
@@ -54,11 +59,13 @@ import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
+import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.isomorphism.IsomorphismSort;
 import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
+
 
 /**
  * Class that provides functionality for performing an OrChem substructure search.<BR>
@@ -108,15 +115,10 @@ public class SubstructureSearch {
                 RGroupQuery rGroupQuery =(RGroupQuery)reader.read(new RGroupQuery());
                 List<IAtomContainer> allConfigurations = rGroupQuery.getAllConfigurations();
                 userQueries = new ArrayList<IAtomContainer>();
-
                 // Detect aromaticity etc on RGroup Query configurations
                 for (IAtomContainer atc : allConfigurations) {
                     IAtomContainer nnMolecule = null;
-                    try {
-                        nnMolecule =new NNMolecule(AtomContainerManipulator.removeHydrogens(atc));
-                    } catch (NullPointerException e) {
-                        throw new CDKException("Error - nullpointer exception on removeHydrogens()");
-                    }
+                    nnMolecule =new NNMolecule(atc);
                     if (nnMolecule != null && nnMolecule.getAtomCount() != 0) {
                         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
                         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
@@ -127,17 +129,12 @@ public class SubstructureSearch {
             } else {
                 MDLV2000Reader mdlReader = new MDLV2000Reader();
                 userQueries = new ArrayList<IAtomContainer>();
-                userQueries.add(MoleculeCreator.getNNMolecule(mdlReader,
-                                                              query));
+                userQueries.add(MoleculeCreator.getNNMolecule(mdlReader,query,false));
             }
+
         } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
             SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
             IAtomContainer atc = sp.parseSmiles(query);
-            try {
-                atc=AtomContainerManipulator.removeHydrogens(atc);
-            } catch (NullPointerException e) {
-                throw new CDKException("Error - nullpointer exception on removeHydrogens()");
-            }
             userQueries = new ArrayList<IAtomContainer>();
             userQueries.add(atc);
         }
@@ -205,15 +202,23 @@ public class SubstructureSearch {
      * @param queryMolecules
      * @param debugYN
      */
-    public static void stash(Integer queryKey, List<IAtomContainer> queryMolecules,String debugYN){
+     static void stash(Integer queryKey, List<IAtomContainer> queryMolecules,String debugYN){
         List<UserQueryMolecule> uqmList = new ArrayList<UserQueryMolecule>();
         for (IAtomContainer queryMolecule : queryMolecules)  {
+
+            MoleculeCreator.backupExplicitHcount(queryMolecule);
+
+            queryMolecule=AtomContainerManipulator.removeHydrogens(queryMolecule);
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
             queryMolecule.setAtoms(sortedAtoms);
+
+            int[] explHydrogenCountBackup = MoleculeCreator.createExplHydrogenArray(queryMolecule);
+
             Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(queryMolecule);
             UserQueryMolecule uqm = new UserQueryMolecule();
             uqm.mol = queryMolecule;
             uqm.atomsAndBonds = atomAndBondCounts;
+            uqm.explicitHydrogenCountBackup=explHydrogenCountBackup;
             uqmList.add(uqm);
         }
         queries.put(queryKey, uqmList);        
@@ -321,7 +326,7 @@ public class SubstructureSearch {
 
             //Invoke the CDK implementation of the VF2 algorithm
             SubgraphIsomorphism s =
-                new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN);
+                new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN, qc.explicitHydrogenCountBackup);
 
             if (s.matchSingle()) {
                 retVal = compoundId;

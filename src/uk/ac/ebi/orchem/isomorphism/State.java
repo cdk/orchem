@@ -71,6 +71,10 @@ public abstract class State {
      */
     boolean strictStereoIsomorphism;
 
+    /**
+     * Backup for the explicit hydrogen counts in a query (as we strip off the hydrogens (nodes) for VF2 matching
+     */
+    int[] queryExplHydrogenCountBackup;
 
     /**
      * Checks whether the two nodes can be added to the state.

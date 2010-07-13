@@ -42,6 +42,7 @@ public class WebSearchResults {
     private String textInput;
     private String inputFormat;
     private String strictStereoYN;
+    private String exactYN;
 
     private int pageNum;
 
@@ -154,5 +155,13 @@ public class WebSearchResults {
 
     public String getStrictStereoYN() {
         return strictStereoYN;
+    }
+
+    public void setExactYN(String exactYN) {
+        this.exactYN = exactYN;
+    }
+
+    public String getExactYN() {
+        return exactYN;
     }
 }

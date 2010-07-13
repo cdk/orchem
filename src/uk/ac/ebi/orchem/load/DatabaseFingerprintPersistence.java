@@ -47,7 +47,6 @@ import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
-
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 
 import uk.ac.ebi.orchem.Utils;
@@ -93,7 +92,7 @@ public class DatabaseFingerprintPersistence {
             long makeFpTime = 0;
 
             conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //conn = (OracleConnection)new CheztstConnection().getDbConnection();
+            //conn = (OracleConnection)new UnitTestConnection().getDbConnection();
 
             //http://www.oracle-base.com/articles/10g/Commit_10gR2.php
             Statement sql = conn.createStatement();
@@ -119,18 +118,20 @@ public class DatabaseFingerprintPersistence {
 
             /* Statement for inserts into the substructure search table */
             StringBuffer sb = new StringBuffer();
-
-            //sb.append("insert into orchem_fingprint_subsearch ( id ");
             sb.append
             (
             " insert into orchem_fingprint_subsearch " + 
-            "   (id, atoms, bonds, single_bond_count, double_bond_count, triple_bond_count, " +
-            "    aromatic_bond_count, s_count, o_count, n_count, f_count, cl_count,  br_count, " +
-            "    i_count, c_count, p_count, saturated_bond_count "
+            "   ( id, atoms, bonds, nonh_atom_count, single_bond_count, " +
+                " double_bond_count, triple_bond_count, aromatic_bond_count, s_count, o_count, " +
+                " n_count, f_count, cl_count,  br_count, i_count, " +
+                " c_count, p_count, saturated_bond_count "
             );
             for (int idx = 0; idx < basicFingerprintSize; idx++)
                 sb.append(",bit" + (idx));
-            sb.append(") values (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,? ");
+
+            final int NON_BIT_COLUMN_COUNT=18;
+            sb.append(") values (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,? ");
+
             for (int idx = 0; idx < basicFingerprintSize; idx++)
                 sb.append(",?");
             sb.append(")");
@@ -229,6 +230,7 @@ public class DatabaseFingerprintPersistence {
                         psInsertSubstrFp.setString(idx, compounds.getString(compoundTablePkColumn));
                         psInsertSubstrFp.setString(++idx, atomString);
                         psInsertSubstrFp.setString(++idx, bondString);
+                        psInsertSubstrFp.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.ATOM_COUNT));
                         psInsertSubstrFp.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.SINGLE_BOND_COUNT));
                         psInsertSubstrFp.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.DOUBLE_BOND_COUNT));
                         psInsertSubstrFp.setInt(++idx, (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT));
@@ -246,7 +248,7 @@ public class DatabaseFingerprintPersistence {
 
 
                         for (int i = 0; i < basicFingerprintSize; i++) {
-                            idx = i + 18;
+                            idx = i + NON_BIT_COLUMN_COUNT +1 ;
 
                             if (extendedFingerPrint.get(i)) {
                                 psInsertSubstrFp.setString(idx, "1");

@@ -16,8 +16,8 @@ jar -cvf jcp.jar org/openscience/jchempaint
 jar -uvf jcp.jar org/openscience/jchempaint/JCPPropertyHandler.class
 jar -uvf jcp.jar org/openscience/jchempaint/RenderPanel.class
 jar -uvf jcp.jar org/apache/commons/cli/
-jar -uvf jcp.jar org/_3pq/
-jar -uvf jcp.jar javax/vecmath/
+jar -uvf jcp.jar org/_3pq/      ## ?????????
+jar -uvf jcp.jar javax/vecmath/ ## ?????????
 
 
 * Finally you'll also need commons-lang loaded into Oracle. I shove it into jcp.jar:

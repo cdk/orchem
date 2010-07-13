@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.sql.Clob;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
@@ -39,9 +37,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import oracle.jdbc.OracleConnection;
-import oracle.jdbc.OracleDriver;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
@@ -59,7 +54,6 @@ import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
-import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.isomorphism.IsomorphismSort;
 import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
@@ -153,10 +147,12 @@ public class SubstructureSearch {
      *
      * @param atc
      * @param debugYN
+     * @param exactYN exact search (identity search) indicator
+     * @param atomCount count of atoms in the query (hydrogens stripped)
      * @return content for an SQL WHERE clause on ORCHEM_FINGPRINT_SUBSEARCH
      * @throws CDKException
      */
-     static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN) throws CDKException {
+     static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN, String exactYN, int atomCount) throws CDKException {
 
         BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(atc);
 
@@ -168,29 +164,34 @@ public class SubstructureSearch {
                 builtCondition.append(" and bit" + i + "='1'");
             }
         }
+        if (exactYN.equals("Y")) {
+            builtCondition.append(" and nonh_atom_count="+atomCount);
+        }
         whereCondition += builtCondition.toString();
         whereCondition = whereCondition.trim();
         debug("where condition is : " + whereCondition, debugYN);
         return whereCondition;
-
     }
 
 
     /**
-     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String)}
+     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String,String,int)}
      * <BR>
      * Method scope=public -> used as Oracle Java stored procedure
      *
      * @param queryKey key for the queries map
      * @param qIndex index indicating which "query" from queries map we're after
      * @param debugYN
+     * @param exactYN exact search (identity search) indicator
      * @return a SQL WHERE clause
      * @throws CDKException
      * @throws SQLException
      */
-    public static String getWhereClause(Integer queryKey, Integer qIndex,String debugYN ) throws CDKException,SQLException {
+
+    public static String getWhereClause(Integer queryKey, Integer qIndex,String debugYN, String exactYN ) throws CDKException,SQLException {
         IAtomContainer queryAtc = queries.get(queryKey).get(qIndex).mol;
-        return whereClauseFromFingerPrint(queryAtc, debugYN);
+        int atomCount = queries.get(queryKey).get(qIndex).atomCount;
+        return whereClauseFromFingerPrint(queryAtc, debugYN, exactYN,atomCount);
     }
 
 
@@ -207,18 +208,17 @@ public class SubstructureSearch {
         for (IAtomContainer queryMolecule : queryMolecules)  {
 
             MoleculeCreator.backupExplicitHcount(queryMolecule);
-
             queryMolecule=AtomContainerManipulator.removeHydrogens(queryMolecule);
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
             queryMolecule.setAtoms(sortedAtoms);
-
             int[] explHydrogenCountBackup = MoleculeCreator.createExplHydrogenArray(queryMolecule);
-
             Map atomAndBondCounts = AtomsBondsCounter.atomAndBondCount(queryMolecule);
+
             UserQueryMolecule uqm = new UserQueryMolecule();
             uqm.mol = queryMolecule;
             uqm.atomsAndBonds = atomAndBondCounts;
             uqm.explicitHydrogenCountBackup=explHydrogenCountBackup;
+            uqm.atomCount=queryMolecule.getAtomCount();
             uqmList.add(uqm);
         }
         queries.put(queryKey, uqmList);        
@@ -308,7 +308,7 @@ public class SubstructureSearch {
      */
     public static String isomorphismCheck
     (Integer queryKey, Integer qIdx, String compoundId, Clob atoms, Clob bonds, 
-     String debugYN, String strictStereoIsomorphismYN) {
+     String debugYN, String strictStereoIsomorphismYN, String swapYN) {
 
         String retVal = null;
         try {
@@ -325,11 +325,14 @@ public class SubstructureSearch {
             IAtomContainer databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(atString, bondString);
 
             //Invoke the CDK implementation of the VF2 algorithm
-            SubgraphIsomorphism s =
-                new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN, qc.explicitHydrogenCountBackup);
+            SubgraphIsomorphism s =null;
+            if (swapYN.equals("N"))
+                s=new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN, qc.explicitHydrogenCountBackup);
+            else
+                s=new SubgraphIsomorphism(queryMolecule, databaseMolecule, strictStereoIsomorphismYN, new int[queryMolecule.getAtomCount()] );
 
             if (s.matchSingle()) {
-                retVal = compoundId;
+                    retVal = compoundId;
             }
         } catch (Exception e) {
             debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugYN);

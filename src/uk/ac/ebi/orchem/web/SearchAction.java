@@ -58,6 +58,9 @@ public class SearchAction extends SessionAwareAction {
             if (wsr.getStrictStereoYN()==null) {
                 wsr.setStrictStereoYN("N");
             }
+            if (wsr.getExactYN()==null) {
+                wsr.setExactYN("N");
+            }
 
             List compounds = new ArrayList();
             long time = System.currentTimeMillis();
@@ -93,8 +96,8 @@ public class SearchAction extends SessionAwareAction {
                     debugMsg.append(wsr.getDebugMessage() + "<br>Invoking substr search using VF2 and bitmap indices .." +
                                     new java.util.Date());
                     compounds = 
-                             // new DatabaseAccess().substructureSearchParallel(query, inputFormat, conn, new Integer(wsr.getTopN()).intValue(),wsr.getStrictStereoYN());
-                                new DatabaseAccess().substructureSearch(query, inputFormat, conn, wsr.getStrictStereoYN(), null);
+                             // new DatabaseAccess().substructureSearchParallel(query, inputFormat, conn, new Integer(wsr.getTopN()).intValue(),wsr.getStrictStereoYN(), wsr.getExactYN();
+                                new DatabaseAccess().substructureSearch(query, inputFormat, conn, wsr.getStrictStereoYN(), wsr.getExactYN(), null);
                 }
             }
 

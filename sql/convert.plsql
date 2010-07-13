@@ -14,7 +14,7 @@ AS
    FUNCTION molfileToSmiles (molfile clob)
    RETURN CLOB;
 
-   FUNCTION SmilesToMolfile (smiles clob)
+   FUNCTION SmilesToMolfile (smiles clob, gen_coords VARCHAR2:='N', use_bond_type_4 VARCHAR2:='N')
    RETURN CLOB;
 
    FUNCTION molfileToJpeg (molfile clob, hsize number, vsize number)
@@ -41,10 +41,18 @@ AS
    IS LANGUAGE JAVA NAME 
    'uk.ac.ebi.orchem.convert.ConvertMolecule.molfileToSmiles(oracle.sql.CLOB) return oracle.sql.CLOB ';
 
-   FUNCTION SmilesToMolfile (smiles clob)
+
+   FUNCTION SmilesToMolfileJava (smiles clob, gen_coords varchar2, use_bond_type_4 varchar2)
    RETURN CLOB
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.convert.ConvertMolecule.smilesToMolfile(oracle.sql.CLOB) return oracle.sql.CLOB ';
+   'uk.ac.ebi.orchem.convert.ConvertMolecule.smilesToMolfile(oracle.sql.CLOB, java.lang.String, java.lang.String) return oracle.sql.CLOB ';
+
+   -- workaround default value
+   FUNCTION SmilesToMolfile (smiles clob, gen_coords varchar2:='N',use_bond_type_4 VARCHAR2:='N')
+   RETURN CLOB
+   IS BEGIN return SmilesToMolfileJava (smiles,gen_coords,use_bond_type_4); END;
+
+
 
    FUNCTION molfileToJpeg (molfile clob, hsize number, vsize number)
    RETURN BLOB

@@ -102,22 +102,23 @@ public class DatabaseAccess {
      * @param queryType see {@link uk.ac.ebi.orchem.Utils}
      * @param conn db connection
      * @param strictStereo Y or N to indicate match for stereoisomerism
+     * @param exact Y or N to indicate exact match (identiry search)
      * @param idList list of IDs to search within only
      * @return list of {@link uk.ac.ebi.orchem.bean.OrChemCompound}
      * @throws SQLException
      * @throws ClassNotFoundException
      */
      public List<OrChemCompound> substructureSearch
-     (String userQuery, String queryType, OracleConnection conn,String strictStereo,List<Integer> idList) 
+     (String userQuery, String queryType, OracleConnection conn,String strictStereo,String exact,List<Integer> idList) 
      throws SQLException, ClassNotFoundException {
 
         String query=null;
 
         if (idList==null)  {
-            query= "select id, mol_file from table(orchem_subsearch.search(userquery=>?,input_type=>?, strict_stereo_yn=>?))";
+            query= "select id, mol_file from table(orchem_subsearch.search(userquery=>?,input_type=>?, strict_stereo_yn=>?, exact_yn=>?))";
         }
         else {
-            query= "select id, mol_file from table(orchem_subsearch.SEARCHLIMITEDSET(userquery=>?, input_type=>?, strict_stereo_yn=>?, id_list=>?))";
+            query= "select id, mol_file from table(orchem_subsearch.SEARCHLIMITEDSET(userquery=>?, input_type=>?, strict_stereo_yn=>?, exact_yn=>?,id_list=>?))";
         }
         
         conn.setDefaultRowPrefetch(1); 
@@ -129,11 +130,12 @@ public class DatabaseAccess {
         pstmt.setCLOB(1, getCLOB (userQuery,conn));  //Do not use setString ! Works for small queries, but ORA-01460 when > 4000
         pstmt.setString(2, queryType); 
         pstmt.setString(3, strictStereo); 
+        pstmt.setString(4, exact); 
 
         if (idList!=null)  {
             oracle.sql.ArrayDescriptor descrip = oracle.sql.ArrayDescriptor.createDescriptor("COMPOUND_ID_TABLE",conn);
             oracle.sql.ARRAY a = new oracle.sql.ARRAY(descrip, conn, idList.toArray());
-            pstmt.setArray(4,a);
+            pstmt.setArray(5,a);
         }
 
         ResultSet res = pstmt.executeQuery();

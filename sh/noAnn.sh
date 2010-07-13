@@ -4,13 +4,19 @@
 # How to use this script
 #  copy over the CDK directory to some /tmp/ dir
 #  set Java env to 1.5
-#  make a fresh CDK (git) 
 #  navigate to the src/main folder
 #  uncomment step1 below
 #  from src/main, call this script so it runs step1
 #      ( FYI: step1 replaces 1.6 @Test stuff with blanks)
 #  when finished, continue below
 << step1
+find . -name "*.java" -type f | while read filename
+do
+  echo file found $filename
+  sed 's/@Override*//g' < $filename > ${filename}.modified
+  mv ${filename}.modified $filename    # omit this line if you want to keep both versions
+done
+
 find . -name "*.java" -type f | while read filename
 do
   echo file found $filename

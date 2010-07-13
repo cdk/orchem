@@ -34,8 +34,8 @@ AS
    FUNCTION search (query_key integer, 
                     topN integer:=null, 
                     force_full_scan varchar2:='Y',
-                    strict_stereo_yn VARCHAR2:='N'
-                   ) 
+                    strict_stereo_yn VARCHAR2:='N',
+                    exact_yn VARCHAR2:='N') 
    RETURN  orchem_compound_list
    PIPELINED;
 
@@ -65,10 +65,10 @@ AS
   /*___________________________________________________________________________
    Procedure to get a WHERE clause for a particular user query
    ___________________________________________________________________________*/
-   FUNCTION getWhereClause (query_key number, query_idx number)
+   FUNCTION getWhereClause (query_key number, query_idx number, exact_yn VARCHAR2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.getWhereClause (java.lang.Integer, java.lang.Integer) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.getWhereClause (java.lang.Integer, java.lang.Integer, java.lang.String) return java.lang.String ';
 
 
   /*____________________________________________________________________________
@@ -133,10 +133,10 @@ AS
   /*___________________________________________________________________________
    Procedure to invoke graph ismorphism check between query and candidate
    ___________________________________________________________________________*/
-   FUNCTION isomorphism (query_key number, query_idx number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2, strict_stereo_yn varchar2)
+   FUNCTION isomorphism (query_key number, query_idx number, compoundId varchar2, atoms clob, bonds clob, debugYN varchar2, strict_stereo_yn varchar2, exact_yn varchar2)
    RETURN VARCHAR2
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isomorphismCheck(java.lang.Integer,java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String, java.lang.String) return java.lang.String ';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.isomorphismCheck(java.lang.Integer,java.lang.Integer,java.lang.String,java.sql.Clob,java.sql.Clob,java.lang.String, java.lang.String, java.lang.String) return java.lang.String ';
 
 
   /*___________________________________________________________________________
@@ -220,6 +220,7 @@ AS
                  ,l_candidate.bonds               
                  ,'N'            
                  ,l_candidate.strict_stereo_yn
+                 ,l_candidate.exact_yn
              );
              PIPE ROW (retval);
 
@@ -255,7 +256,8 @@ AS
    FUNCTION search (query_key integer, 
                     topN integer:=null, 
                     force_full_scan varchar2:='Y',
-                    strict_stereo_yn VARCHAR2:='N'
+                    strict_stereo_yn VARCHAR2:='N',
+                    exact_yn VARCHAR2:='N'
                    ) 
    RETURN  orchem_compound_list
    PIPELINED
@@ -292,7 +294,7 @@ AS
        FOR qIdx in 0..(numOfQueries-1) LOOP
            
            --(2)  
-           whereClause := getWhereClause (query_key, qIdx );       
+           whereClause := getWhereClause (query_key, qIdx, exact_yn );       
     
            --(3)
            /* Note the two hints below. The FULL hint is to force a full table
@@ -326,6 +328,7 @@ AS
            '             , s.bonds                           ' ||
            '             ,''N'' '                              ||  
            '             ,'''||strict_stereo_yn||''''          ||  
+           '             ,'''||exact_yn||''''          ||  
            '              from  orchem_fingprint_subsearch s ' ||
            '              where 1=1                          ' ||
                          whereClause                           ||

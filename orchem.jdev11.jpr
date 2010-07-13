@@ -98,6 +98,9 @@
    <hash n="oracle.jdeveloper.compiler.OjcConfiguration">
       <value n="compiler.name" v="Ojc"/>
       <list n="copyRes">
+         <string v=".owl"/>
+         <string v=".set"/>
+         <string v=".rdf"/>
          <string v=".lst"/>
          <string v=".gif"/>
          <string v=".GIF"/>
@@ -428,7 +431,7 @@
             <value n="programArguments" v=""/>
             <value n="runActiveFile" v="true"/>
             <url n="runDirectoryURL" protocol="file" path="/tmp/"/>
-            <url n="targetURL" path="src/uk/ac/ebi/orchem/scratch/SMARTStest.java"/>
+            <value n="targetURL"/>
             <value n="VMName" v="hotspot"/>
          </hash>
          <hash n="Load Unit test data">

@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>OrChem: upgrading to a later version of Orchem</title>
+    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+  </head>
+  <body>
+    <br>
+    <img src="logo.small.jpg"></img>
+    <h1>Upgrading to a newer release </h1> 
+
+    <div class="main">
+      <a href="index.html">Back to main page</a>
+      <table width="70%" border="0" cellspacing="10" cellpadding="10">
+        <tr>
+          <td>
+            <h3>Installing a newer version</h3>
+             After installing Orchem you will have a number of Orchem database objects created inside the Oracle server.
+             These consist of tables, packages, indexes, types, sequences and a lot of Java classes.
+             If you want to upgrade to a newer version of Orchem, first you should get rid of the existing Orchem database objects.
+             This page gives some suggestions how you could do this.
+            <h4>Option 1 - drop/recreate entire Orchem schema and reinstall</h4>
+             If you installed Orchem into its own schema, you (or your DBA) can drop this schema and recreate it.
+             It will then be empty, and you can commence <a href="installation.html">installation</a> from scratch with a blank schema, and after
+             installation run the fingerprinting process.
+            <br><br>
+             Alternatively, you could create a new schema, install the latest version of Orchem in there, fingerprint the compounds and then
+             switch your application to this new schema and afterwards drop the old one. This would give least interruption to any users.
+
+            <h4>Option 2 - drop/recreate database objects and reinstall</h4>
+             There is a script available in the disribution called <b>cleanup.sql</b> that will drop all the Orchem specific objects from the schema,
+            leaving any other database objects intact.
+            You can use this script if you did not install Orchem into its own schema (which excluded option 1), or if you don't want to drop the existing schema/account.<br>
+            In case you have any other (non Orchem) Java classes loaded into the schema, check cleanup.sql beforehand.
+            It lists the Java package prefixes of classes that are going to be dropped, double check that.
+            <P>
+            
+            Running the script with Sql*Plus is straightforward:
+<PRE>            
+            $ sqlplus orchem/orchem@marx
+
+              >> SQL*Plus: Release 11.1.0.6.0 - Production on Tue May 19 17:48:27 2009
+              >> Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+    
+              >> @cleanup
+</PRE>
+
+             After the cleanup has finished, you can commence <a href="installation.html">installation</a> and after
+             installation run the fingerprinting.
+             <P>
+            
+            <br></br>
+            <a href="index.html">Back to main page</a>
+            <br></br>
+        </tr>
+	
+	
+      </table>
+    </div>
+
+    
+  </body>
+</html>

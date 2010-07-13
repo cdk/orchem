@@ -18,7 +18,10 @@ AS
      ,bonds               clob
      ,debug_yn            varchar2(1)
      ,strict_stereo_yn    varchar2(1)
+     ,exact_yn            varchar2(1)
+
    );
+   
    FUNCTION verify_orchem (p_primary_key varchar2) RETURN CLOB;
    FUNCTION to_hex( p_dec IN NUMBER ) RETURN VARCHAR2;
    FUNCTION to_bin( p_dec IN NUMBER ) RETURN VARCHAR2;

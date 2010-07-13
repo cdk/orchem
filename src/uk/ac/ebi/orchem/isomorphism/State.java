@@ -140,10 +140,8 @@ public abstract class State {
             tbond.getStereo() != null &&
             // The E Z stereo types are not useful here .. they can get set for Benzene for example. 
             // Chose to ignore.
-            qBond.getStereo() != IBond.Stereo.E_OR_Z &&
-            qBond.getStereo() != IBond.Stereo.E_Z_BY_COORDINATES &&
-            tbond.getStereo() != IBond.Stereo.E_OR_Z &&
-            tbond.getStereo() != IBond.Stereo.E_Z_BY_COORDINATES &&
+            qBond.getStereo() != IBond.Stereo.E_OR_Z && qBond.getStereo() != IBond.Stereo.E_Z_BY_COORDINATES &&
+            tbond.getStereo() != IBond.Stereo.E_OR_Z && tbond.getStereo() != IBond.Stereo.E_Z_BY_COORDINATES &&
             qBond.getStereo() != tbond.getStereo()) {
             return false;
         }

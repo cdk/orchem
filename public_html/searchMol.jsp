@@ -95,6 +95,15 @@
                                                                 list="#{'N':'N' ,'Y':'Y'}" required="true" size="1"/>
                                                    </td>
                                                 </tr>
+ 
+                                                <tr>
+                                                   <td>Exact match ?</td>
+                                                   <td>
+                                                      <s:select name="wsr.exactYN"
+                                                                value="%{#session.wsr.exactYN}"
+                                                                list="#{'N':'N' ,'Y':'Y'}" required="true" size="1"/>
+                                                   </td>
+                                                </tr>
                                                  
                                                 <tr>
                                                    <td></td>

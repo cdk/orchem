@@ -91,7 +91,7 @@ public class SMARTS_Search extends SubstructureSearch {
 
         IAtomContainer hStrippedAtc =
             new NNMolecule(AtomContainerManipulator.removeHydrogens(qat));
-        return whereClauseFromFingerPrint(hStrippedAtc, debugYN);
+        return whereClauseFromFingerPrint(hStrippedAtc, debugYN, "N",-1);
     }
 
 

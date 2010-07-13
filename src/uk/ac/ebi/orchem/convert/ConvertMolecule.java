@@ -64,7 +64,8 @@ import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
 import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
-import org.openscience.jchempaint.renderer.generators.ExternalHighlightGenerator;
+import org.openscience.jchempaint.renderer.generators.ExternalHighlightAtomGenerator;
+import org.openscience.jchempaint.renderer.generators.ExternalHighlightBondGenerator;
 import org.openscience.jchempaint.renderer.generators.HighlightAtomGenerator;
 import org.openscience.jchempaint.renderer.generators.HighlightBondGenerator;
 import org.openscience.jchempaint.renderer.generators.IGenerator;
@@ -93,7 +94,8 @@ public class ConvertMolecule {
         generators.add(new ExtendedAtomGenerator());
         generators.add(new LonePairGenerator());
         generators.add(new RadicalGenerator());
-        generators.add(new ExternalHighlightGenerator());
+        generators.add(new ExternalHighlightAtomGenerator());
+        generators.add(new ExternalHighlightBondGenerator());
         generators.add(new HighlightAtomGenerator());
         generators.add(new HighlightBondGenerator());
         generators.add(new SelectAtomGenerator());
@@ -101,7 +103,6 @@ public class ConvertMolecule {
         generators.add(new MergeAtomsGenerator());
         generators.add(new PhantomBondGenerator());
     }
-
 
     /**
      * Convert Molfile to Smiles
@@ -121,7 +122,6 @@ public class ConvertMolecule {
             if (molfile != null) {
                 NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                 SmilesGenerator sg = new SmilesGenerator();
-                //sg.setUseAromaticityFlag(true);
                 fixCarbonHCount(molecule);
                 String smiles = sg.createSMILES(molecule);
                 psmiles = Utils.StringToClob(smiles);
@@ -140,25 +140,37 @@ public class ConvertMolecule {
      * Convert Smiles to Molfile
      *
      * @param Smiles
+     * @param generateCoords Y/N (overhead, can be expensive to calc coords!)
      * @return
      * @throws Exception
      */
-    public static CLOB smilesToMolfile(CLOB Smiles) throws Exception {
+    public static CLOB smilesToMolfile(CLOB Smiles, String generateCoords, String useBondType4 ) throws Exception {
         CLOB cmolfile = null;
         try {
             String smiles = Utils.ClobToString(Smiles);
             if (smiles != null) {
                 if (!smiles.trim().equals("")) {
                     SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-                    StructureDiagramGenerator sdg = new StructureDiagramGenerator();
                     IMolecule molecule = sp.parseSmiles(smiles);
+                    
+                    // why are valencies being set???
+                    for(IAtom atom : molecule.atoms()){
+                        atom.setValency(null);
+                    }
+
+                    if (generateCoords.equals("Y")) {
+                        StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+                        sdg.setMolecule(molecule);
+                        sdg.generateCoordinates();
+                        molecule = sdg.getMolecule();
+                    }
 
                     StringWriter out = new StringWriter();
-                    sdg.setMolecule(molecule);
-                    sdg.generateCoordinates();
-                    molecule = sdg.getMolecule();
                     MDLWriter mdlWriter = new MDLWriter(out);
                     
+                    if (useBondType4.equals("Y"))
+                        mdlWriter.setWriteAromaticBondTypes(true);
+
                     mdlWriter.setWriter(out);
                     mdlWriter.write(molecule);
                     mdlWriter.close();
@@ -203,9 +215,6 @@ public class ConvertMolecule {
                 for (IAtom atom : molecule.atoms()) {
                     atom.setValency(null); // otherwise ugly picture
                 }
-
-                //StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
-                //gen2d.generateCoordinates();
 
                 AtomContainerRenderer renderer = new AtomContainerRenderer(generators, new AWTFontManager(),false);
 

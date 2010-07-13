@@ -133,7 +133,7 @@ public class SubstructureSearchParallel extends SubstructureSearch {
     }
 
     /**
-     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String)}
+     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String,String,int)}
      * <BR>
      * Method scope=public -> used as Oracle Java stored procedure
      * 
@@ -143,8 +143,8 @@ public class SubstructureSearchParallel extends SubstructureSearch {
      * @throws CDKException
      * @throws SQLException
      */
-    public static String getWhereClause(Integer queryKey, Integer queryIdx) throws CDKException, SQLException {
-        return whereClauseFromFingerPrint(queries.get(queryKey).get(queryIdx).mol, "N" );
+    public static String getWhereClause(Integer queryKey, Integer queryIdx,String exactYN) throws CDKException, SQLException {
+        return whereClauseFromFingerPrint(queries.get(queryKey).get(queryIdx).mol, "N",exactYN,queries.get(queryKey).get(queryIdx).atomCount );
     }
 
 }

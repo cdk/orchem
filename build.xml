@@ -140,7 +140,8 @@
         <echo message="$project.classpath"/>
         <junit maxmemory="1024m" fork="no">
            <classpath refid="project.classpath" />
-           <formatter type="xml" usefile="false" />
+           <formatter type="brief" usefile="false" />
+           <!--formatter type="xml" usefile="false" /-->
            <test name="uk.ac.ebi.orchem.test.TestSubstructureSearch" />
         </junit>
 

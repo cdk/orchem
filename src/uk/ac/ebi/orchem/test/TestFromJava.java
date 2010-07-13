@@ -22,7 +22,7 @@ public class TestFromJava {
      BLOB cjpeg=null;
      System.out.println("Begin Test");
      csmiles= Utils.StringToClob("O=C(N)CCC1NC(=O)C(NC(=O)C(N5C=CC(NC(=O)C(NC(=O)C(NC1(=O))CC3=CNC=2C=CC=CC=23)CC=4C=CC=CC=4)C5(=O))CC(C)C)CCSC");
-     cmolfile=ConvertMolecule.smilesToMolfile(csmiles);
+     cmolfile=ConvertMolecule.smilesToMolfile(csmiles,"N","N");
      //cjpeg=ConvertMolecule.molfileToJpeg(cmolfile,200,200);
      System.out.println(cjpeg.length());
      /* begin test*/

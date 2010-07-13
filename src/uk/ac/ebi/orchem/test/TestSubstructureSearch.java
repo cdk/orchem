@@ -32,18 +32,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import java.util.Map;
-
-import oracle.jdbc.driver.OracleConnection;
-
 import org.openscience.cdk.exception.CDKException;
-
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
-
-import org.openscience.cdk.nonotify.NNMolecule;
-
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.bean.OrChemCompound;
@@ -96,7 +87,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
 
             /* part 1: do a substructure search using the fingerprinter */            
             System.out.println("Fingerprint substructure search:");
-            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(mdl, "MOL", conn, strictStereo, idList);
+            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(mdl, "MOL", conn, strictStereo,"N", idList);
             System.out.println("results # : "+fprintSearchResults.size());
             Collections.sort(fprintSearchResults);
             for (OrChemCompound oc : fprintSearchResults) {
@@ -187,7 +178,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
         System.out.println("testing SMILES "+SMILES);
 
         System.out.println("SMILES based substructure search:");
-        List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(SMILES, "SMILES", conn, strictStereo, idList);
+        List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(SMILES, "SMILES", conn, strictStereo,"N", idList);
         System.out.println("results # : "+fprintSearchResults.size());
         Collections.sort(fprintSearchResults);
         for (OrChemCompound oc : fprintSearchResults) {
@@ -200,7 +191,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     /*
      * Start of Junit test methods 
      */
-
+     
     public void testCompoundID_1() throws Exception {
         fingerprintVersusFullScan(1,"N",null);
     }
@@ -427,6 +418,67 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
         smilesTest("CP", "N", null, 6);
         smilesTest("CP[H]", "N", null, 2);
    }
+
+
+
+    /**
+     * Tests searching for a compound itself, using exact="Y".
+     * This requires the Inchi function to work, as the Inchi is used to verify the result(s)
+     * @throws Exception
+     */
+    public void testExactSearch() throws Exception {
+        PreparedStatement pStmt = conn.prepareStatement
+            ("select id, molfile from orchem_compound_sample " +
+            " where id between 1 and 40"); // 20 and 21 have stereo on hydrogens.. 
+        PreparedStatement inchiStmt = conn.prepareStatement
+            ("select id, orchem_convert.molfiletoinchi(molfile) as inchi " +
+            " from orchem_compound_sample where id = ?");
+
+        ResultSet res = pStmt.executeQuery();
+        System.out.println("\n______________________________________________");
+        while (res.next()) {
+            String id = res.getString("id");
+
+            //Create inchi for query
+            inchiStmt.setString(1, id);
+            ResultSet resInchi = inchiStmt.executeQuery();
+            String inChiQuery="";
+            if (resInchi.next()) {
+                inChiQuery = resInchi.getString("inchi");
+            }
+            resInchi.close();
+
+            System.out.print("\ndb id is "+id);
+            String mdl = res.getString("molfile");
+            System.out.print(" exact search (via substructure search) :");
+            List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(mdl, "MOL", conn, "Y","Y", null);            
+            
+            for (OrChemCompound result : fprintSearchResults ) {
+                if (result.getId().equals(id)) {
+                    System.out.print("found self, id "+id);
+                }
+                else {
+                    System.out.print("found id "+result.getId()+" ... check InChI's ");
+                    inchiStmt.setString(1, result.getId());
+                    resInchi = inchiStmt.executeQuery();
+                    String inChiDbcompound="";
+                    if (resInchi.next()) {
+                        inChiDbcompound = resInchi.getString("inchi");
+                    }
+                    resInchi.close();
+                    System.out.print("\n"+inChiQuery);
+                    System.out.print("\n"+inChiDbcompound);
+                    assertEquals("Inchi should match ",inChiQuery, inChiDbcompound);
+                }
+                System.out.println("");
+            }
+        }
+        res.close();
+        pStmt.close();
+    }
+
+
+
 
 }
 

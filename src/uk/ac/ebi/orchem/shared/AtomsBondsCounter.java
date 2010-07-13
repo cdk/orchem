@@ -55,6 +55,7 @@ public class AtomsBondsCounter {
     public static final String C_COUNT = "cc";
     public static final String P_COUNT = "pc";
     public static final String SATURATED_COUNT = "satc";
+    public static final String ATOM_COUNT = "atc";
 
 
     /**
@@ -75,6 +76,7 @@ public class AtomsBondsCounter {
         Integer molTripleBondCount = 0;
         Integer molAromBondCount = 0;
 
+        Integer molAtomCount =0;
         Integer molSCount = 0;
         Integer molOCount = 0;
         Integer molNCount = 0;
@@ -109,6 +111,7 @@ public class AtomsBondsCounter {
             throw(new RuntimeException(e));
         }
 
+        molAtomCount = iac.getAtomCount();
         for (int i = 0; i < iac.getAtomCount(); i++) {
             atom = iac.getAtom(i);
             if (atom.getSymbol().equals("S"))
@@ -158,8 +161,7 @@ public class AtomsBondsCounter {
         result.put(P_COUNT, molPCount);
 
         result.put(SATURATED_COUNT, satCount);
-        
+        result.put(ATOM_COUNT, molAtomCount);
         return result;
     }
-
 }

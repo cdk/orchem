@@ -60,7 +60,7 @@
                    In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
                  <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will return IDs but no structures</li>
             </ul>     
-            <h5>Examples</h5>
+            <h4>Examples</h5>
             <hr align="left" style="width:50%">
 <pre>
 select * from 
@@ -136,6 +136,7 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  DEBUG_YN                       VARCHAR2                IN     DEFAULT
  RETURN_IDS_ONLY_YN             VARCHAR2                IN     DEFAULT
  STRICT_STEREO_YN               VARCHAR2                IN     DEFAULT
+ EXACT_YN                       VARCHAR2                IN     DEFAULT
 
 </pre>
             The search function in orchem_subsearch performs a <b>non parallelized</b> substructure 
@@ -149,6 +150,8 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
                      In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
                  <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will only return ID's, not structures</li>
                  <li>STRICT_STEREO_YN: (optional) choose 'Y' or 'N'. If 'Y', stereoisomerism is part of the isomorphism check.</li>
+                 <li>EXACT_YN: (optional) choose 'Y' or 'N'. See <a href="using_orchem.html#exactsearch">exact searching</a>.</li>
+ 
             </ul>     
 
             The substructure search is 'pipelined'. This means that results come back as soon as they are 
@@ -157,7 +160,7 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
 <pre>
 SQL> set arraysize 1
 </pre>
-            <h5>Examples</h5>
+            <h4>Examples</h5>
             <hr align="left" style="width:60%">
 <pre>
 select * from 
@@ -202,7 +205,7 @@ FUNCTION SETUP RETURNS NUMBER(38)
             the extra 'preparation' step is necessary. The reward may be in the performance: the parallel
             function can run significantly faster, but not always (!) depending on many things.
 
-            <h5>Examples</h5>
+            <h4>Examples</h5>
             <hr align="left" style="width:50%">
             <div style="width:50%">
             
@@ -248,16 +251,35 @@ SQL> select id from table (orchem_subsearch_par.search(:key,100) )
             and thus how much can be fingerprinted. Again, this type of search is 'pipelined': results come back as soon as they are available. 
             To see this effect in SQL*plus you should set arraysize 1, or in JDBC use an OracleConnection and use setDefaultRowPrefetch(1);
       
-           <h5>Example</h5>
+           <h4>Example</h5>
            <hr align="left" style="width:50%">
 <pre>
-select * from table ( orchem_smarts_search.search('N1CC[O,N]CC1') )
+ select * from table ( orchem_smarts_search.search('N1CC[O,N]CC1') )
 </pre>
 
             <hr align="left" style="width:50%">
             <br></br>
             <br></br>
+
+         <a name="exactsearch" />
+          <h3>Exact searching</h3>
+          In OrChem, exact searching is available as a specific case of <a href="using_orchem.html#subsearch">substructure searching</a>.<br>
+          If the substructure search argument <b>exact_yn</b> is set to "Y" (meaning yes, default is "N" (no)), then only the structures are returned
+          that are equal to the query structure. The InChI of the query is compared to that of the database compound to determine equality. Therefore to make the
+          exact search work, you will need to set up the <a href="installation.html#inchi_file"/>InChi feature</a> in Orchem.
+          <br><br>
+          <h4>Example exact query</h5>
+          <hr align="left" style="width:50%">
+<pre>
+select orchem_subsearch.search( 'O=C(OC(C)(C)C(Cl)(Cl)Cl)N1C3=CC=CC=C3(N=C1S(=O)CC2=NC=CC(=C2C)SCC)'
+                               ,'SMILES'
+                               , exact_yn=>'Y') 
+from dual
+</pre>
       
+            <hr align="left" style="width:50%">
+            <br></br>
+            <br></br>
 
           <a name="rgroup">
           <h3>Substructure searching with RGroup Queries</h3>

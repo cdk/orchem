@@ -18,85 +18,163 @@
             <h3>Introduction</h3>
             Orchem contains functionality to convert between different chemical notations. 
             It uses the the ConvertMolecule.java class located in Java package 'uk.ac.ebi.orchem.convert'.
-            This class includes method to convert:
+            This class includes methods to convert:
             <ul>
                 <li>SMILES &rarr; Molfile</li>
                 <li>Molfile &rarr; SMILES</li>
                 <li>Molfile &rarr; Jpeg (using JChemPaint)</li>
-		<li>Molfile &rarr; InChi</li>
+                <li>Molfile &rarr; InChi</li>
             </ul>
             You interact with these classes through PL/SQL packages that 
             wrap the classes as Java stored functions. These functions will be 
             explained in the following sections and some example queries will be given.
             <br></br>
+
+
+
+
+
             <hr align="left">
             <h3>Smiles To Molfile </h3>
-            Package.function: orchem_convert.SmilesToMolfile.<br></br>
-            The function SmilesToMolfile converts a Smiles to Molfile string:
+            Package.function: ORCHEM_CONVERT.SMILESTOMOLFILE.<br></br>
+            The function SMILESTOMOLFILE converts a Smiles to Molfile string:
             <ul>
-                 <li>SMILES (CLOB): a string SMILES </li> 
-                 <li>RETURN (CLOB): a string MDL mol file converted </li> 
+                 <li>Input : SMILES (CLOB): a SMILES pattern</li> 
+                <li>input : gen_coords (VARCHAR2): <b>optional</b>, indicate with 'Y' or 'N' (default) if you want 2D coordinates generated for the molecule. 
+                     Generating coordinates can be relatively expensive, especially for large structures. </li> 
+                 <li>Input : USE_BOND_TYPE_4 (VARCHAR2): <b>optional</b>, indicate with 'Y' or 'N' (default) if you want aromatic bonds 
+                     in the SMILES preserved as MOL file bond type "4". This is relevant if you do not Kekule notation, see the example below for c1ccccc1.
+                     With USE_BOND_TYPE_4=>'N', aromaticity is lost in the MOLfile output as the bond types become "1" (single). </li> 
+                 <li>Output: CLOB, an MDL mol file</li> 
                  <span style="font-style:italic"> 
             </ul>     
-            <h5>Examples</h5>
+            <h5>Example</h5>
             <hr align="left">
 <pre>
-select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('CC1CCCC1')) as smi from dual
+
+select orchem_convert.smilestomolfile('c1ccccc1',USE_BOND_TYPE_4=>'Y') from dual
+
+OUTPUT:
+-------
+
+  CDK     0715101546
+
+  6  6  0  0  0  0  0  0  0  0999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+  2  1  4  0  0  0  0
+  3  2  4  0  0  0  0
+  4  3  4  0  0  0  0
+  5  4  4  0  0  0  0
+  6  5  4  0  0  0  0
+  6  1  4  0  0  0  0
+M  END
+
+
+select orchem_convert.smilestomolfile('c1ccccc1',USE_BOND_TYPE_4=>'N') from dual
+OUTPUT
+------
+
+  CDK     0715101546
+
+  6  6  0  0  0  0  0  0  0  0999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+  2  1  1  0  0  0  0
+  3  2  1  0  0  0  0
+  4  3  1  0  0  0  0
+  5  4  1  0  0  0  0
+  6  5  1  0  0  0  0
+  6  1  1  0  0  0  0
+M  END
+
 </pre>
             <br></br>
             <hr align="left">
             <h3>Molfile To Smiles</h3>
-            Package.function: orchem_convert.MolfileToSmiles.<br></br>
-            The function MolfileToSmiles converts a Molfile to Smiles string:
+            Package.function: ORCHEM_CONVERT.MOLFILETOSMILES.<br></br>
+            The function MOLFILETOSMILES converts a Molfile to Smiles string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL mol file</li> 
                  <li>RETURN (CLOB): a string SMILES converted </li> 
                  <span style="font-style:italic"> 
             </ul>     
-            <h5>Examples</h5>
+            <h5>Example</h5>
             <hr align="left">
 <pre>
 select orchem_convert.molfiletosmiles(orchem_convert.smilestomolfile('CC1CCCC1')) as smi from dual
+
+SMI
+--------------------------------------------------------------------------------
+CC1CCCC1
+
+Elapsed: 00:00:00.03
+
+
 </pre>
+
+
+
             <br></br>
             <hr align="left">
             <h3>Molfile To Jpeg </h3>
-            Package.function: orchem_convert.SmilesToMolfile.<br></br>
-            The function SmilesToMolfile converts a Smiles to Molfile string:
+            Package.function: ORCHEM_CONVERT.MOLFILETOJPEG.<br></br>
+            The function MOLFILETOJPEG converts a Molfile to a picture in JPEG format, using JChemPaint software.
             <ul>
                  <li>MOLFILE (CLOB): a string MDL molfile</li> 
                  <li>HSIZE (NUMBER): a numeric horizontal size</li> 
                  <li>VSIZE (NUMBER): a numeric vertical size</li> 
-                 <li>RETURN (BLOB): a Jpeg Image that contained the chemistry structure</li> 
+                 <li>RETURN (BLOB): a Jpeg Image displaying the chemical structure</li> 
                  <span style="font-style:italic"> 
             </ul>     
             <h5>For database 11g</h5>There is a <a href="https://metalink2.oracle.com/metalink/plsql/showdoc?db=Bug&id=7184929">Bug 7184929</a> regarding the fonts in Oracle Server - Version: 11.1.0.6 to 11.1.0.7<br></br>
             Implement the workaround (check Oracle Metalink Note): <a href="https://metalink2.oracle.com/metalink/plsql/f?p=130:14:9750602592382268878::::p14_database_id,p14_docid,p14_show_header,p14_show_help,p14_black_frame,p14_font:NOT,604472.1,1,1,1,helvetica">604472.1</a><br></br>
             - mkdir $ORACLE_HOME/javavm/lib/fonts<br></br>
             - cp $ORACLE_HOME/jdk/jre/lib/fonts/* $ORACLE_HOME/javavm/lib/fonts<br></br>
-            <h5>Examples</h5>
+            <h5>Example</h5>
             <hr align="left">
 <pre>
-select orchem_convert.molfiletojpeg(orchem_convert.smilestomolfile('CC1CCCC1'),256,256) as image from dual
+declare mdl clob; pic blob;
+begin
+   select molfile into mdl from orchem_compound_sample where id=42;
+   pic:=orchem_convert.MOLFILETOJPEG(mdl,800,600);
+end;
+
+RESULT pic:
 </pre>
+<img src="mol.jpg" >
+
 
             <br></br>
             <hr align="left">
             <h3>Molfile To InChi </h3>
-            Package.function: orchem_convert.MolFileToInchi.<br></br>
-            The function MolFileToInchi converts a Molfile to an InChi string:
+            Package.function: ORCHEM_CONVERT.MOLFILETOINCHI.<br></br>
+            The function MOLFILETOINCHI converts a Molfile to an InChi string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL molfile</li> 
                  <span style="font-style:italic"> 
             </ul>     
-            <h5>Examples</h5>
+            <h5>Example</h5>
             <hr align="left">
 <pre>
 select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('CC1CCCC1')) as INCHI from dual
+
+INCHI
+--------------------------------------------------------------------------------
+InChI=1S/C6H12/c1-6-4-2-3-5-6/h6H,2-5H2,1H3
+
 </pre>
             <br></br>
             <br></br>
-	    <a href="index.html">Back to main page</a>
+        <a href="index.html">Back to main page</a>
 
           </td>
         </tr>

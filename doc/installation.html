@@ -70,12 +70,12 @@ html>
       		    <li>
    		    <a name="inchi_file"/>
 
-		    <B>Server directory permissions</B><br>
-		    OrChem can generate <a href="http://www.iupac.org/inchi/">InChi</a> identifiers. If you are interested in this feature, 
-		    read on. If not, you can omit this step.<br><br>
-		    The InChi generator is a ported C-program that works with input and output files when generating the InChi.
+		    <B>InChI software and server directory permissions</B><br>
+		    OrChem can generate <a href="http://www.iupac.org/inchi/">InChI</a> identifiers. InChIs are used to for <a href="using_orchem.html#exactsearch">exact searches</a>. 
+		    If you are interested in this feature, read on. If not, you can omit this step. <br><br>
+		    The InChI generator is a ported C-program that works with input and output files when generating the InChI.
 		    In order for this to work inside the database, OrChem needs to write temporary files to an <b>existing</b> directory somewhere visible for
-		    the database server. These temporary files are deleted after the InChi generation.
+		    the database server. These temporary files are deleted after the InChI generation.
 		    <br><br>
 		    Assuming your OrChem schema is called <span style="font-style:italic">ORCHEM</span> (first argument) and your choice for an existing directory 
 		    visible on the server is <span style="font-style:italic">/var/tmp/</span> (third argument), then a DBA

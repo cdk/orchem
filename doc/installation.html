@@ -284,7 +284,7 @@ SQL> desc orchem_parameters
 </pre>
                         </li>
                         <li> The table crucially <b>needs ONE row</b>. Column COMP_TAB_NAME must contain your 
-                        compound table name, COMP_TAB_PK_COL the name of the primary key column
+                        compound table name (or combined view of multiple tables), COMP_TAB_PK_COL the name of the primary key column
                         of that table, and COMP_TAB_MOLFILE_COL the name of mol file column 
                         of that table.<br>
 			If you want to let Orchem generate InChi descriptors as explained <a href="#inchi_file">earlier</a>, you 
@@ -296,7 +296,7 @@ insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col
 </pre>
                         </li>
                         <li> Alternatively, for example if your compound data is split over more than 
-                        one table, you can define a VIEW on your compound table(s) and refer to this view  
+                        one table, you can define a <b>VIEW</b> on your compound table(s) and refer to this view  
                         in ORCHEM_PARAMETERS.
                         </li>
 

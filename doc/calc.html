@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>OrChem chemical properties</title>
+    <link rel="stylesheet" href="orchem.css" type="text/css"></link>
+  </head>
+  <body>
+    <br>	  
+    <img src="logo.small.jpg"></img>
+    <h1>Generating chemical properties</h1>               
+    <div class="left" style="width:75%">
+      <a href="index.html">Back to main page</a>
+       <br>
+      <table width="70%" border="0" cellspacing="10" cellpadding="10">
+        <tr>
+          <td>
+            <h3>Calculating chemical properties with OrChem</h3>
+                OrChem can calculate chemical properties by invoking the CDK. 
+                Functions to do this are located in OrChem's PL/SQL package 'orchem_calculate', they take in molecule data 
+                and an input type (either 'SMILES' or 'MOL').
+                There's also an option to have hydrogens added to the molecular input before calculating the property. Examples below. 
+                <PRE>
+> desc orchem_calculate
+
+    FUNCTION CHARGE RETURNS NUMBER
+     Argument Name                  Type                    In/Out Default?
+     ------------------------------ ----------------------- ------ --------
+     MOLECULE                       CLOB                    IN
+     INPUT_TYPE                     VARCHAR2                IN
+
+    FUNCTION FORMULA RETURNS VARCHAR2
+     Argument Name                  Type                    In/Out Default?
+     ------------------------------ ----------------------- ------ --------
+     MOLECULE                       CLOB                    IN
+     INPUT_TYPE                     VARCHAR2                IN
+     ADD_HYDROGENS                  VARCHAR2                IN
+
+    FUNCTION MASS RETURNS NUMBER
+     Argument Name                  Type                    In/Out Default?
+     ------------------------------ ----------------------- ------ --------
+     MOLECULE                       CLOB                    IN
+     INPUT_TYPE                     VARCHAR2                IN
+     ADD_HYDROGENS                  VARCHAR2                IN
+
+                </PRE>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>orchem_calculate.formula</h3>
+            Generates the chemical formula for a SMILES or Molfile, with or without hydrogens added. 
+            <br>Examples:
+			<PRE>		    
+
+> select orchem_calculate.formula('O5CCN(CC=3C=1C=CC=CC=1C(=C2C=CC=CC2=3)CN4CCOCC4)CC5','SMILES','Y') as F from dual;
+
+  F
+  -----------------------------------------------------------------------------------------------------------------------------------
+  C24H28N2O2
+  
+ 
+> select orchem_calculate.formula('O5CCN(CC=3C=1C=CC=CC=1C(=C2C=CC=CC2=3)CN4CCOCC4)CC5','SMILES','N') as F from dual;
+
+  F
+  -----------------------------------------------------------------------------------------------------------------------------------
+  C24N2O2
+  
+			</PRE>
+
+
+            <h3>orchem_calculate.mass</h3>
+            Generates the mass for a SMILES or Molfile, with or without hydrogens added. 
+            <br>Examples:
+
+			<PRE>		    
+> select orchem_calculate.formula('C','SMILES','Y') F, orchem_calculate.mass('C','SMILES','Y') M from dual;
+
+  F                             M
+  -------------------- ----------
+  CH4                  16.0424989
+  
+> select orchem_calculate.formula('C','SMILES','N') F, orchem_calculate.mass('C','SMILES','N') M from dual;
+  
+  F                             M
+  -------------------- ----------
+  C                    12.0107359
+			</PRE>
+
+
+            <h3>orchem_calculate.charge</h3>
+            Generates the charge for a SMILES or Molfile.<br>Examples:
+			<PRE>		    
+> select orchem_calculate.charge('[O-]C([N+])C([N+])C','SMILES')  C from dual;
+
+         C
+----------
+         1
+
+
+> select id, orchem_calculate.charge(molfile,'MOL') as chrg 
+  from orchem_compound_sample 
+  where   orchem_calculate.charge(molfile,'MOL') != 0;
+
+        ID       CHRG
+---------- ----------
+      1051          2
+      1052          2
+      1053          2
+      1055          2
+      1056          2
+      1057         -1
+      ........
+      
+		</PRE>		    
+
+        <br></br>
+        <br></br>
+        <a href="index.html">Back to main page</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+     
+
+  </body>
+</html>
+
+
+
+
+

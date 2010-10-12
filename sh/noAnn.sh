@@ -3,6 +3,11 @@
 
 # How to use this script
 #  copy over the CDK directory to some /tmp/ dir
+#  edit build file to refer to 1.5 in lines 
+#    -259,7 
+#      debug="${debug}" deprecation="${deprecation}" source="1.5"/>
+#    -375,7 +375,7 @@
+#      debug="${debug}" deprecation="${deprecation}" target="1.5" source="1.5">
 #  set Java env to 1.5
 #  navigate to the src/main folder
 #  uncomment step1 below
@@ -44,7 +49,8 @@ step1
 #  comment step1 again, now uncomment step2
 #  navigate to cdk main directory
 #  run: ant clean dist-all
-#  make fixes if Test remove gave problems
+#  make fixes if Test annotation removal gave problems, run again ant dist-all
+#    known trouble makers StereoTool, AtomTypeCharges, AtomicNumberDifferenceDescriptor.java, MannholdLogPDescriptor.java   
 #  go to dist/jar dir
 #  call this script, with step2 uncommented.
 #<< step2

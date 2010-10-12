@@ -1857,7 +1857,7 @@ public class SmartsParser
 		for (int i = 0; i < container.getAtomCount(); i++)
 		{
 			IAtom at = container.getAtom(i);			
-			at.setValency(at.getHydrogenCount());
+			at.setValency(at.getImplicitHydrogenCount());
 		}
 		
 		for (int f = 0; f < container.getBondCount(); f++)

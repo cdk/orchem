@@ -43,6 +43,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.Properties;
+
 import javax.imageio.ImageIO;
 
 import oracle.sql.BLOB;
@@ -55,7 +57,8 @@ import org.openscience.cdk.Molecule;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.io.MDLWriter;
+import org.openscience.cdk.io.MDLV2000Writer;
+import org.openscience.cdk.io.listener.PropertiesListener;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
@@ -166,10 +169,15 @@ public class ConvertMolecule {
                     }
 
                     StringWriter out = new StringWriter();
-                    MDLWriter mdlWriter = new MDLWriter(out);
+                    MDLV2000Writer mdlWriter = new MDLV2000Writer(out);
                     
-                    if (useBondType4.equals("Y"))
-                        mdlWriter.setWriteAromaticBondTypes(true);
+                    if (useBondType4.equals("Y")) {
+                        Properties prop = new Properties();
+                        prop.setProperty("WriteAromaticBondTypes","true");
+                        PropertiesListener listener = new PropertiesListener(prop);
+                        mdlWriter.addChemObjectIOListener(listener);
+                        mdlWriter.customizeJob();
+                    }
 
                     mdlWriter.setWriter(out);
                     mdlWriter.write(molecule);
@@ -333,9 +341,9 @@ public class ConvertMolecule {
             bondCount = mol.getBondOrderSum(atom);
             int correction = (int)bondCount - (atom.getCharge() != null ? atom.getCharge().intValue() : 0);
             if (atom.getSymbol().equals("C")) {
-                atom.setHydrogenCount(4 - correction);
+                atom.setImplicitHydrogenCount(4 - correction);
             } else if (atom.getSymbol().equals("N")) {
-                atom.setHydrogenCount(3 - correction);
+                atom.setImplicitHydrogenCount(3 - correction);
             }
         }
     }

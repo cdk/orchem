@@ -42,7 +42,7 @@ import oracle.sql.CLOB;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.Molecule;
-import org.openscience.cdk.io.MDLWriter;
+import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.iterator.IteratingMDLReader;
 
 import uk.ac.ebi.orchem.PropertyLoader;
@@ -92,7 +92,7 @@ public class LoadCompounds {
                     try {
                         Molecule m = (Molecule)object;
                         StringWriter writer = new StringWriter();
-                        MDLWriter mdlWriter = new MDLWriter(writer);
+                        MDLV2000Writer mdlWriter = new MDLV2000Writer(writer);
 
                         mdlWriter.write(m);
                         String mdl = writer.toString();

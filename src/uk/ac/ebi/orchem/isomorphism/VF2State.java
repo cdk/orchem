@@ -244,7 +244,7 @@ public class VF2State extends State {
             !(pseudoTargetAtomIndicator[targetNodeIdx])
         ) {
             int queryExplHcount = queryExplHydrogenCountBackup[queryNodeIdx];
-            if (queryExplHcount>targetAtom.getHydrogenCount()) {
+            if (queryExplHcount>targetAtom.getImplicitHydrogenCount()) {
                 return false;
             }
         }

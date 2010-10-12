@@ -149,9 +149,9 @@ public class VerifyOrchem {
             bondCount = mol.getBondOrderSum(atom);
             int correction = (int)bondCount - (atom.getCharge() != null ? atom.getCharge().intValue() : 0);
             if (atom.getSymbol().equals("C")) {
-                atom.setHydrogenCount(4 - correction);
+                atom.setImplicitHydrogenCount(4 - correction);
             } else if (atom.getSymbol().equals("N")) {
-                atom.setHydrogenCount(3 - correction);
+                atom.setImplicitHydrogenCount(3 - correction);
             }
         }
     }

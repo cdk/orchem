@@ -166,7 +166,7 @@ public class DatabaseFingerprintPersistence {
                             try {
                                 hydrogenAdder.addImplicitHydrogens(molecule,atom);
                             } catch (CDKException cdke) {
-                                atom.setHydrogenCount(99);
+                                atom.setImplicitHydrogenCount(99);
                             }
                         }
 

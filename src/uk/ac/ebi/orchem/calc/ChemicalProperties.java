@@ -145,7 +145,7 @@ public class ChemicalProperties {
                 try {
                     hydrogenAdder.addImplicitHydrogens(mol, atom);
                 } catch (CDKException cdke) {
-                    atom.setHydrogenCount(0);
+                    atom.setImplicitHydrogenCount(0);
                 }
             }
             AtomContainerManipulator.convertImplicitToExplicitHydrogens(mol);

@@ -32,10 +32,10 @@ system("sqlplus -S $username/$password\@$instance \@../sql/indices.sql");
 system("sqlplus -S $username/$password\@$instance \@../sql/utils.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/createfingerprints.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/simsearch.plsql");
+system("sqlplus -S $username/$password\@$instance \@../sql/convert.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearchParallel.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/smartsSearch.plsql");
-system("sqlplus -S $username/$password\@$instance \@../sql/convert.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/qsar.plsql");
 system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable.sql $workDir" );
 

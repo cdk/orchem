@@ -12,5 +12,6 @@ exec dbms_java.set_output(10000000);
 @smartsSearch.plsql
 @convert.plsql
 @qsar.plsql
+@calculate.plsql
 
 

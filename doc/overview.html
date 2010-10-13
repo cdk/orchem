@@ -12,9 +12,10 @@
       <a href="index.html">Back to main page</a>
        <br></br>
        The picture below shows the main components of OrChem in yellow.
-       Shown left in gray is the user's table with chemical compounds. This table or
-       view must have a single primary key column and an (MDL) molfile Clob. The id and molfile
-       column are mandatory for OrChem to work (additional compound storage types will be added).
+       Shown left in gray is the user's table with chemical compounds. This table (or
+       multiple tables unified in a view) is presumed to have some unique identifier column (character or numeric) and 
+       then also a VARCHAR2 or CLOB column with molecular data (MolFiles and SMILES are accepted). 
+       The identifier and molecular data column are mandatory for OrChem to work.
        During OrChem
        <a href="installation.html">installation</a>
        the table ORCHEM_PARAMETERS is populated; this one-row table

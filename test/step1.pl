@@ -37,6 +37,7 @@ system("sqlplus -S $username/$password\@$instance \@../sql/subsearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/subsearchParallel.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/smartsSearch.plsql");
 system("sqlplus -S $username/$password\@$instance \@../sql/qsar.plsql");
+system("sqlplus -S $username/$password\@$instance \@../sql/calculate.plsql");
 system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable.sql $workDir" );
 
 
@@ -51,6 +52,8 @@ if ($os eq "MSWin32") {
 else {
   system("bash ./step1_compoundload.bash");
 }
+system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable_smiles.sql");
+
 
 print "\nYou should now have a schema for further testing in $username\@$instance.\nCompounds are in table called 'orchem_compound_sample' \n";
 print "\nPlease check the schema and then continue with the other steps.\n\n\n";

@@ -197,7 +197,7 @@ AS
       
       compound_tab_name        orchem_parameters.comp_tab_name%TYPE;
       compound_tab_pk_col      orchem_parameters.comp_tab_pk_col%TYPE;
-      compound_tab_molfile_col orchem_parameters.comp_tab_molfile_col%TYPE;
+      compound_tab_molecule_col orchem_parameters.comp_tab_molecule_col%TYPE;
       whereClause              varchar2(20000);
       prefilterQuery           varchar2(30000);
       compound                 result_rec;
@@ -205,8 +205,8 @@ AS
 
    BEGIN
 
-       SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molfile_col 
-       INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molfile_col
+       SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molecule_col 
+       INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molecule_col
        FROM   orchem_parameters;
        
        whereClause := getWhereClause (smarts_query, debug_yn);       
@@ -227,7 +227,7 @@ AS
        '             , s.br_count '                             ||
        '             , s.i_count  '                             ||
        '             , s.c_count  '                             ||
-       '             , m.'||compound_tab_molfile_col            ||
+       '             , m.'||compound_tab_molecule_col            ||
        '             ,'''||smarts_query||''' as smarts '        ||   
        '              from  orchem_fingprint_subsearch s '      ||
        '             ,'||compound_tab_name||' m          '      ||

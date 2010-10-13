@@ -50,4 +50,4 @@ END;
 /   
 SHOW ERR
 
-//exit 1;
+exit 1;

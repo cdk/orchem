@@ -79,7 +79,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery2() throws Exception {
-        performQuery(RGROUP_QUERY_2, "N", 55);
+        performQuery(RGROUP_QUERY_2, "N", 68);
     }
 
     /**
@@ -90,7 +90,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         String modifiedQuery=RGROUP_QUERY_2.replace(
             "M  LOG  1   1   0   0   0,1",
             "M  LOG  1   1   0   0   1");
-        performQuery(modifiedQuery, "N", 29);
+        performQuery(modifiedQuery, "N", 42);
     }
 
 
@@ -105,7 +105,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         modifiedQuery=modifiedQuery.replace(
             "M  LOG  1   2   0   0   0,1",
             "M  LOG  1   2   0   0   1");
-        performQuery(modifiedQuery, "N", 26);
+        performQuery(modifiedQuery, "N", 38);
     }
 
     /**
@@ -127,7 +127,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery3() throws Exception {
-        performQuery(RGROUP_QUERY_3, "N", 7);
+        performQuery(RGROUP_QUERY_3, "N", 8);
     }
 
 
@@ -136,7 +136,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery4() throws Exception {
-        performQuery(RGROUP_QUERY_4, "N", 70);
+        performQuery(RGROUP_QUERY_4, "N", 90);
     }
 
     /**
@@ -159,7 +159,19 @@ public class TestRgroupQuery extends AbstractOrchemTest {
         String modifiedQuery=RGROUP_QUERY_4.replace(
               "0   0   >0",
               "0   0   0,>0");
-        performQuery(modifiedQuery, "N", 87);
+        performQuery(modifiedQuery, "N", 109);
+    }
+
+
+    /**
+     * Test r-group query 4 strict R4 group
+     * @throws Exception
+     */
+    public void testRgroupQuery4_R4Notzero() throws Exception {
+        String modifiedQuery=RGROUP_QUERY_4.replace(
+              "0   0   0,>0",
+              "0   0   >0");
+        performQuery(modifiedQuery, "N", 2);
     }
 
 

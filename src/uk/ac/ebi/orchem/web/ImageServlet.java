@@ -1,4 +1,4 @@
-/*  
+/*
  *  $Author$
  *  $Date$
  *  $Revision$
@@ -45,12 +45,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RenderingParameters;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
@@ -78,9 +81,9 @@ import uk.ac.ebi.orchem.shared.MoleculeCreator;
 /**
  * Servlet to render the compound search results in the OrChem
  * using CDK JChempaint.
- * 
+ *
  * Used for demo web application.
- * 
+ *
  * @author markr@ebi.ac.uk
  *
  */
@@ -89,19 +92,19 @@ public class ImageServlet extends HttpServlet {
 
     private static List<IGenerator> generators;
     static {
-       generators = new ArrayList<IGenerator>();
-       generators.add(new RingGenerator());
-       generators.add(new ExtendedAtomGenerator());
-       generators.add(new LonePairGenerator());
-       generators.add(new RadicalGenerator());
-       generators.add(new ExternalHighlightAtomGenerator());
-       generators.add(new ExternalHighlightBondGenerator());
-       generators.add(new HighlightAtomGenerator());
-       generators.add(new HighlightBondGenerator());
-       generators.add(new SelectAtomGenerator());
-       generators.add(new SelectBondGenerator());
-       generators.add(new MergeAtomsGenerator());
-       generators.add(new PhantomBondGenerator());
+        generators = new ArrayList<IGenerator>();
+        generators.add(new RingGenerator());
+        generators.add(new ExtendedAtomGenerator());
+        generators.add(new LonePairGenerator());
+        generators.add(new RadicalGenerator());
+        generators.add(new ExternalHighlightAtomGenerator());
+        generators.add(new ExternalHighlightBondGenerator());
+        generators.add(new HighlightAtomGenerator());
+        generators.add(new HighlightBondGenerator());
+        generators.add(new SelectAtomGenerator());
+        generators.add(new SelectBondGenerator());
+        generators.add(new MergeAtomsGenerator());
+        generators.add(new PhantomBondGenerator());
     }
 
 
@@ -111,12 +114,12 @@ public class ImageServlet extends HttpServlet {
 
 
     /**
-     * Simple implementation, only deals with requests for images. 
+     * Simple implementation, only deals with requests for images.
      * @param resp
      * @throws ServletException
      * @throws IOException
      */
-    public void doGet(HttpServletRequest req, HttpServletResponse resp)  {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
 
         String id = req.getParameter("id") != null ? req.getParameter("id") : "0";
         //System.out.println("GOT IMAGE REQUEST FOR ID: " + id);
@@ -151,7 +154,7 @@ public class ImageServlet extends HttpServlet {
             try {
                 imageData = getImageFromMol(mdl);
             } catch (Exception e) {
-                throw new RuntimeException (e.getMessage());
+                throw new RuntimeException(e.getMessage());
             }
         }
 
@@ -169,61 +172,70 @@ public class ImageServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
-       doGet(req, resp);
+        doGet(req, resp);
     }
 
     /**
      * Uses JChmepaint to render an image for a given mol file
      *
-     * @param molfile
+     * @param molecularInput
      * @return picture of molecule
      * @throws Exception
      */
-    public static byte[] getImageFromMol(String molfile) throws Exception {
+    public static byte[] getImageFromMol(String molecularInput) throws Exception {
 
-        byte[] image=null;
+        byte[] image = null;
 
         try {
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-    
+
             int hsize = 256;
             int vsize = 256;
-    
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
 
-            NNMolecule molecule =null;
-                molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
-            for(IAtom atom : molecule.atoms()) {
+
+            IMolecule molecule = null;
+            
+            String newline = System.getProperty("line.separator");
+
+            if (!molecularInput.contains(newline)) { 
+                SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+                molecule = sp.parseSmiles(molecularInput);
+            }
+            else {
+                MDLV2000Reader mdlReader = new MDLV2000Reader();
+                molecule = MoleculeCreator.getNNMolecule(mdlReader, molecularInput);
+            }
+            for (IAtom atom : molecule.atoms()) {
                 atom.setValency(null); // otherwise ugly picture
             }
-    
+
             // Inspect the first atom, check for 2D coords. If there, assume all present
             IAtom firstAtom = molecule.getAtom(0);
-            if(firstAtom.getPoint2d()==null) {
-                System.out.println("generating 2d coords");
+            if (firstAtom.getPoint2d() == null) {
+                //System.out.println("generating 2d coords");
                 StructureDiagramGenerator gen2d = new StructureDiagramGenerator(molecule);
                 gen2d.generateCoordinates();
             }
-    
-            AtomContainerRenderer renderer = new AtomContainerRenderer
-                (generators,new AWTFontManager(),false);
-            
+
+            AtomContainerRenderer renderer = new AtomContainerRenderer(generators, new AWTFontManager(), false);
+
             // A few drawing preferences get set here:
             renderer.getRenderer2DModel().setShowAromaticityCDKStyle(false);
             renderer.getRenderer2DModel().setShowAromaticity(false);
             renderer.getRenderer2DModel().setCompactShape(RenderingParameters.AtomShape.OVAL);
+            renderer.getRenderer2DModel().setShowAromaticity(true);
             renderer.getRenderer2DModel().setIsCompact(true);
-            
+
             Rectangle2D bounds = new Rectangle2D.Double(0, 0, hsize, vsize);
             BufferedImage bufferedImage = new BufferedImage(hsize, vsize, BufferedImage.TYPE_INT_RGB);
             Graphics2D graphics = bufferedImage.createGraphics();
             graphics.setBackground(Color.WHITE);
             graphics.setColor(Color.WHITE);
             graphics.fillRect(0, 0, hsize, hsize);
-    
+
             renderer.paintMolecule(molecule, new AWTDrawVisitor(graphics), bounds, true);
-    
+
             bufferedImage.flush();
             ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
             ImageIO.write(bufferedImage, "jpg", baos);
@@ -234,7 +246,8 @@ public class ImageServlet extends HttpServlet {
             image = out.toByteArray();
         } catch (CDKException cdke) {
             cdke.printStackTrace();
-            System.out.println("PROBLEM MOLFILE WAS:\n---------\n"+molfile+"---------------\n");
+            System.out.println("PROBLEM MOLFILE WAS:\n---------\n" +
+                    molecularInput + "---------------\n");
         }
         return image;
     }

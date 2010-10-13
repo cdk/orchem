@@ -39,7 +39,7 @@ public class OrChemParameters {
 
     public static final String COMPOUND_TABLE = new String("comp_tab_name");
     public static final String COMPOUND_PK = new String("comp_tab_pk_col");
-    public static final String COMPOUND_MOL = new String("comp_tab_molfile_col");
+    public static final String COMPOUND_MOL = new String("comp_tab_molecule_col");
     
     
     //TODO make static, do ONCE on init (after DB agent or something ..

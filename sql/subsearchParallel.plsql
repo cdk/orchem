@@ -266,7 +266,7 @@ AS
       myRefCur refCurType;
       compound_tab_name        orchem_parameters.comp_tab_name%TYPE;
       compound_tab_pk_col      orchem_parameters.comp_tab_pk_col%TYPE;
-      compound_tab_molfile_col orchem_parameters.comp_tab_molfile_col%TYPE;
+      compound_tab_molecule_col orchem_parameters.comp_tab_molecule_col%TYPE;
       whereClause              varchar2(20000);
       compound_id              varchar2(80);
       moleculeQuery            varchar2(5000);
@@ -284,8 +284,8 @@ AS
    BEGIN
 
        --(1)
-       SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molfile_col 
-       INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molfile_col
+       SELECT comp_tab_name,    comp_tab_pk_col,    comp_tab_molecule_col 
+       INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molecule_col
        FROM   orchem_parameters;
 
        numOfQueries := setup_environment (query_key);
@@ -342,7 +342,7 @@ AS
           -- return;
           
            --(4)
-           moleculeQuery := ' select '|| compound_tab_molfile_col|| 
+           moleculeQuery := ' select '|| compound_tab_molecule_col|| 
                             ' from  ' || compound_tab_name       ||
                             ' where  '|| compound_tab_pk_col     ||'=:var01';
     

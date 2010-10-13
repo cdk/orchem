@@ -34,6 +34,7 @@
 package uk.ac.ebi.orchem.isomorphism;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.openscience.cdk.CDKConstants;
@@ -184,9 +185,10 @@ public class SubgraphIsomorphism {
             queryNodeIdx = nodePair.getQueryNode();
             targetNodeIdx = nodePair.getTargetNode();
 
-            // can be used to indent debugging, ignore
-            //char[] chars = new char[(vf2.recursionDepth * 5)];
+            // Indented debugging
+            //char[] chars = new char[(vf2.recursionDepth * 3)];
             //Arrays.fill(chars, ' ');
+            //System.out.println(String.valueOf(chars)+vf2.getQueryContainer().getAtom(queryNodeIdx).getSymbol()+" "+vf2.getTargetContainer().getAtom(targetNodeIdx).getSymbol());
 
             if (vf2.isFeasiblePair(queryNodeIdx, targetNodeIdx)) {
                 VF2UndoBean undo = new VF2UndoBean();

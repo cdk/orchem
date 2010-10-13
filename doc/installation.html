@@ -279,20 +279,20 @@ SQL> desc orchem_parameters
  ----------------------------------------------------------------------- -------- -------------------------------------------------
  COMP_TAB_NAME                                                           NOT NULL VARCHAR2(30)
  COMP_TAB_PK_COL                                                         NOT NULL VARCHAR2(30)
- COMP_TAB_MOLFILE_COL                                                    NOT NULL VARCHAR2(30)
+ COMP_TAB_MOLECULE_COL                                                   NOT NULL VARCHAR2(30)
  TMP_DIR_ON_SERVER                                                       NOT NULL VARCHAR2(1000)
 </pre>
                         </li>
                         <li> The table crucially <b>needs ONE row</b>. Column COMP_TAB_NAME must contain your 
                         compound table name (or combined view of multiple tables), COMP_TAB_PK_COL the name of the primary key column
-                        of that table, and COMP_TAB_MOLFILE_COL the name of mol file column 
+                        of that table, and COMP_TAB_MOLECULE_COL the name of mol file column 
                         of that table.<br>
 			If you want to let Orchem generate InChi descriptors as explained <a href="#inchi_file">earlier</a>, you 
 			must also insert the name (including a final slash) of the working directory for which you have been granted privileges.<br>
                         Use an insert statement like this one to accomplish this (with proper values substituted), 
                         and commit the insert to the database. <br>
 <pre>
-insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col,tmp_dir_on_server) values ('x','y','z','dirname');
+insert into orchem_parameters(comp_tab_name,comp_tab_pk_col,comp_tab_molecule_col,tmp_dir_on_server) values ('x','y','z','dirname');
 </pre>
                         </li>
                         <li> Alternatively, for example if your compound data is split over more than 
@@ -314,7 +314,7 @@ SQL> desc COMPOUNDS
  MOLFILE                                  CLOB
 
 SQL>  insert into orchem_parameters  
-                  (comp_tab_name,comp_tab_pk_col,comp_tab_molfile_col,tmp_dir_on_server) 
+                  (comp_tab_name,comp_tab_pk_col,comp_tab_molecule_col,tmp_dir_on_server) 
                   values 
                   ('COMPOUNDS','MOLREGNO','MOLFILE','/var/tmp/');
 
@@ -325,7 +325,7 @@ Commit complete.
 
 SQL> select * from orchem_parameters;
 
-COMP_TAB_NAME    COMP_TAB_PK_COL    COMP_TAB_MOLFILE_COL    TMP_DIR_ON_SERVER
+COMP_TAB_NAME    COMP_TAB_PK_COL    COMP_TAB_MOLECULE_COL    TMP_DIR_ON_SERVER
 ---------------- ------------------ ----------------------  -----------------
 COMPOUNDS        MOLREGNO           MOLFILE                 /var/tmp/ 
 

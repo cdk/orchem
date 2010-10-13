@@ -136,8 +136,13 @@
                                struc = document.getElementById('advancedSearchFT_structure').value;
                            }
                            var edi = document.getElementById("editor");
-                           if (edi != null) {
-                               edi.setMolFile(struc);
+                           if (edi != null && struc!=null  && struc!="") {
+                               if (struc.indexOf("\n")!=-1) {
+                                  edi.setMolFile(struc);
+                               }
+                               else {
+                                  edi.setSmiles(struc);
+                               }
                            }
                        }
                        loadStructure();

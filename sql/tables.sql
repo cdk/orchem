@@ -13,7 +13,7 @@ prompt creating table "orchem_parameters"
     create table orchem_parameters
     (  comp_tab_name         varchar2(30) not null
       ,comp_tab_pk_col       varchar2(30) not null
-      ,comp_tab_molfile_col  varchar2(30) not null
+      ,comp_tab_molecule_col  varchar2(30) not null
       ,tmp_dir_on_server     varchar2(1000) not null
     )
     cache

@@ -45,9 +45,13 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
+
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
@@ -64,6 +68,7 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  * @author Mark Rijnbeek
  */
 public class DatabaseFingerprintPersistence {
+    static String newline = System.getProperty("line.separator");
 
     /**
      * Create a fingerprint for each compound in the provided ResultSet 
@@ -75,7 +80,6 @@ public class DatabaseFingerprintPersistence {
      * @throws Exception
      */
     public void persist(ResultSet compounds, String logInfo ) throws Exception {
-
         OracleConnection conn = null;
         String logCurrID = "";
 
@@ -100,7 +104,8 @@ public class DatabaseFingerprintPersistence {
             conn.setAutoCommit(false);
 
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-
+            SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+            
 
             /* The extended fingerprint is used, but for the substructure search we only capture the basic fingerprint */
             IFingerprinter extendedFingerPrinter = FingerPrinterAgent.FP.getExtendedFingerPrinter();
@@ -142,7 +147,7 @@ public class DatabaseFingerprintPersistence {
             "insert " + "into orchem_big_molecules (id, atoms,bonds) values (?,?,?)");
 
             long bef;
-            String molfile = null;
+            String molecularInput = null;
             logMsg.append("\nSet up at " + now());
             CLOB largeAtomsClob=null;
             CLOB largeBondsClob=null;
@@ -154,13 +159,21 @@ public class DatabaseFingerprintPersistence {
                     logCurrID = compounds.getString(compoundTablePkColumn);
 
                     bef = System.currentTimeMillis();
-                    molfile = compounds.getString(compoundTableMolfileColumn);
+                    molecularInput = compounds.getString(compoundTableMolfileColumn);
                     getClobTime += (System.currentTimeMillis() - bef);
 
-                    if (molfile != null) {
+                    if (molecularInput != null) {
                         bef = System.currentTimeMillis();
-                        /* Create a CDK molecule from the molfile */
-                        NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                        /* Create a CDK molecule from the molecular input (Smiles/Molfile)  */
+
+                        IMolecule molecule=null;
+                        if (!molecularInput.contains(newline)) { // one line ? guess SMILES 
+                            molecule = sp.parseSmiles(molecularInput);
+                            molecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
+                        }
+                            
+                        else // more lines? guess MolFile
+                            molecule = MoleculeCreator.getNNMolecule(mdlReader, molecularInput);
                         
                         for(IAtom atom : molecule.atoms()){
                             try {

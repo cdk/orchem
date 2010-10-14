@@ -6,11 +6,11 @@ exec dbms_java.set_output(10000000);
 @tables.sql
 @utils.plsql
 @createfingerprints.plsql
+@convert.plsql
 @simsearch.plsql
 @subsearch.plsql
 @subsearchParallel.plsql
 @smartsSearch.plsql
-@convert.plsql
 @qsar.plsql
 @calculate.plsql
 

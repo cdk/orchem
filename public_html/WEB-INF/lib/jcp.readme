@@ -5,6 +5,11 @@
 * remove instanceof lines in RenderPanel, to break the link with JChemPaintPanel (neccessary??)
 * remove org.openscience.cdk.io.INChIReader and associated code from application/JChempaint
 * remove SaveAction references from AbstractJChemPaintPanel.java
+* remove @Override lines from ControllerHubble
+* remove featuresDefinition.keySet references (J6 stuff) from JChemPaintAbstractApplet.java
+* set the ant.properties cdk.dir file to be the orchem treated cdk.
+
+* use Java 5
 
 * run ant dist
 

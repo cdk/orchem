@@ -93,7 +93,10 @@ public class OrchemFingerprinter implements IFingerprinter {
             //System.out.println("ring detection took ms : "+(System.currentTimeMillis()-start));
         } catch (Exception e) {
             long startExc = System.currentTimeMillis();
-            ringSet = new SSSRFinder(molecule).findRelevantRings();
+
+            //ringSet = new SSSRFinder(molecule).findRelevantRings(); // Don't. Example "C1CCCCCNC2=C3C=CC=CC3=[N+](CC3=CC=C(C=C3)C3=CC=C(C[N+]4=CC=C(NCCCC1)C1=CC=CC=C41)C=C3)C=C2"
+            ringSet = new SSSRFinder(molecule).findSSSR(); 
+
             System.out.println("warning timeout ring detection, exception handled in "+(System.currentTimeMillis()-startExc));
         }
 

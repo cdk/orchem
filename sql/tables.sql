@@ -41,15 +41,16 @@ prompt creating table "orchem_big_molecules"
     )
 /
 
---prompt creating table "orchem_user_queries"
---create table orchem_user_queries (
---    id         NUMBER(5)     NOT NULL
---  , timestamp  DATE          NOT NULL
---  , query      CLOB          NOT NULL
---  , query_type VARCHAR2(80)  NOT NULL
---  ,constraint pk_orchem_user_query primary key (id)
---)
---/
+prompt creating table "orchem_user_queries" 
+-- table for parallel substructure searching
+create table orchem_user_queries (
+    id         NUMBER(5)     NOT NULL
+  , timestamp  DATE          NOT NULL
+  , query      CLOB          NOT NULL
+  , query_type VARCHAR2(80)  NOT NULL
+  ,constraint pk_orchem_user_query primary key (id)
+)
+/
 
 prompt creating table "orchem_fingprint_simsearch"
     create table orchem_fingprint_simsearch

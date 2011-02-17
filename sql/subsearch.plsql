@@ -15,13 +15,15 @@ CREATE OR REPLACE PACKAGE orchem_subsearch
 AS 
    l_candidate orchem_utils.candidate_rec;
 
-   FUNCTION search (userQuery clob                    -- the query, like a MOL file or SMILES
-                  , input_type varchar2               -- 'SMILES','MOL'
-                  , topN integer:=null                -- cap results to this number
-                  , debug_YN varchar2:='N'            -- debug to SQL plus command line Y/N
-                  , return_ids_only_YN VARCHAR2:='N'  -- return only identifiers, not structures
-                  , strict_stereo_yn VARCHAR2:='N'    -- consider stereo chemistry (primitive implementation)
-                  , exact_yn VARCHAR2:='N')           -- only find exact matches (uses atom count)
+   FUNCTION search (userQuery clob                      -- the query, like a MOL file or SMILES
+                  , input_type varchar2                 -- 'SMILES','MOL'
+                  , topN integer:=null                  -- cap results to this number
+                  , debug_YN varchar2:='N'              -- debug to SQL plus command line Y/N
+                  , return_ids_only_YN VARCHAR2:='N'    -- return only identifiers, not structures
+                  , strict_stereo_yn VARCHAR2:='N'      -- consider stereo chemistry (primitive implementation)
+                  , exact_yn VARCHAR2:='N'              -- only find exact matches (uses atom count)
+                  , extra_where_clause VARCHAR2 := NULL -- add an extra SQL where clause that is valid for your base table (like ' some_column > 10 ')
+                  )
    RETURN   orchem_compound_list
    PIPELINED
    ;
@@ -32,7 +34,9 @@ AS
                   , topN integer:=null, debug_YN varchar2:='N'
                   , return_ids_only_YN VARCHAR2:='N'
                   , strict_stereo_yn VARCHAR2:='N'
-                  , exact_yn VARCHAR2:='N') 
+                  , exact_yn VARCHAR2:='N'
+                  , extra_where_clause VARCHAR2 := NULL 
+                  )
    RETURN   orchem_compound_list
    PIPELINED
    ;
@@ -222,10 +226,12 @@ AS
    (10) Subgrpah isomorphism check through helper procedure
    (11) If topN was set, and number of results==topN, exit 
    
+
    ___________________________________________________________________________*/
    FUNCTION search (userQuery Clob, input_type varchar2, topN integer :=null , 
                     debug_YN varchar2 := 'N',return_ids_only_YN VARCHAR2:='N',
-                    strict_stereo_yn VARCHAR2:='N',exact_yn VARCHAR2:='N')
+                    strict_stereo_yn VARCHAR2:='N',exact_yn VARCHAR2:='N', 
+                    extra_where_clause VARCHAR2 := NULL)
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -246,7 +252,7 @@ AS
       countCompoundsLooped     integer:=0;
       numOfQueries             integer:=0;
       id_already_returned      boolean;
-      
+            
    BEGIN
        --(1)
        IF input_type NOT IN ('SMILES','MOL') THEN
@@ -292,9 +298,18 @@ AS
            ' ,'''||debug_YN||''''                  ||  
            ' ,'''||strict_stereo_yn||''''          ||  
            ' ,'''||exact_yn||''''                  ||  
-           '  from  orchem_fingprint_subsearch s ' ||
-           '  where 1=1                          ' ||
-              whereClause                         ;
+           '  from  orchem_fingprint_subsearch s ';
+
+           if (extra_where_clause IS NOT NULL) then
+              prefilterQuery:= prefilterQuery || ','||compound_tab_name||' c '||
+                              ' where s.id = c.'||compound_tab_pk_col ||
+                              ' and ' || extra_where_clause ||
+                              whereClause;
+           else 
+              prefilterQuery:= prefilterQuery ||
+                             '  where 1=1                          ' ||
+                             whereClause;
+           end if;
             
            --(7)
            moleculeQuery := ' select '|| compound_tab_molecule_col|| 
@@ -383,8 +398,9 @@ AS
                   , id_list compound_id_table
                   , topN integer:=null, debug_YN varchar2:='N'
                   , return_ids_only_YN VARCHAR2:='N'
-                  , strict_stereo_yn VARCHAR2:='N',exact_yn VARCHAR2:='N')
-
+                  , strict_stereo_yn VARCHAR2:='N',exact_yn VARCHAR2:='N'
+                  , extra_where_clause VARCHAR2 := NULL 
+                  )
    RETURN   orchem_compound_list
    PIPELINED
    AS
@@ -445,9 +461,20 @@ AS
            ' ,'''||debug_YN||''''                  ||
            ' ,'''||strict_stereo_yn||''''          ||  
            ' ,'''||exact_yn||''''                  ||  
-           '  from  orchem_fingprint_subsearch s ' ||
-           '  where id=:1                        ' || -- !!!!
-              whereClause                         ;
+           '  from  orchem_fingprint_subsearch s ' ;
+
+           if ( extra_where_clause IS NOT NULL) then
+              prefilterQuery:= prefilterQuery || ','||compound_tab_name||' c '||
+                              ' where s.id = c.'||compound_tab_pk_col ||
+                              ' and s.id=:1 ' ||
+                              ' and ' || extra_where_clause ||
+                              whereClause;
+           else 
+              prefilterQuery:= prefilterQuery ||
+                           '  where id=:1  ' ||
+                              whereClause;
+           end if;
+
     
            moleculeQuery := ' select '|| compound_tab_molecule_col||
                             ' from  ' || compound_tab_name       ||

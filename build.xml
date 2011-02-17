@@ -316,7 +316,7 @@
           <include name="log4j-1.2.15.jar"/>
           <include name="cdk.jar"/>
           <include name="jcp.jar"/>
-          <include name="inchi_102.jar"/>
+          <include name="inchi103.jar"/>
           <include name="nestedVm.jar"/>
           <include name="jama-1.0.2.jar"/>
           <include name="ambit2.smarts.jar"/>

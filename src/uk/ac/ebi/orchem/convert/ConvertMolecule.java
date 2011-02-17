@@ -50,7 +50,7 @@ import javax.imageio.ImageIO;
 import oracle.sql.BLOB;
 import oracle.sql.CLOB;
 
-import org.iupac.StdInChI;
+import org.iupac.StdInchi103;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Molecule;
@@ -263,10 +263,11 @@ public class ConvertMolecule {
      * @param molfile Molfile to convert
      * @param fileNum unique number to make this thing work concurrent
      * @param outputDir output direcory for temp files
+     * @param outputType either INCHI or INCHI_KEY
      * @return the InChi descriptor
      * @throws Exception
      */
-    public static CLOB molfileToInchi(CLOB molfile, String fileNum, String outputDir) throws Exception {
+    public static CLOB molfileToInchi(CLOB molfile, String fileNum, String outputDir, String outputType) throws Exception {
         // Set up
         String tempMolFile = outputDir + "orchem" + fileNum + ".mol";
         String tempOutFile = outputDir + "orchem" + fileNum + ".out";
@@ -281,15 +282,17 @@ public class ConvertMolecule {
         out.close();
 
         //Prepare an array to shove into the Inchi generator
-        String[] args = new String[5];
+        String[] args = new String[6];
         args[0] = "";
         args[1] = tempMolFile;
         args[2] = tempOutFile;
         args[3] = tempLogFile;
         args[4] = tempProblemFile;
+        args[5] = "-Key";
+
 
         //Call the actual Inchi
-        StdInChI i = new StdInChI();
+        StdInchi103 i = new StdInchi103();
         i.run(args);
 
         /* Read the generated InChi from the output file */
@@ -301,13 +304,17 @@ public class ConvertMolecule {
         int lineCount = 0;
         while ((strLine = br.readLine()) != null) {
             lineCount++;
-            if (lineCount == 3) {
-                inchi.append(strLine);
-            }
+            if(outputType.equals("INCHI"))
+                if (lineCount ==3) 
+                    inchi.append(strLine);
+            if(outputType.equals("INCHI_KEY"))
+                if (lineCount ==5) 
+                    inchi.append(strLine);
+            
         }
         in.close();
 
-        /* Delete temporary files */
+        /* Delete temporary files  */
         deleteFile(tempMolFile);
         deleteFile(tempOutFile);
         deleteFile(tempLogFile);

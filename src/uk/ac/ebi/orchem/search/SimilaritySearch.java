@@ -89,11 +89,13 @@ public class SimilaritySearch {
      * @param queryFp fingerprint of the query molecule
      * @param _cutOff tanimoto score below which to stop searching
      * @param _topN top N results after which to stop searching
-     * @param debugYN
+     * @param debugYN Y or N to debug output back
+     * @param idsOnlyYN Y or N to indicate to just return IDs of results (faster)
+     * @param extraWhereClause option to include an extra SQL where clause refering to the base compound table
      * @return array of {@link uk.ac.ebi.orchem.bean.OrChemCompound compounds}
      * @throws Exception
      */
-    private static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN, String idsOnlyYN) throws Exception { 
+    private static oracle.sql.ARRAY  search(BitSet queryFp, Float _cutOff, Integer _topN, String debugYN, String idsOnlyYN, String extraWhereClause) throws Exception { 
 
         /*
          * 
@@ -187,11 +189,20 @@ public class SimilaritySearch {
 
         try {
             conn = (OracleConnection)new OracleDriver().defaultConnection();
-            //conn = (OracleConnection) new UnitTestConnection().getDbConnection();
 
             String compoundTableName = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_TABLE, conn);
             String compoundTablePkColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_PK, conn);
             String compoundTableMolfileColumn = OrChemParameters.getParameterValue(OrChemParameters.COMPOUND_MOL, conn);
+
+            if (extraWhereClause!=null) {
+                query = 
+                    " select s.bit_count, s.id, s.fp from " +
+                    " orchem_fingprint_simsearch s , "+compoundTableName + " c " +
+                    " where  s.bit_count = ? " +
+                    " and s.id = c."+ compoundTablePkColumn+" "+
+                    " and " + extraWhereClause;
+                    debug("QUERY is "+query,debugging);
+            }
 
             float queryBitCount = queryFp.cardinality();
             byte[] queryBytes = Utils.toByteArray(queryFp, extFpSize);
@@ -383,14 +394,15 @@ public class SimilaritySearch {
      * @param topN       only find first top N results
      * @param debugYN    debug info back to user Y/N
      * @param idsOnlyYN  only return IDs Y/N
+     * @param extraWhereClause an option to add an extra where clause refering to your base compound table
      * @return           array of compound data
      * @throws Exception 
      */
-    private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN, String idsOnlyYN) throws Exception {
+    private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN, String idsOnlyYN, String extraWhereClause) throws Exception {
         MDLV2000Reader mdlReader = new MDLV2000Reader();
         Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
         BitSet fp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
-        return search(fp, cutOff, topN, debugYN,idsOnlyYN);
+        return search(fp, cutOff, topN, debugYN,idsOnlyYN,extraWhereClause);
     }
 
 
@@ -402,14 +414,15 @@ public class SimilaritySearch {
     * @param topN       only find first top N results
     * @param debugYN    debug info back to user Y/N
     * @param idsOnlyYN  only return IDs Y/N
+    * @param extraWhereClause an option to add an extra where clause refering to your base compound table
     * @return           array of compound data
      * @throws Exception
      */
-    private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN, String idsOnlyYN) throws Exception {
+    private static oracle.sql.ARRAY smilesSearch(String smiles, Float cutOff, Integer topN, String debugYN, String idsOnlyYN, String extraWhereClause) throws Exception {
         SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
         IAtomContainer molecule = sp.parseSmiles(smiles);
         BitSet fp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
-        return search(fp, cutOff, topN, debugYN,idsOnlyYN);
+        return search(fp, cutOff, topN, debugYN,idsOnlyYN,extraWhereClause);
     }
 
     /**
@@ -433,16 +446,17 @@ public class SimilaritySearch {
      * @param topN       only find first top N results
      * @param debugYN    debug info back to user Y/N
      * @param idsOnlyYN  only return IDs Y/N
+     * @param extraWhereClause an option to add an extra where clause refering to your base compound table
      * @return           array of compound data
      * @throws Exception
      */
-    public static oracle.sql.ARRAY  search(Clob userQuery, String queryType, Float cutOff, Integer topN,String debugYN, String idsOnlyYN) throws Exception {
+    public static oracle.sql.ARRAY  search(Clob userQuery, String queryType, Float cutOff, Integer topN,String debugYN, String idsOnlyYN, String extraWhereClause) throws Exception {
         int clobLen = new Long(userQuery.length()).intValue();
         String query = (userQuery.getSubString(1, clobLen));
         if (queryType.equals(Utils.QUERY_TYPE_MOL))  
-            return molSearch(query, cutOff, topN, debugYN,idsOnlyYN);
+            return molSearch(query, cutOff, topN, debugYN,idsOnlyYN,extraWhereClause);
         else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) 
-            return smilesSearch(query, cutOff, topN, debugYN,idsOnlyYN);
+            return smilesSearch(query, cutOff, topN, debugYN,idsOnlyYN,extraWhereClause);
         else 
             throw new RuntimeException("Query type not recognized");
     }

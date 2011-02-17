@@ -7,6 +7,7 @@
 * remove SaveAction references from AbstractJChemPaintPanel.java
 * remove @Override lines from ControllerHubble
 * remove featuresDefinition.keySet references (J6 stuff) from JChemPaintAbstractApplet.java
+* remove StdInChIParser ref from class org/openscience/jchempaint/InsertTextPanel
 * set the ant.properties cdk.dir file to be the orchem treated cdk.
 
 * use Java 5

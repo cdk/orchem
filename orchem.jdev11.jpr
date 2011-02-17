@@ -540,10 +540,6 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Inchi_102.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Jcp.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
@@ -557,6 +553,10 @@
          </hash>
          <hash>
             <value n="id" v="Ojdbc5.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi103.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -759,15 +759,6 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/inchi_102.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Inchi_102.jar"/>
-               <value n="id" v="Inchi_102.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
                   <url path="public_html/WEB-INF/lib/jcp.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
@@ -791,6 +782,15 @@
                <value n="deployedByDefault" v="true"/>
                <value n="description" v="Ojdbc5.jar"/>
                <value n="id" v="Ojdbc5.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/inchi103.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Inchi103.jar"/>
+               <value n="id" v="Inchi103.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
@@ -877,10 +877,6 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Inchi_102.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Jcp.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
@@ -894,6 +890,10 @@
          </hash>
          <hash>
             <value n="id" v="Ojdbc5.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi103.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

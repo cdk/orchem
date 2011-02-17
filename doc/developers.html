@@ -139,43 +139,65 @@ Enter menu option :
 	    What follows are the steps necessary to create the jar file from the C source code.
 	    <UL>
 	    <LI>Download <A href="http://nestedvm.ibex.org/">NestedVm</a> by making a <A href="http://git-scm.com/">Git</A> clone
-	         as decribed on the NestedVM website. 
-	    <LI>Install NestedVM on your computer (we installed it on Linux), by running the make command in the downloaded directory.
-	         You'll need <A href="http://darcs.net/">darcs</a> installed as well. For more info on NestedVM, consult this <A href="http://wiki.brianweb.net/NestedVM/QuickStartGuide">Wiki</A> page</LI>
-	    <LI>With NestedVM installed, download the zipped InChi source code from the <A href="http://www.iupac.org/inchi/download/index.html">IUPAC</a> download site.</LI>
-	    <LI>Unzip InChi download and locate the makefile in ./STDINCHI-1-API/STDINCHI/gcc_makefile/makefile </LI>
-	    <LI>In this makefile, change the lines below accordingly:
+	         as decribed on the NestedVM website, or take the snapshot provided (nestedvm-2009-08-09.tgz is used in this example)
+	         For more info on NestedVM, consult this <A href="http://wiki.brianweb.net/NestedVM/QuickStartGuide">Wiki</A> page</LI>
+	    <LI>Install NestedVM on your computer. I installed it on Windows7/Cygwin after the conversion failed with CentOS Linux.
+	        Before installing NestedVM you'll need <A href="http://darcs.net/">darcs</a> set up. Darcs can be built or downloaded as a <a href="http://wiki.darcs.net/Binaries">binary</A>, I did the latter.<br>
+	        So I built things with Windows7+Cywgin, nestedvm-2009-08-09.tgz, darcs 2.5, gcc 4.3.4.<br>
+	        To install NestedVM, run the <b>make</b> command. Then run <b>make upstream/tasks/build_gcc_step2</b> (I had to correct a header file in the source during that make)
+	    <LI>The NestedVM installation should give you binaries in .\upstream\install\bin\, like "mips-unknown-elf-gcc" and "mips-unknown-elf-g++".
+	        Make sure that your O/S path contains the location of the NestedVM binaries.	    
+	    <LI>With NestedVM installed, download the zipped InChi source code (INCHI-1-API.zip) from the <A href="http://www.iupac.org/inchi/download/index.html">IUPAC</a> download site. This example uses InChI software 1.03</LI>
+	    <LI>Unzip the InChI download and locate the makefile in folder INCHI-1-API\INCHI\gcc\inchi-1</LI>
+	    <LI>In this makefile, change the references to gcc and g++ as below, and change the target executable name :
 <PRE>
 ...
-  
-  INCHI_EXECUTABLE = stdinchi-1.mips
-endif
-
-# === Linker to create Main program =====
-ifndef LINKER
-  LINKER = mips-unknown-elf-gcc
-endif
-
-# === C Compiler ===============
 ifndef C_COMPILER
-  C_COMPILER =mips-unknown-elf-gcc
+  C_COMPILER   = mips-unknown-elf-gcc
 endif
 
+ifndef CPP_COMPILER
+  CPP_COMPILER = mips-unknown-elf-g++
+endif
+
+ifndef LINKER
+  LINKER = mips-unknown-elf-g++
+endif
+....
+  INCHI_EXECUTABLE = inchi-1.mips
 ...
+
 </PRE>	    
-	    
 	    </LI>
-	    <LI>Run the make command, resulting in a file stdinchi-1.mips </LI>
-	    <LI>Run NestedVM like below (example is run from NestedVM dir, replace YOUR_MAKE_DIR with correct value)
-	    <PRE>
-java org.ibex.nestedvm.Compiler -outfile org/iupac/StdInchi102.class org.iupac.StdInchi102 YOUR_MAKE_DIR/stdinchi-1.mips
-	    </PRE>	    
+	    <LI>Now run the make command, resulting in a file called inchi-1.mips </LI>
+	    <LI>Run NestedVM  to create a .class file from the .mips file. This is how I ran it: <PRE>
+java -classpath C:\src\inchi\nestedvm\build\;C:\src\inchi\nestedvm\upstream\build\classgen\build\ org.ibex.nestedvm.Compiler -o lessConstants -outfile org/iupac/StdInchi103.class org.iupac.StdInchi103 C:\src\inchi\INCHI-1-API\INCHI\gcc\inchi-1\inchi-1.mips
+</PRE>	    
 	    </LI>
-	    <LI>You can now test the class file:
-	    <PRE>
-make env.sh
-java -cp org/iupac/StdInchi102    
-	    </PRE>	    
+	    <LI>You can now test the class file in your IDE. You need a classpath reference to the runtime NestedVM classes found in the NestedVM directory build/org/ibex/nestedvm/, such as Runtime.class. <br>
+	        These runtime 
+	        classes are also part of the jar file found in the OrChem lib directory.<p>
+	        Example in Java using the InChI class:
+<PRE>
+import org.iupac.StdInchi103;
+
+public class Test {
+    public static void main(String[] args) {
+        //Prepare an array to shove into the Inchi generator
+        args = new String[6];
+        args[0] = "";
+        args[1] = "/home/markr/molecules/ChEBI_16704.mol";
+        args[2] = "/tmp/inchi.out";
+        args[3] = "/tmp/inchi.log";
+        args[4] = "/tmp/inchi.log2";
+        args[5] = "-Key";
+        //Call the actual Inchi
+        StdInchi103 i = new StdInchi103();
+        i.run(args);
+    }
+}
+
+</PRE>
 	    </LI>
 	    </UL>	    
 	   </td>

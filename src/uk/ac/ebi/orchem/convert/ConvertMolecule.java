@@ -107,19 +107,19 @@ public class ConvertMolecule {
 
     /**
      * Convert Molfile to Smiles
-     *
      * @author federico_paoli
      *
-     * @param Molfile
+     * @param molfileClob
      * @return CLOB
      * @throws Exception
      */
 
-    public static CLOB molfileToSmiles(CLOB Molfile) throws Exception {
+    public static CLOB molfileToSmiles(CLOB molfileClob) throws Exception {
         CLOB psmiles = null;
+        String molfile=null;
         try {
             MDLV2000Reader mdlReader = new MDLV2000Reader();
-            String molfile = Utils.ClobToString(Molfile);
+            molfile = Utils.ClobToString(molfileClob);
             if (molfile != null) {
                 NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                 SmilesGenerator sg = new SmilesGenerator();
@@ -133,6 +133,7 @@ public class ConvertMolecule {
         } catch (Exception e) {
             psmiles = null;
             System.out.println(Utils.getErrorString(e));
+            System.out.println("INPUT WAS\n"+molfile);
         }
         return psmiles;
     }
@@ -140,15 +141,15 @@ public class ConvertMolecule {
     /**
      * Convert Smiles to Molfile
      *
-     * @param Smiles
+     * @param smilesClob
      * @param generateCoords Y/N (overhead, can be expensive to calc coords!)
      * @return
      * @throws Exception
      */
-    public static CLOB smilesToMolfile(CLOB Smiles, String generateCoords, String useBondType4 ) throws Exception {
+    public static CLOB smilesToMolfile(CLOB smilesClob, String generateCoords, String useBondType4 ) throws Exception {
         CLOB cmolfile = null;
+        String smiles = Utils.ClobToString(smilesClob);
         try {
-            String smiles = Utils.ClobToString(Smiles);
             if (smiles != null) {
                 if (!smiles.trim().equals("")) {
                     SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
@@ -187,6 +188,7 @@ public class ConvertMolecule {
         } catch (Exception e) {
             cmolfile = null;
             System.out.println(Utils.getErrorString(e));
+            System.out.println("INPUT WAS\n"+smiles);
         }
         return cmolfile;
     }

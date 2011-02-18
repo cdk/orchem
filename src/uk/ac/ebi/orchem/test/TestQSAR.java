@@ -59,7 +59,7 @@ public class TestQSAR extends TestCase {
 
     private static double evalDescriptor(int id, String descriptorName) throws SQLException,ClassNotFoundException {
         PreparedStatement pStmt = conn.prepareStatement
-                ("select id, orchem_qsar." + descriptorName + "(molfile) as " + descriptorName +
+                ("select id, orchem_qsar." + descriptorName + "(smiles_or_mol) as " + descriptorName +
                         " from orchem_compound_sample where id = ?");
 
         pStmt.setInt(1, id);

@@ -43,7 +43,7 @@ system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable.sql $w
 
 
 print "----------------------------------------------\n\n";
-print "Loading compound sample from molfile into db \n";
+print "Loading compound sample into db \n";
 print "----------------------------------------------\n\n";
 
 if ($os eq "MSWin32") {

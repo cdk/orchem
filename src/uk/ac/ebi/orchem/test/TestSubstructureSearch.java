@@ -71,7 +71,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
      */
     private void fingerprintVersusFullScan(int dbId, String strictStereo, List<Integer> idList) throws Exception {
 
-        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id=?");
+        PreparedStatement pStmt = conn.prepareStatement("select id, smiles_or_mol molfile from orchem_compound_sample where id=?");
         pStmt.setInt(1,dbId);
         ResultSet res = pStmt.executeQuery();
         Clob molFileClob = null;
@@ -428,10 +428,10 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
      */
     public void testExactSearch() throws Exception {
         PreparedStatement pStmt = conn.prepareStatement
-            ("select id, molfile from orchem_compound_sample " +
+            ("select id, smiles_or_mol molfile from orchem_compound_sample " +
             " where id between 1 and 40"); // 20 and 21 have stereo on hydrogens.. 
         PreparedStatement inchiStmt = conn.prepareStatement
-            ("select id, orchem_convert.molfiletoinchi(molfile) as inchi " +
+            ("select id, orchem_convert.molfiletoinchi(smiles_or_mol) as inchi " +
             " from orchem_compound_sample where id = ?");
 
         ResultSet res = pStmt.executeQuery();

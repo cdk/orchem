@@ -57,7 +57,7 @@ public class TestSimilaritySearch extends AbstractOrchemTest {
      * @throws ClassNotFoundException
      */
     private List<OrChemCompound> similaritySearch(int dbId, float minScore, int expectedResultCount) throws SQLException, ClassNotFoundException {
-        PreparedStatement pStmt = conn.prepareStatement("select id, molfile from orchem_compound_sample where id=?");
+        PreparedStatement pStmt = conn.prepareStatement("select id, smiles_or_mol molfile from orchem_compound_sample where id=?");
         pStmt.setInt(1, dbId);
         ResultSet res = pStmt.executeQuery();
         Clob molFileClob = null;

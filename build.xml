@@ -257,6 +257,28 @@
         <echo />
     </target>
 
+
+    <!-- =================================================================== -->
+    <!-- Unittest propert calculation descriptors                            -->
+    <!-- =================================================================== -->
+    <target name="test.calc" depends="compile">
+
+        <echo />
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo message=" JUnit test: calculation of mass/charge/formula etc      "/>
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+
+        <junit maxmemory="1024m" fork="yes">
+           <classpath refid="project.classpath" />
+           <formatter type="brief" usefile="false" />
+           <test name="uk.ac.ebi.orchem.test.TestCalculation" />
+        </junit>
+
+        <echo message="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"/>
+        <echo />
+    </target>
+
+
     <!-- =================================================================== -->
     <!-- Make a tarball for people to download and install OrChem.           -->
     <!-- Not all classes are required, just the 'core' set that go into DB   -->
@@ -301,7 +323,7 @@
                      **/uk/ac/ebi/orchem/temp/*
                      **/uk/ac/ebi/orchem/isomorphism/*
                      **/uk/ac/ebi/orchem/convert/*
-                     **/uk/ac/ebi/orchem/convert/*
+                     **/uk/ac/ebi/orchem/calc/*
                      **/uk/ac/ebi/orchem/isomorphism/*
                      **/uk/ac/ebi/orchem/convert/*
                      **/uk/ac/ebi/orchem/qsar/*                     

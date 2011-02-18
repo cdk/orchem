@@ -42,7 +42,6 @@ import java.io.StringWriter;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
@@ -53,7 +52,6 @@ import oracle.sql.CLOB;
 import org.iupac.StdInchi103;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.Molecule;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -125,7 +123,7 @@ public class ConvertMolecule {
             if (molfile != null) {
                 NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
                 SmilesGenerator sg = new SmilesGenerator();
-                fixCarbonHCount(molecule);
+                //fixCarbonHCount(molecule);
                 String smiles = sg.createSMILES(molecule);
                 psmiles = Utils.StringToClob(smiles);
 
@@ -218,7 +216,7 @@ public class ConvertMolecule {
             String molfile = Utils.ClobToString(Molfile);
             if (molfile != null) {
                 NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
-                fixCarbonHCount(molecule);
+                //fixCarbonHCount(molecule);
 
                 for (IAtom atom : molecule.atoms()) {
                     atom.setValency(null); // otherwise ugly picture
@@ -340,6 +338,8 @@ public class ConvertMolecule {
         }
     }
 
+    /*
+    // this whatever for method cause trouble on molfile->smiles, for example with test compound 1051
     private static void fixCarbonHCount(Molecule mol) {
         double bondCount = 0;
         org.openscience.cdk.interfaces.IAtom atom;
@@ -354,6 +354,6 @@ public class ConvertMolecule {
             }
         }
     }
-
+    */
 
 }

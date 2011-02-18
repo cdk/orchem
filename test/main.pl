@@ -79,15 +79,16 @@ sub printMenu
   print "\n   Oper.syst: $os\n";
   &printConnDetails;
 
-	print " - Option 1: - drop ALL(!!) user database objects \n               create fresh schema\n               load (query) compounds\n";
-	print " - Option 2: - loadjava \n";
-	print " - Option 3: - fingerprinting \n";
-	print " - Option 4: - JUnit test similarity search \n";
-	print " - Option 5: - JUnit test substructure search  \n";
-	print " - Option 6: - JUnit test convert \n";
-	print " - Option 7: - JUnit test QSAR descriptors \n";
-	print " - Option 8: - JUnit test SMARTS search \n";
-	print " - Option 9: - JUnit test RGroup Query substructure search\n\n\n";
+	print " - Option 1:  - drop ALL(!!) user database objects \n               create fresh schema\n               load (query) compounds\n";
+	print " - Option 2:  - loadjava \n";
+	print " - Option 3:  - fingerprinting \n";
+	print " - Option 4:  - JUnit test similarity search \n";
+	print " - Option 5:  - JUnit test substructure search  \n";
+	print " - Option 6:  - JUnit test convert \n";
+	print " - Option 7:  - JUnit test QSAR descriptors \n";
+	print " - Option 8:  - JUnit test SMARTS search \n";
+	print " - Option 9:  - JUnit test RGroup Query substructure search\n";
+	print " - Option 10: - JUnit test property calculation\n\n\n";
 	print " - Option 0: - EXIT \n\n";
 	print "________________________________________________________________\n\n";
 }
@@ -308,6 +309,15 @@ sub processMenuChoice
       }
    }
 
+   if ("$menuChoice" eq "10")
+   {
+      if ($os eq "MSWin32") {
+         system ("ant -f ..\\build.xml test.calc");
+      }
+      else {
+         system ("ant -f ../build.xml test.calc");
+      }
+   }
 
 
    $_ = &promptUser("\n\nHit ENTER to return to main menu ..");

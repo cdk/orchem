@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
@@ -138,11 +139,11 @@ public class AtomsBondsCounter {
                     if (satCheck.isSaturated(atom, iac)) {
                         satCount++;
                     }
-            } catch (Exception e) {
-                //e.printStackTrace();
+            } catch (CDKException e) {
+                satCount = 999999;
+            } catch (Error e) {
                 satCount = 999999;
             }
-
         }
 
         result.put(SINGLE_BOND_COUNT, molSingleBondCount);

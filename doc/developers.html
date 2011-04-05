@@ -86,17 +86,23 @@ ________________________________________________________________
    Oper.syst: linux
    username : TESTUSER
    password : testpw
-   url      : jdbc:oracle:thin:@172.22.69.139:1521:marx
-   tns name : marx
+   url      : jdbc:oracle:thin:@127.0.0.1:1521:orcl
+   tns name : orcl
+   work dir : /tmp/
 
- - Option 1: - drop ALL(!!) user database objects
+ - Option 1:  - drop ALL(!!) user database objects
                create fresh schema
                load (query) compounds
- - Option 2: - loadjava
- - Option 3: - fingerprinting
- - Option 4: - JUnit test similarity search
- - Option 5: - JUnit test substructure search
- - Option 6: - JUnit test convert
+ - Option 2:  - loadjava
+ - Option 3:  - fingerprinting
+ - Option 4:  - JUnit test similarity search
+ - Option 5:  - JUnit test substructure search
+ - Option 6:  - JUnit test convert
+ - Option 7:  - JUnit test QSAR descriptors
+ - Option 8:  - JUnit test SMARTS search
+ - Option 9:  - JUnit test RGroup Query substructure search
+ - Option 10: - JUnit test property calculation
+
 
  - Option 0: - EXIT
 
@@ -104,6 +110,7 @@ ________________________________________________________________
 
 Please make a choice from the menu above.
 Enter menu option :
+
 
 </pre>
             <ul>
@@ -125,6 +132,10 @@ Enter menu option :
             <li>Option 5, same as Option 4 but now testing substructure
             searching.</li>
             <li>Option 6 offers JUnit tests for various file conversions</li>
+            <li>Option 7 lets you test a few CDK QSAR calculations</li>
+            <li>Option 8 tests a few SMARTS searches (using ambit)</li>
+            <li>Option 9 runs a few R-group queries. These are scaffold type queries with a skeleton and variable attachment groups.</li>
+            <li>Option 10 is to test calculation of properties by the CDK, such as mass and formula.</li>
 	    </ul>
             </li>
             </ul>
@@ -171,7 +182,8 @@ endif
 	    </LI>
 	    <LI>Now run the make command, resulting in a file called inchi-1.mips </LI>
 	    <LI>Run NestedVM  to create a .class file from the .mips file. This is how I ran it: <PRE>
-java -classpath C:\src\inchi\nestedvm\build\;C:\src\inchi\nestedvm\upstream\build\classgen\build\ org.ibex.nestedvm.Compiler -o lessConstants -outfile org/iupac/StdInchi103.class org.iupac.StdInchi103 C:\src\inchi\INCHI-1-API\INCHI\gcc\inchi-1\inchi-1.mips
+java -classpath C:\src\inchi\nestedvm\build\;C:\src\inchi\nestedvm\upstream\build\classgen\build\ org.ibex.nestedvm.Compiler -o 
+lessConstants -outfile org/iupac/StdInchi103.class org.iupac.StdInchi103 C:\src\inchi\INCHI-1-API\INCHI\gcc\inchi-1\inchi-1.mips
 </PRE>	    
 	    </LI>
 	    <LI>You can now test the class file in your IDE. You need a classpath reference to the runtime NestedVM classes found in the NestedVM directory build/org/ibex/nestedvm/, such as Runtime.class. <br>
@@ -209,17 +221,20 @@ public class Test {
 	    The CDK jar file loaded into Oracle is built with one or two hacks, the steps of which are described below.
 	    The steps are necessary because Aurora doesn't really get the various "@Test.." annotations used throughout the CDK,
 	    so these source code lines must be stripped out.
+            Below is a way to do this on Linux (using a shell script).
 	    <UL>
-	        <LI>Locate the OrChem file sh/noAnn.sh, open it and make sure step1 is uncommented and step2 is commented.</LI>
+	        <LI>Locate the script file sh/noAnn.sh in the OrChem source directory, open it and make sure step1 is uncommented and step2 is commented.</LI>
 	    	<LI>Git clone git://cdk.git.sourceforge.net/gitroot/cdk/cdk </LI>
 	    	<LI>Navigate to the CDK's src/main folder</LI>
 	    	<LI>Call noAnn.sh from within src/main</LI>
-	    	<LI>Let the script run..</LI>
-		<LI>When done, you have stripped out the "@Test" annotations</LI>
-	    	<LI>Open noAnn.sh, comment step1 and uncomment step2, save file.</LI>
-	    	<LI>Navigate to the CDK top folder where build.xml can be found</LI>
-	    	<LI>Run 'ant clean dist-all'. If there are minor compiler errors (bad stripping), locate the error and fix the problem (should be easy), the run 'ant dist-all' again </LI>
+	    	<LI>Let the script run.</LI>
+		<LI>Once finished, you have stripped out the "@Test" annotations</LI>
+	    	<LI>Set your Java environment to Java 5 (release 6 is not supported in Oracle 11G's JVM)</LI>
+	    	<LI>Navigate to the CDK top folder where file "build.xml" can be found</LI>
+	    	<LI>Modify the CDK build file so that javac 1.5 is OK: relevant lines to change "1.6" -> "1.5" are in the build file for targets "runDoclet" and "compile-module".</LI>
+	    	<LI>Run 'ant clean dist-all'. If there are minor compiler errors (bad stripping), locate the error and fix the problem (should be easy), then run 'ant dist-all' over again. </LI>
 	    	<LI>When compiled, move into dist/jar directory</LI>
+	    	<LI>Open file OrChem's noAnn.sh, comment step1 and uncomment step2, save file.</LI>
 	    	<LI>Call noAnn.sh from within the dist/jar folder</LI>
 	    	<LI>Let the script run..</LI>
 		<LI>You now have a cdk.jar file you can load into Oracle</LI>
@@ -236,4 +251,4 @@ public class Test {
 
     
   </body>
-</html>
+ne</html>

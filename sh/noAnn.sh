@@ -65,7 +65,6 @@ rm -rf META-INF
 rm -rf ./org/openscience/cdk/controller/
 rm -rf ./org/openscience/cdk/renderer/
 rm -rf ./org/openscience/cdk/modeling/
-#rm -rf ./org/openscience/cdk/qsar
 find . -name "*Test.class" -exec rm -rf {} \;
 find . -name "*Tests.class" -exec rm -rf {} \;
 find . -name "*Test\$*.class" -exec rm -rf {} \;

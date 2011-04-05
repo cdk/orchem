@@ -40,6 +40,8 @@ import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
 
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
@@ -146,7 +148,10 @@ public class VerifyOrchem {
         org.openscience.cdk.interfaces.IAtom atom;
         for (int f = 0; f < mol.getAtomCount(); f++) {
             atom = mol.getAtom(f);
-            bondCount = mol.getBondOrderSum(atom);
+
+            //bondCount = mol.getBondOrderSum(atom);
+            bondCount = AtomContainerManipulator.getBondOrderSum(mol,atom);
+
             int correction = (int)bondCount - (atom.getCharge() != null ? atom.getCharge().intValue() : 0);
             if (atom.getSymbol().equals("C")) {
                 atom.setImplicitHydrogenCount(4 - correction);

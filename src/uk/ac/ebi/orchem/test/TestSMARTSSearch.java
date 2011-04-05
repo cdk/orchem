@@ -45,8 +45,7 @@ public class TestSMARTSSearch extends AbstractOrchemTest {
             System.out.print(oc.getId() + " ");
         }
         System.out.println("\n_______");
-        assertEquals("Smarts search expected number of results "+expectedResults,
-                     fprintSearchResults.size(),expectedResults);
+        assertEquals("Smarts search expected number of results ",expectedResults,fprintSearchResults.size());
     }
 
     /*
@@ -54,7 +53,7 @@ public class TestSMARTSSearch extends AbstractOrchemTest {
      */
 
     public void testSMARTS_1() throws Exception {
-        smartsQuery("N1CC[O,N]CC1",89);
+        smartsQuery("N1CC[O,N]CC1",112);
     }
 
     public void testSMARTS_2() throws Exception {
@@ -62,7 +61,7 @@ public class TestSMARTSSearch extends AbstractOrchemTest {
     }
 
     public void testSMARTS_3() throws Exception {
-        smartsQuery("NC(CS)C(O)=O",19);
+        smartsQuery("NC(CS)C(O)=O",29);
     }
 
     public void testSMARTS_4() throws Exception {
@@ -78,7 +77,7 @@ public class TestSMARTSSearch extends AbstractOrchemTest {
     }
 
     public void testSMARTS_7() throws Exception {
-        smartsQuery("n1ancc1",93);
+        smartsQuery("n1ancc1",121);
     }
 
 }

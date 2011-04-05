@@ -26,6 +26,7 @@ package uk.ac.ebi.orchem.fingerprint;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1013,5 +1014,9 @@ public class OrchemFingerprinter implements IFingerprinter {
         return doubleBondsFound;
     }
 
+    //TODO later dude
+    public Map<String, Integer> getRawFingerprint(IAtomContainer iAtomContainer) {
+        return Collections.emptyMap();
+    }
 }
 

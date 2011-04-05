@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,10 +40,14 @@ import oracle.jdbc.driver.OracleDriver;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
@@ -50,8 +55,9 @@ import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
 import org.openscience.cdk.isomorphism.mcss.RMap;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
-//import org.openscience.cdk.smiles.smarts.parser.SMARTSParser;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
+
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
@@ -71,7 +77,7 @@ import uk.ac.ebi.orchem.shared.MoleculeCreator;
 public class SMARTS_Search extends SubstructureSearch {
 
     /**
-     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String)}
+     * Calls {@link #whereClauseFromFingerPrint(IAtomContainer,String,String,int)}
      * <BR>
      * Method scope=public -> used as Oracle Java stored procedure
      *
@@ -81,17 +87,13 @@ public class SMARTS_Search extends SubstructureSearch {
      * @throws CDKException
      * @throws SQLException
      */
-    public static String getWhereClause(Clob smartsQuery,
-                                        String debugYN) throws CDKException,
-                                                               SQLException {
+    public static String getWhereClause(Clob smartsQuery, String debugYN) throws CDKException, SQLException {
         int clobLen = new Long(smartsQuery.length()).intValue();
         String query = (smartsQuery.getSubString(1, clobLen));
         SmartsParser smartsParser = new SmartsParser();
         IAtomContainer qat = smartsParser.parse(query);
-
-        IAtomContainer hStrippedAtc =
-            new NNMolecule(AtomContainerManipulator.removeHydrogens(qat));
-        return whereClauseFromFingerPrint(hStrippedAtc, debugYN, "N",-1);
+        IAtomContainer hStrippedAtc = new NNMolecule(removeHydrogens(qat));
+        return whereClauseFromFingerPrint(hStrippedAtc, debugYN, "N", -1);
     }
 
 
@@ -102,8 +104,7 @@ public class SMARTS_Search extends SubstructureSearch {
      * @param vReturnArray
      * @throws Exception
      */
-    public static void getAtomAndBondCounts(Clob smartsQuery,
-                                            oracle.sql.ARRAY[] vReturnArray) throws Exception {
+    public static void getAtomAndBondCounts(Clob smartsQuery, oracle.sql.ARRAY[] vReturnArray) throws Exception {
 
         int clobLen = new Long(smartsQuery.length()).intValue();
         String query = (smartsQuery.getSubString(1, clobLen));
@@ -114,28 +115,18 @@ public class SMARTS_Search extends SubstructureSearch {
 
         Integer[] countsArray = new Integer[9];
         int idx = 0;
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT);
-        countsArray[idx++] =
-                (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.TRIPLE_BOND_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.S_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.O_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.N_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.F_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.CL_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.BR_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.I_COUNT);
+        countsArray[idx++] = (Integer)atomAndBondCounts.get(AtomsBondsCounter.C_COUNT);
 
         Connection conn = new OracleDriver().defaultConnection();
-        ArrayDescriptor desc =
-            ArrayDescriptor.createDescriptor("ORCHEM_NUMBER_TABLE", conn);
+        ArrayDescriptor desc = ArrayDescriptor.createDescriptor("ORCHEM_NUMBER_TABLE", conn);
         vReturnArray[0] = new ARRAY(desc, conn, countsArray);
     }
 
@@ -147,25 +138,31 @@ public class SMARTS_Search extends SubstructureSearch {
      * @param smartsQuery
      * @return Y/N indicating yes or no
      */
-    public static String smartsMatch(String compoundId, Clob dbMolecule,
-                                     Clob smartsQuery) {
+    public static String smartsMatch(String compoundId, Clob dbMolecule, Clob smartsQuery) {
 
         String retVal = "N";
         try {
 
-            //Get db molecule
             int clobLenAtoms = new Long(dbMolecule.length()).intValue();
             String dbMol = (dbMolecule.getSubString(1, clobLenAtoms));
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
-            NNMolecule databaseMolecule =
-                MoleculeCreator.getNNMolecule(mdlReader, dbMol, false);
+            IMolecule databaseMolecule=null;
+
+            if (!dbMol.contains(System.getProperty("line.separator"))) { // one line ? guess SMILES 
+                SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
+                databaseMolecule = sp.parseSmiles(dbMol);
+            }
+            else {
+                MDLV2000Reader mdlReader = new MDLV2000Reader();
+                databaseMolecule = MoleculeCreator.getNNMolecule(mdlReader, dbMol, false);
+            }
+
+            //databaseMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(databaseMolecule));
+
             try {
-                CDKHydrogenAdder adder =
-                    CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
+                CDKHydrogenAdder adder = CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
                 adder.addImplicitHydrogens(databaseMolecule);
             } catch (CDKException e) {
-                debug("CDK warning for ID " + compoundId + ":" +
-                      e.getMessage());
+                debug("CDK warning for ID " + compoundId + ":" + e.getMessage());
             }
 
             //Parse SMARTS
@@ -188,9 +185,7 @@ public class SMARTS_Search extends SubstructureSearch {
                     }
                 }
             } else {
-                List bondMapping =
-                    UniversalIsomorphismTester.getSubgraphMaps(databaseMolecule,
-                                                               query);
+                List bondMapping = UniversalIsomorphismTester.getSubgraphMaps(databaseMolecule, query);
                 matchingAtoms = getAtomMappings(bondMapping, databaseMolecule);
             }
             if (matchingAtoms.size() != 0)
@@ -211,8 +206,7 @@ public class SMARTS_Search extends SubstructureSearch {
      * @param atomContainer
      * @return
      */
-    private static List<List<Integer>> getAtomMappings(List bondMapping,
-                                                       IAtomContainer atomContainer) {
+    private static List<List<Integer>> getAtomMappings(List bondMapping, IAtomContainer atomContainer) {
         List<List<Integer>> atomMapping = new ArrayList<List<Integer>>();
         // loop over each mapping
         for (Object aBondMapping : bondMapping) {
@@ -243,8 +237,7 @@ public class SMARTS_Search extends SubstructureSearch {
                 atomMapping.add(tmp);
 
             // If there is only one bond, check if it matches both ways.
-            if (list.size() == 1 &&
-                atom1.getAtomicNumber() == atom2.getAtomicNumber()) {
+            if (list.size() == 1 && atom1.getAtomicNumber() == atom2.getAtomicNumber()) {
                 List<Integer> tmp2 = new ArrayList<Integer>();
                 tmp2.add(tmp.get(0));
                 tmp2.add(tmp.get(1));
@@ -253,6 +246,82 @@ public class SMARTS_Search extends SubstructureSearch {
         }
         return atomMapping;
     }
+
+
+    /**
+     * HACK HACK - should be taken from CDK but need a fix first for the builder,
+     * because we can't get a DefaultChemObjectBuilder from a query atom container.
+     * Produces an AtomContainer without explicit Hs but with H count from one with Hs.
+     * The new molecule is a deep copy.
+     *
+     * @param atomContainer The AtomContainer from which to remove the hydrogens
+     * @return              The molecule without Hs.
+     * @cdk.keyword         hydrogens, removal
+     */
+    @TestMethod("testRemoveHydrogens_IAtomContainer")
+    public static IAtomContainer removeHydrogens(IAtomContainer atomContainer) {
+        Map<IAtom, IAtom> map = new HashMap<IAtom, IAtom>(); // maps original atoms to clones.
+        List<IAtom> remove = new ArrayList<IAtom>(); // lists removed Hs.
+        
+        IChemObjectBuilder bob = DefaultChemObjectBuilder.getInstance();
+        IAtomContainer mol = bob.newInstance(IAtomContainer.class);
+        int count = atomContainer.getAtomCount();
+        for (int i = 0; i < count; i++) {
+            IAtom atom = atomContainer.getAtom(i);
+            if (!atom.getSymbol().equals("H")) {
+                IAtom clonedAtom = null;
+                try {
+                    clonedAtom = (IAtom)atom.clone();
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+                mol.addAtom(clonedAtom);
+                map.put(atom, clonedAtom);
+            } else {
+                remove.add(atom); // maintain list of removed H.
+            }
+        }
+        count = atomContainer.getBondCount();
+        for (int i = 0; i < count; i++) {
+            final IBond bond = atomContainer.getBond(i);
+            boolean removedBond = false;
+            final int length = bond.getAtomCount();
+            for (int k = 0; k < length; k++) {
+                if (remove.contains(bond.getAtom(k))) {
+                    removedBond = true;
+                    break;
+                }
+            }
+            if (!removedBond) {
+                IBond clone = null;
+                try {
+                    clone = (IBond)atomContainer.getBond(i).clone();
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+                assert clone != null;
+                clone.setAtoms(new IAtom[] { (IAtom)map.get(bond.getAtom(0)), (IAtom)map.get(bond.getAtom(1)) });
+                mol.addBond(clone);
+            }
+        }
+        for (IAtom aRemove : remove) {
+            for (IAtom iAtom : atomContainer.getConnectedAtomsList(aRemove)) {
+                final IAtom neighb = map.get(iAtom);
+                if (neighb == null)
+                    continue; // since for the case of H2, neight H has a heavy atom neighbor
+                neighb.setImplicitHydrogenCount((neighb.getImplicitHydrogenCount() == null ? 0 :
+                                                 neighb.getImplicitHydrogenCount()) + 1);
+            }
+        }
+        for (IAtom atom : mol.atoms()) {
+            if (atom.getImplicitHydrogenCount() == null)
+                atom.setImplicitHydrogenCount(0);
+        }
+        mol.setProperties(atomContainer.getProperties());
+        mol.setFlags(atomContainer.getFlags());
+        return (mol);
+    }
+
 }
 
 

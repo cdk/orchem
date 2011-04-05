@@ -460,11 +460,7 @@
    <hash n="oracle.jdevimpl.config.JProjectLibraries">
       <list n="exportedReferences">
          <hash>
-            <value n="id" v="MarvinBeans-5.1.0.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Commons-collections-3.2.1.jar"/>
+            <value n="id" v="Ambit2.smarts.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -472,11 +468,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Commons-logging-api-1.1.jar"/>
+            <value n="id" v="Tabletags-1.0.1.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Freemarker-2.3.14.jar"/>
+            <value n="id" v="Javax.servlet_1.0.0.0_2-5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -484,27 +480,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Standard.jar"/>
+            <value n="id" v="Commons-lang-2.5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Struts2-core-2.0.11.2.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Tabletags-1.0.1.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="JSP Runtime"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Xwork-2.0.5.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Activation.jar"/>
+            <value n="id" v="Jama-1.0.2.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -512,31 +492,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Vecmath.jar"/>
+            <value n="id" v="Xwork-2.0.5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Jgrapht-0.6.0.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="SMSD.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Mx-1.0-beta1.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Junit.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Jniinchi-0.5.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="NestedVm.jar"/>
+            <value n="id" v="Log4j-1.2.15.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -544,11 +504,35 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk.jar"/>
+            <value n="id" v="Standard.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="JPS Designtime"/>
+            <value n="id" v="Commons-logging-api-1.1.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi103.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Freemarker-2.3.14.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi_102.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Commons-collections-3.2.1.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Junit.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Activation.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -556,7 +540,23 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Inchi103.jar"/>
+            <value n="id" v="Vecmath.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="NestedVm.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Cdk.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Struts2-core-2.0.11.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jgrapht-0.6.0.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -588,20 +588,11 @@
          <list n="libraryDefinitions">
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/MarvinBeans-5.1.0.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/ambit2.smarts.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="MarvinBeans-5.1.0.jar"/>
-               <value n="id" v="MarvinBeans-5.1.0.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/commons-collections-3.2.1.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Commons-collections-3.2.1.jar"/>
-               <value n="id" v="Commons-collections-3.2.1.jar"/>
+               <value n="description" v="Ambit2.smarts.jar"/>
+               <value n="id" v="Ambit2.smarts.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -615,20 +606,20 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/commons-logging-api-1.1.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/tabletags-1.0.1.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Commons-logging-api-1.1.jar"/>
-               <value n="id" v="Commons-logging-api-1.1.jar"/>
+               <value n="description" v="Tabletags-1.0.1.jar"/>
+               <value n="id" v="Tabletags-1.0.1.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/freemarker-2.3.14.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/javax.servlet_1.0.0.0_2-5.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Freemarker-2.3.14.jar"/>
-               <value n="id" v="Freemarker-2.3.14.jar"/>
+               <value n="description" v="Javax.servlet_1.0.0.0_2-5.jar"/>
+               <value n="id" v="Javax.servlet_1.0.0.0_2-5.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -642,47 +633,20 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/standard.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/commons-lang-2.5.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Standard.jar"/>
-               <value n="id" v="Standard.jar"/>
+               <value n="description" v="Commons-lang-2.5.jar"/>
+               <value n="id" v="Commons-lang-2.5.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/struts2-core-2.0.11.2.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/jama-1.0.2.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Struts2-core-2.0.11.2.jar"/>
-               <value n="id" v="Struts2-core-2.0.11.2.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/tabletags-1.0.1.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Tabletags-1.0.1.jar"/>
-               <value n="id" v="Tabletags-1.0.1.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/xwork-2.0.5.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Xwork-2.0.5.jar"/>
-               <value n="id" v="Xwork-2.0.5.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/activation.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Activation.jar"/>
-               <value n="id" v="Activation.jar"/>
+               <value n="description" v="Jama-1.0.2.jar"/>
+               <value n="id" v="Jama-1.0.2.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -696,65 +660,20 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/vecmath.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/xwork-2.0.5.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Vecmath.jar"/>
-               <value n="id" v="Vecmath.jar"/>
+               <value n="description" v="Xwork-2.0.5.jar"/>
+               <value n="id" v="Xwork-2.0.5.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/jgrapht-0.6.0.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/log4j-1.2.15.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Jgrapht-0.6.0.jar"/>
-               <value n="id" v="Jgrapht-0.6.0.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/SMSD.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="SMSD.jar"/>
-               <value n="id" v="SMSD.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="../../../git/mx/build/jar/mx-1.0-beta1.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Mx-1.0-beta1.jar"/>
-               <value n="id" v="Mx-1.0-beta1.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/junit.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Junit.jar"/>
-               <value n="id" v="Junit.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/jniinchi-0.5.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Jniinchi-0.5.jar"/>
-               <value n="id" v="Jniinchi-0.5.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/nestedVm.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="NestedVm.jar"/>
-               <value n="id" v="NestedVm.jar"/>
+               <value n="description" v="Log4j-1.2.15.jar"/>
+               <value n="id" v="Log4j-1.2.15.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -768,11 +687,74 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/cdk.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/standard.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Cdk.jar"/>
-               <value n="id" v="Cdk.jar"/>
+               <value n="description" v="Standard.jar"/>
+               <value n="id" v="Standard.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/commons-logging-api-1.1.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Commons-logging-api-1.1.jar"/>
+               <value n="id" v="Commons-logging-api-1.1.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/inchi103.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Inchi103.jar"/>
+               <value n="id" v="Inchi103.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/freemarker-2.3.14.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Freemarker-2.3.14.jar"/>
+               <value n="id" v="Freemarker-2.3.14.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/inchi_102.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Inchi_102.jar"/>
+               <value n="id" v="Inchi_102.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/commons-collections-3.2.1.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Commons-collections-3.2.1.jar"/>
+               <value n="id" v="Commons-collections-3.2.1.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/junit.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Junit.jar"/>
+               <value n="id" v="Junit.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/activation.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Activation.jar"/>
+               <value n="id" v="Activation.jar"/>
                <value n="locked" v="true"/>
             </hash>
             <hash>
@@ -786,22 +768,54 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="public_html/WEB-INF/lib/inchi103.jar" jar-entry=""/>
+                  <url path="public_html/WEB-INF/lib/vecmath.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Inchi103.jar"/>
-               <value n="id" v="Inchi103.jar"/>
+               <value n="description" v="Vecmath.jar"/>
+               <value n="id" v="Vecmath.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/nestedVm.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="NestedVm.jar"/>
+               <value n="id" v="NestedVm.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/cdk.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Cdk.jar"/>
+               <value n="id" v="Cdk.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/struts2-core-2.0.11.2.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Struts2-core-2.0.11.2.jar"/>
+               <value n="id" v="Struts2-core-2.0.11.2.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="public_html/WEB-INF/lib/jgrapht-0.6.0.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Jgrapht-0.6.0.jar"/>
+               <value n="id" v="Jgrapht-0.6.0.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
       </hash>
       <list n="libraryReferences">
          <hash>
-            <value n="id" v="MarvinBeans-5.1.0.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Commons-collections-3.2.1.jar"/>
+            <value n="id" v="Ambit2.smarts.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -809,11 +823,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Commons-logging-api-1.1.jar"/>
+            <value n="id" v="Tabletags-1.0.1.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Freemarker-2.3.14.jar"/>
+            <value n="id" v="Javax.servlet_1.0.0.0_2-5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -821,27 +835,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Standard.jar"/>
+            <value n="id" v="Commons-lang-2.5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Struts2-core-2.0.11.2.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Tabletags-1.0.1.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="JSP Runtime"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Xwork-2.0.5.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Activation.jar"/>
+            <value n="id" v="Jama-1.0.2.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -849,31 +847,11 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Vecmath.jar"/>
+            <value n="id" v="Xwork-2.0.5.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Jgrapht-0.6.0.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="SMSD.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Mx-1.0-beta1.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Junit.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="Jniinchi-0.5.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
-            <value n="id" v="NestedVm.jar"/>
+            <value n="id" v="Log4j-1.2.15.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -881,11 +859,35 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Cdk.jar"/>
+            <value n="id" v="Standard.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="JPS Designtime"/>
+            <value n="id" v="Commons-logging-api-1.1.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi103.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Freemarker-2.3.14.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Inchi_102.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Commons-collections-3.2.1.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Junit.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Activation.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
@@ -893,7 +895,23 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Inchi103.jar"/>
+            <value n="id" v="Vecmath.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="NestedVm.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Cdk.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Struts2-core-2.0.11.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jgrapht-0.6.0.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

@@ -64,10 +64,9 @@ public class MoleculeCreator {
      */
     public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString,
                                            boolean removeHydrogens) throws CDKException {
-        NNMolecule molecule = null;
+        NNMolecule molecule = new NNMolecule();
         mdlReader.setReader(new StringReader(mdlString));
-        molecule = new NNMolecule();
-
+ 
         try {
             molecule = mdlReader.read(molecule);
         } catch (NullPointerException e) {

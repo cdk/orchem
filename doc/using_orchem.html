@@ -15,7 +15,7 @@
       <table border="0" cellspacing="10" cellpadding="10">
         <tr>
           <td >
-            <h3>Introduction</h3>
+            <h2>Introduction</h2>
             Queries in Orchem are performed by classes located in Java package 'uk.ac.ebi.orchem.search':
             <ul>
                 <li>SimilaritySearch.java</li>
@@ -34,7 +34,7 @@
             <br></br>
 
             <a name="simsearch" />
-            <h3>Similarity searching</h3>
+            <h2>Similarity searching</h2>
             Package orchem_simsearch : 
 <pre>
  FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
@@ -46,7 +46,7 @@
  TOPN                           NUMBER                  IN     DEFAULT
  DEBUG_YN                       VARCHAR2                IN     DEFAULT
  RETURN_IDS_ONLY_YN             VARCHAR2                IN     DEFAULT
-
+ EXTRA_WHERE_CLAUSE             VARCHAR2                IN     DEFAULT
 </pre>
             The search function in orchem_simsearch performs a similarity search using the 
             following arguments:
@@ -59,8 +59,10 @@
                  <span style="font-style:italic"> 
                    In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
                  <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will return IDs but no structures</li>
+                 <li>EXTRA_WHERE_CLAUSE: (optional) here you can influence the compound query a little bit, by setting extra clauses on your compound table. You can refer to the
+                    compound table with alias 'c' and then make valid SQL clauses using that. See example below.
             </ul>     
-            <h4>Examples</h5>
+            <h4>Examples</h4>
             <hr align="left" style="width:50%">
 <pre>
 select * from 
@@ -117,13 +119,53 @@ from COMPOUNDS where MOLREGNO=666
       from compounds where molregno=1000
     )  
 </pre>
+
+            <hr align="left" style="width:50%">
+<pre>
+  select * from table ( 
+   orchem_simsearch.search('c1ccncc1','SMILES',0.7, EXTRA_WHERE_CLAUSE=>' c.id > 1000 and c.id<1200' ) 
+  )
+</pre>
+            <div style="width:50%">
+              This query shows how you can influence the search results by adding extra SQL 'where clauses'. The table alias "c" is fixed and refers to
+              your compound table. You can add clauses like above, and they will work as long as they result in valid SQL. In the example
+              there is a column "id" in the compound table, and the output is restricted to a certain id range. 
+            </div>
+            <br></br>
+            <br></br>
+
+            Package orchem_simsearch : 
+<pre>
+FUNCTION SINGLE_COMPOUND_SIMILARITY RETURNS NUMBER
+ Argument Name                  Type                    In/Out Default?
+ ------------------------------ ----------------------- ------ --------
+ USER_QUERY                     CLOB                    IN
+ QUERY_TYPE                     VARCHAR2                IN
+ COMPOUND_ID                    VARCHAR2                IN
+</pre>
+            The function "single_compound_similarity" in orchem_simsearch performs a similarity search between a given input structure and one database compound:
+            <ul>
+                 <li>USER_QUERY: a Smiles string or an MDL mol file </li> 
+                 <li>QUERY_TYPE: choose 'SMILES' or 'MOL'  </li> 
+                 <li>COMPOUND_ID: identifier of the targeted database compound</li> 
+            </ul>     
+            <h4>Example</h4>
+            <hr align="left" style="width:50%">
+<pre>
+  select orchem_simsearch.SINGLE_COMPOUND_SIMILARITY
+     ('Cn1cc(C2=C(C(=O)NC2=O)c3cn(CCCCCSC(=N)N)c4ccccc34)c5ccccc15','SMILES',10085 ) score 
+  from dual
+</pre>
+            <div style="width:50%">
+              Calculates the similarity score between a given input molecule (SMILES in this case) and a compound in the database, in this case compound with id 10085.
+            </div>
+            <br></br>
+
             <hr align="left" style="width:50%">
             <br></br>
             <br></br>
-     
-      
             <a name="subsearch" />
-            <h3>Substructure searching</h3>
+            <h2>Substructure searching</h2>
             Package orchem_subsearch : 
 <pre>
 
@@ -137,6 +179,12 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  RETURN_IDS_ONLY_YN             VARCHAR2                IN     DEFAULT
  STRICT_STEREO_YN               VARCHAR2                IN     DEFAULT
  EXACT_YN                       VARCHAR2                IN     DEFAULT
+ EXTRA_WHERE_CLAUSE             VARCHAR2                IN     DEFAULT
+ TAUTOMERS_YN                   VARCHAR2                IN     DEFAULT
+
+
+FUNCTION SEARCHLIMITEDSET RETURNS ORCHEM_COMPOUND_LIST
+  this is an undocumented function/feature.
 
 </pre>
             The search function in orchem_subsearch performs a <b>non parallelized</b> substructure 
@@ -151,6 +199,11 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
                  <li>RETURN_IDS_ONLY_YN: (optional) choose 'Y' or 'N'. If 'Y', the search will only return ID's, not structures</li>
                  <li>STRICT_STEREO_YN: (optional) choose 'Y' or 'N'. If 'Y', stereoisomerism is part of the isomorphism check.</li>
                  <li>EXACT_YN: (optional) choose 'Y' or 'N'. See <a href="using_orchem.html#exactsearch">exact searching</a>.</li>
+                 <li>EXTRA_WHERE_CLAUSE: (optional) here you can influence the compound query a little bit, by setting extra clauses on your compound table. You can refer to the
+                    compound table with alias 'c' and then make valid SQL clauses using that. See example below.
+                 <li>TAUTOMERS_YN: (optional) choose 'Y' or 'N' to indicate whether or not to expand the query structure to its tautomers. 
+                     The tautomers are created based on the InChI's mobile Hydrogens, so you will need to set up the <a href="installation.html#inchi_file"/>InChi feature</a> in Orchem.
+                     Searching with tautomers works best with query structure in MDL molfile format using Kekulé notation.</li>
  
             </ul>     
 
@@ -160,7 +213,7 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
 <pre>
 SQL> set arraysize 1
 </pre>
-            <h4>Examples</h5>
+            <h4>Examples</h4>
             <hr align="left" style="width:60%">
 <pre>
 select * from 
@@ -183,7 +236,7 @@ select orchem_subsearch.search(molfile,'MOL',50,'Y') from compounds where molreg
             <br></br>
 
 
-            <h3>Parallel substructure searching</h3>
+            <h2>Parallel substructure searching</h2>
             Package orchem_subsearch_par: 
 <pre>
 FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
@@ -191,12 +244,16 @@ FUNCTION SEARCH RETURNS ORCHEM_COMPOUND_LIST
  ------------------------------ ----------------------- ------ --------
  QUERY_KEY                      NUMBER(38)              IN
  TOPN                           NUMBER(38)              IN     DEFAULT
+ FORCE_FULL_SCAN                VARCHAR2                IN     DEFAULT
+ STRICT_STEREO_YN               VARCHAR2                IN     DEFAULT
+ EXACT_YN                       VARCHAR2                IN     DEFAULT
+ TAUTOMERS_YN                   VARCHAR2                IN     DEFAULT
+
 FUNCTION SETUP RETURNS NUMBER(38)
  Argument Name                  Type                    In/Out Default?
  ------------------------------ ----------------------- ------ --------
  USER_QUERY                     CLOB                    IN
  QUERY_TYPE                     VARCHAR2                IN
-
 </pre>
             A parallel substructure search can be used as an alternative to the normal substructure
             search. The resultset of both searches will be the same, but the response time will differ.
@@ -205,7 +262,7 @@ FUNCTION SETUP RETURNS NUMBER(38)
             the extra 'preparation' step is necessary. The reward may be in the performance: the parallel
             function can run significantly faster, but not always (!) depending on many things.
 
-            <h4>Examples</h5>
+            <h4>Examples</h4>
             <hr align="left" style="width:50%">
             <div style="width:50%">
             
@@ -227,7 +284,10 @@ SQL> select id from table (orchem_subsearch_par.search(:key,100) )
             <br></br>
 
             <a name="smarts" />
-            <h3>Substructure searching with SMARTS</h3>
+            <h2>Substructure searching with SMARTS</h2>
+            
+            OrChem uses the SMARTS parser from <b><a href="http://sourceforge.net/projects/ambit/">Ambit</a></b> to enable searching with SMARTS patterns.<P> 
+            
             Package orchem_smarts_search : 
 
 <pre>
@@ -237,6 +297,7 @@ SQL> select id from table (orchem_subsearch_par.search(:key,100) )
  SMARTS_QUERY                   CLOB                    IN
  DEBUG_YN                       VARCHAR2                IN     DEFAULT
  TOPN                           NUMBER(38)              IN     DEFAULT
+ FORCE_FULL_SCAN                VARCHAR2                IN     DEFAULT
 </pre>
             The search function in orchem_smarts_search performs a SMARTS substructure search using the 
             following arguments.
@@ -246,12 +307,14 @@ SQL> select id from table (orchem_subsearch_par.search(:key,100) )
            <span style="font-style:italic"> 
                  In SQL*plus to see debug output you must set 'serverout' on and 'exec dbms_java.set_output(xxx)'.</span>    </li> 
                  <li>TOPN: (optional) maximum number of results required  </li> 
+                 <li>FORCE_FULL_SCAN: (optional) gives 'full' hint to Optimizer, experimental.</li> 
+ 
             </ul>     
             SMARTS searching is slower than regular substructure searching; performance depends on how specific the query is
             and thus how much can be fingerprinted. Again, this type of search is 'pipelined': results come back as soon as they are available. 
             To see this effect in SQL*plus you should set arraysize 1, or in JDBC use an OracleConnection and use setDefaultRowPrefetch(1);
       
-           <h4>Example</h5>
+           <h4>Example</h4>
            <hr align="left" style="width:50%">
 <pre>
  select * from table ( orchem_smarts_search.search('N1CC[O,N]CC1') )
@@ -262,13 +325,13 @@ SQL> select id from table (orchem_subsearch_par.search(:key,100) )
             <br></br>
 
          <a name="exactsearch" />
-          <h3>Exact searching</h3>
+          <h2>Exact searching</h2>
           In OrChem, exact searching is available as a specific case of <a href="using_orchem.html#subsearch">substructure searching</a>.<br>
           If the substructure search argument <b>exact_yn</b> is set to "Y" (meaning yes, default is "N" (no)), then only the structures are returned
           that are equal to the query structure. The InChI of the query is compared to that of the database compound to determine equality. Therefore to make the
           exact search work, you will need to set up the <a href="installation.html#inchi_file"/>InChi feature</a> in Orchem.
           <br><br>
-          <h4>Example exact query</h5>
+          <h4>Example exact query</h4>
           <hr align="left" style="width:50%">
 <pre>
 select orchem_subsearch.search( 'O=C(OC(C)(C)C(Cl)(Cl)Cl)N1C3=CC=CC=C3(N=C1S(=O)CC2=NC=CC(=C2C)SCC)'
@@ -282,7 +345,7 @@ from dual
             <br></br>
 
           <a name="rgroup">
-          <h3>Substructure searching with RGroup Queries</h3>
+          <h2>Substructure searching with RGroup Queries</h2>
               RGroup queries are defined by the Symyx RGfile format, more details for which can be found 
               in the "CTfile Formats" manual downloadable from <a href="http://www.symyx.com/downloads/public/ctfile/ctfile.pdf">Symyx</a>.<br>
               Editors such as JChempaint and Marvin Sketch can
@@ -342,7 +405,7 @@ from dual
             <br><br><br><br><br>
 
             <a name="jdbc">
-            <h3>A quick note on JDBC</h3>
+            <h2>A quick note on JDBC</h2>
             Java developers, please refer to the OrChem CVS repository to find Java classes that
             use the search packages through JDBC calls. Examples can be found in classes such as <span style="font-family:Monospace">uk.ac.ebi.orchem.shared.DatabaseAccess</span>.
 

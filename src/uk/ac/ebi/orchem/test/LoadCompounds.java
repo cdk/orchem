@@ -24,10 +24,9 @@
 
 package uk.ac.ebi.orchem.test;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.FileReader;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -38,12 +37,6 @@ import java.util.Properties;
 import oracle.jdbc.OraclePreparedStatement;
 
 import oracle.sql.CLOB;
-
-import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.Molecule;
-import org.openscience.cdk.io.MDLV2000Writer;
-import org.openscience.cdk.io.iterator.IteratingMDLReader;
 
 import uk.ac.ebi.orchem.PropertyLoader;
 
@@ -63,43 +56,50 @@ public class LoadCompounds {
      */
     public static void main(String[] args) {
         Connection conn = null;
+        String currentLine = null;
+        int molCount = new Integer(args[1]); // use offset
+
         try {
 
             Properties properties = PropertyLoader.getUnittestProperties();
             DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-            conn = DriverManager.getConnection(properties.getProperty("dbUrl"), properties.getProperty("dbUser"), properties.getProperty("dbPass"));
+            conn =DriverManager.getConnection(properties.getProperty("dbUrl"), 
+                  properties.getProperty("dbUser"), properties.getProperty("dbPass"));
             conn.setAutoCommit(false);
-    
+
             String insertCommand = " insert into orchem_compound_sample values (?,?) ";
             OraclePreparedStatement pstmt = (OraclePreparedStatement)conn.prepareStatement(insertCommand);
 
             File molFile = new File(args[0]);
-            InputStream ins = new FileInputStream(molFile);
-            IteratingMDLReader reader = new IteratingMDLReader(ins, DefaultChemObjectBuilder.getInstance());
+            BufferedReader input = new BufferedReader(new FileReader(molFile));
 
-            System.out.println("Inserting test compounds from mol file ..\n\n");
-            int molCount = new Integer(args[1]); // use offset
+            boolean moreToDo = true;
 
-            while (reader.hasNext()) {
-                Object object = reader.next();
-                if (object != null && object instanceof Molecule) {
+            while (moreToDo) {
+                currentLine = input.readLine();
+                if (currentLine == null)
+                    moreToDo = false;
+                else {
+                    StringBuffer buffer = new StringBuffer();
+                    while (currentLine != null && !currentLine.equals("M  END")) {
+                        buffer.append(currentLine);
+                        buffer.append(System.getProperty("line.separator"));
+                        currentLine = input.readLine();
+                    }
+                    buffer.append(currentLine);
+                    buffer.append(System.getProperty("line.separator"));
+
+                    String mdl = buffer.toString();
 
                     molCount++;
-                    System.out.print(" id:"+molCount);
-                    if(molCount%15 == 0)
+                    System.out.print(" id:" + molCount);
+                    if (molCount % 15 == 0)
                         System.out.println();
 
                     try {
-                        Molecule m = (Molecule)object;
-                        StringWriter writer = new StringWriter();
-                        MDLV2000Writer mdlWriter = new MDLV2000Writer(writer);
-
-                        mdlWriter.write(m);
-                        String mdl = writer.toString();
                         CLOB mdlClob = CLOB.createTemporary(conn, false, CLOB.DURATION_SESSION);
                         mdlClob.open(CLOB.MODE_READWRITE);
                         mdlClob.setString(1, mdl);
-
                         pstmt.setInt(1, molCount);
                         pstmt.setCLOB(2, mdlClob);
                         pstmt.executeUpdate();
@@ -107,28 +107,32 @@ public class LoadCompounds {
                         mdlClob.freeTemporary();
 
                     } catch (Exception e) {
-                        System.out.println("\nError! Message="+e.getMessage());                        
+                        System.out.println("\nError! Message=" + e.getMessage());
                     }
+
+                    do {
+                        currentLine = input.readLine();
+                    } while (currentLine != null && !currentLine.equals("$$$$"));
 
                 }
             }
             conn.commit();
             System.out.println("\n\nDone !");
-                
+
         } catch (Exception ex) {
-            if(conn!=null)
+            if (conn != null)
                 try {
                     conn.rollback();
                     conn.close();
                 } catch (SQLException sqlEx) {
                     ex.printStackTrace();
-                } 
+                }
             System.err.println("\n\nERROR, load aborted..\n\n");
             ex.printStackTrace();
         }
 
 
     }
-    
+
 
 }

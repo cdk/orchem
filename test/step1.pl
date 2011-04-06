@@ -52,8 +52,11 @@ if ($os eq "MSWin32") {
 else {
   system("bash ./step1_compoundload.bash");
 }
+print "----------------------------------------------\n\n";
+print "Loading test set of SMILES structures on ID range > 10000 \n\n";
 system("sqlplus -S $username/$password\@$instance \@./step1_compoundtable_smiles.sql");
-
+print "Done!\n";
+print "----------------------------------------------\n\n";
 
 print "\nYou should now have a schema for further testing in $username\@$instance.\nCompounds are in table called 'orchem_compound_sample' \n";
 print "\nPlease check the schema and then continue with the other steps.\n\n\n";

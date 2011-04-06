@@ -61,10 +61,8 @@ import uk.ac.ebi.orchem.singleton.DatabaseAgent;
  */
 public class DatabaseAccess {
 
-
     /**
-     * 
-     * Run a database stored procedure similarity search 
+     * Test a database stored procedure similarity search 
      *
      * @param userQuery
      * @param queryType see {@link uk.ac.ebi.orchem.Utils}
@@ -96,7 +94,7 @@ public class DatabaseAccess {
 
 
     /**
-     * Run a database stored procedure substructure search 
+     * Test a database stored procedure substructure search.
      *
      * @param userQuery
      * @param queryType see {@link uk.ac.ebi.orchem.Utils}
@@ -109,16 +107,16 @@ public class DatabaseAccess {
      * @throws ClassNotFoundException
      */
      public List<OrChemCompound> substructureSearch
-     (String userQuery, String queryType, OracleConnection conn,String strictStereo,String exact,List<Integer> idList) 
+     (String userQuery, String queryType, OracleConnection conn,String strictStereo,String exact,List<Integer> idList, String tautomers) 
      throws SQLException, ClassNotFoundException {
 
         String query=null;
 
         if (idList==null)  {
-            query= "select id, mol_file from table(orchem_subsearch.search(userquery=>?,input_type=>?, strict_stereo_yn=>?, exact_yn=>?))";
+            query= "select id, mol_file from table(orchem_subsearch.search(userquery=>?,input_type=>?, strict_stereo_yn=>?, exact_yn=>?, tautomers_yn=>?))";
         }
         else {
-            query= "select id, mol_file from table(orchem_subsearch.SEARCHLIMITEDSET(userquery=>?, input_type=>?, strict_stereo_yn=>?, exact_yn=>?,id_list=>?))";
+            query= "select id, mol_file from table(orchem_subsearch.SEARCHLIMITEDSET(userquery=>?, input_type=>?, strict_stereo_yn=>?, exact_yn=>?,tautomers_yn=>?,id_list=>?))";
         }
         
         conn.setDefaultRowPrefetch(1); 
@@ -131,11 +129,12 @@ public class DatabaseAccess {
         pstmt.setString(2, queryType); 
         pstmt.setString(3, strictStereo); 
         pstmt.setString(4, exact); 
+        pstmt.setString(5, tautomers); 
 
         if (idList!=null)  {
             oracle.sql.ArrayDescriptor descrip = oracle.sql.ArrayDescriptor.createDescriptor("COMPOUND_ID_TABLE",conn);
             oracle.sql.ARRAY a = new oracle.sql.ARRAY(descrip, conn, idList.toArray());
-            pstmt.setArray(5,a);
+            pstmt.setArray(6,a);
         }
 
         ResultSet res = pstmt.executeQuery();
@@ -154,7 +153,8 @@ public class DatabaseAccess {
 
 
     /**
-     * Substructure search in parallel mode (mind the overhead)
+     * Test a substructure search in parallel mode (mind the overhead).
+     * 
      * @param userQuery
      * @param queryType see {@link uk.ac.ebi.orchem.Utils}
      * @param conn
@@ -202,7 +202,7 @@ public class DatabaseAccess {
 
 
     /**
-     * SMARTS searching
+     * Test SMARTS searching.
      *
      * @param smartsQuery
      * @param conn
@@ -238,7 +238,8 @@ public class DatabaseAccess {
 
 
     /**
-     * Gets a molfile (clob) from the database for a given compound id
+     * Test getting a molfile (clob) from the database for a given compound id.
+     * 
      * @param id
      * @return
      * @throws SQLException
@@ -276,7 +277,7 @@ public class DatabaseAccess {
     }
 
     /**
-     * Retrieve molecules built from the substructure search table.
+     * Test retrieve molecules built from the substructure search table.
      * Used for Unit testing.
      */
     public List<WrappedAtomContainer> getFingerprintedCompounds(OracleConnection conn,Integer id) 

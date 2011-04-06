@@ -43,7 +43,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @param expectedResults expected number of results for the Orchem test set database
      */
     public void performQuery(String rgFile, String strictStereo, int expectedResults) throws Exception {
-        List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(rgFile, "MOL", conn, strictStereo,"N", null);
+        List<OrChemCompound> fprintSearchResults = dbApi.substructureSearch(rgFile, "MOL", conn, strictStereo,"N", null,"N");
         int numberOfResults = fprintSearchResults.size();
         System.out.println("\nresults # : " + numberOfResults);
         Collections.sort(fprintSearchResults);

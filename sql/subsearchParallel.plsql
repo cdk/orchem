@@ -10,7 +10,7 @@ perform faster especially for difficult substructure queries.
 
 SQL*Plus example how-to invoke this:
   var key number;
-  exec :key :=orchem_subsearch_par.setup('O=S=O','SMILES');
+  exec :key :=orchem_subsearch_par.setup('O=S=O','SMILES');set
   select * from table (orchem_subsearch_par.search(:key,100,'Y') )
 
 author: markr@ebi.ac.uk, 2009
@@ -35,7 +35,8 @@ AS
                     topN integer:=null, 
                     force_full_scan varchar2:='Y',
                     strict_stereo_yn VARCHAR2:='N',
-                    exact_yn VARCHAR2:='N') 
+                    exact_yn VARCHAR2:='N',
+                    tautomers_yn VARCHAR2:='N') 
    RETURN  orchem_compound_list
    PIPELINED;
 
@@ -111,10 +112,10 @@ AS
    already and if not, does set it up
    ___________________________________________________________________________*/
    
-   FUNCTION setup_environment (query_key number)
+   FUNCTION setup_environment (query_key number, tautomers varchar2)
    RETURN NUMBER
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.setUpEnvironment(java.lang.Integer) return java.lang.integer';
+   'uk.ac.ebi.orchem.search.SubstructureSearchParallel.setUpEnvironment(java.lang.Integer, java.lang.String) return java.lang.integer';
 
 
   /*___________________________________________________________________________
@@ -179,7 +180,7 @@ AS
          -- make sure we have the user's query, initially retrieve it once.
          while not checked loop
              begin
-                numOfQueries := setup_environment (l_candidate.query_key);
+                numOfQueries := setup_environment (l_candidate.query_key,l_candidate.tautomers_yn);
                 checked :=true;
              exception
              when others then -- parallel_query_hickup  then 
@@ -257,7 +258,8 @@ AS
                     topN integer:=null, 
                     force_full_scan varchar2:='Y',
                     strict_stereo_yn VARCHAR2:='N',
-                    exact_yn VARCHAR2:='N'
+                    exact_yn VARCHAR2:='N',
+                    tautomers_yn VARCHAR2:='N'
                    ) 
    RETURN  orchem_compound_list
    PIPELINED
@@ -288,7 +290,7 @@ AS
        INTO   compound_tab_name,compound_tab_pk_col,compound_tab_molecule_col
        FROM   orchem_parameters;
 
-       numOfQueries := setup_environment (query_key);
+       numOfQueries := setup_environment (query_key,tautomers_yn);
 
        << queryLoop >>
        FOR qIdx in 0..(numOfQueries-1) LOOP
@@ -328,7 +330,8 @@ AS
            '             , s.bonds                           ' ||
            '             ,''N'' '                              ||  
            '             ,'''||strict_stereo_yn||''''          ||  
-           '             ,'''||exact_yn||''''          ||  
+           '             ,'''||exact_yn||''''                  ||  
+           '             ,'''||tautomers_yn||''''              ||  
            '              from  orchem_fingprint_subsearch s ' ||
            '              where 1=1                          ' ||
                          whereClause                           ||

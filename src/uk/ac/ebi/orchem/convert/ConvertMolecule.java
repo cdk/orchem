@@ -141,14 +141,14 @@ public class ConvertMolecule {
     /**
      * Convert Smiles to Molfile
      *
-     * @param smilesClob
+     * @param smiles input SMILES string
      * @param generateCoords Y/N (overhead, can be expensive to calc coords!)
+     * @param useBondType4 respect aromatic bond types
      * @return
      * @throws Exception
      */
-    public static CLOB smilesToMolfile(CLOB smilesClob, String generateCoords, String useBondType4 ) throws Exception {
-        CLOB cmolfile = null;
-        String smiles = Utils.ClobToString(smilesClob);
+    public static String smilesToMolfile(String smiles, String generateCoords, String useBondType4 ) throws Exception {
+        String cmolfile = null;
         try {
             if (smiles != null) {
                 if (!smiles.trim().equals("")) {
@@ -181,7 +181,7 @@ public class ConvertMolecule {
                     mdlWriter.setWriter(out);
                     mdlWriter.write(molecule);
                     mdlWriter.close();
-                    cmolfile = Utils.StringToClob(out.toString());
+                    cmolfile = out.toString();
                     out.close();
                 }
             }
@@ -193,15 +193,14 @@ public class ConvertMolecule {
         return cmolfile;
     }
 
-
     /**
-     * Invoke JChempaint to create a picture for a given molecule
-     * @param Molfile
-     * @param hsize horizontal size of picture
-     * @param vsize vertical size of picture
-     * @return Joint Photographic Experts Group file type
-     * @throws Exception
+     * Clobbered version of {@link #smilesToMolfile(String, String, String)}, convenient to be
+     * called directly from Oracle database end.
      */
+    public static CLOB smilesToMolfile(CLOB smilesClob, String generateCoords, String useBondType4 ) throws Exception {
+       return  Utils.StringToClob(smilesToMolfile(Utils.ClobToString(smilesClob),generateCoords,useBondType4)); 
+    }
+
 
     /**
      * Invoke JChempaint to create a picture for a given molecule
@@ -267,7 +266,7 @@ public class ConvertMolecule {
      * @return the InChi descriptor
      * @throws Exception
      */
-    public static CLOB molfileToInchi(CLOB molfile, String fileNum, String outputDir, String outputType) throws Exception {
+    public static String molfileToInchi(String molfile, String fileNum, String outputDir, String outputType) throws Exception {
         // Set up
         String tempMolFile = outputDir + "orchem" + fileNum + ".mol";
         String tempOutFile = outputDir + "orchem" + fileNum + ".out";
@@ -278,7 +277,7 @@ public class ConvertMolecule {
         //open it from there
         FileWriter fstream = new FileWriter(tempMolFile);
         BufferedWriter out = new BufferedWriter(fstream);
-        out.write(Utils.ClobToString(molfile));
+        out.write(molfile);
         out.close();
 
         //Prepare an array to shove into the Inchi generator
@@ -320,9 +319,17 @@ public class ConvertMolecule {
         deleteFile(tempLogFile);
         deleteFile(tempProblemFile);
 
-        CLOB inchiAsClob = Utils.StringToClob(inchi.toString());
-        return inchiAsClob;
+        return inchi.toString();
     }
+
+    /**
+     * Clobbered version of {@link #molfileToInchi(String, String, String, String)}, convenient to be
+     * called directly from Oracle database end.
+     */
+    public static CLOB molfileToInchi(CLOB molfile, String fileNum, String outputDir, String outputType) throws Exception {
+        return Utils.StringToClob(molfileToInchi(Utils.ClobToString(molfile), fileNum, outputDir,outputType));
+    }
+
 
     /**
      * Helper method for InChi conversion, gets rid of temporary conversion

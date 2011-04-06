@@ -97,7 +97,7 @@ public class SearchAction extends SessionAwareAction {
                                     new java.util.Date());
                     compounds = 
                              // new DatabaseAccess().substructureSearchParallel(query, inputFormat, conn, new Integer(wsr.getTopN()).intValue(),wsr.getStrictStereoYN(), wsr.getExactYN();
-                                new DatabaseAccess().substructureSearch(query, inputFormat, conn, wsr.getStrictStereoYN(), wsr.getExactYN(), null);
+                                new DatabaseAccess().substructureSearch(query, inputFormat, conn, wsr.getStrictStereoYN(), wsr.getExactYN(), null, "N");
                 }
             }
 

@@ -59,6 +59,7 @@ import uk.ac.ebi.orchem.isomorphism.SubgraphIsomorphism;
 import uk.ac.ebi.orchem.shared.AtomsBondsCounter;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
+import uk.ac.ebi.orchem.tautomers.TautomerUtility;
 
 
 /**
@@ -72,25 +73,30 @@ import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
  */
 public class SubstructureSearch {
 
-    final static Map<Integer, List<UserQueryMolecule>> queries = new ConcurrentHashMap<Integer, List<UserQueryMolecule>>();
-   
+    final static Map<Integer, List<UserQueryMolecule>> queries =
+        new ConcurrentHashMap<Integer, List<UserQueryMolecule>>();
+
     /**
      * Translates a user query (such as for example a Smiles string "O=S=O") into
      * a CDK atomcontainer.<BR>
-     * 
+     *
      * However, if the query if an RGFile (a special case of a MOL file), there
      * can be any number of queries generated (valid substitutes of the R-Group)
-     * 
-     * @param userQuery 
-     * @param queryType 
+     *
+     * @param userQuery mdl or smiles clob
+     * @param queryType  SMILES or MOL
+     * @param Y/N indicating to query for tautomers
      * @return user query represented as CDK atom container
      * @throws Exception
      */
-     static List<IAtomContainer> translateUserQueryClob(Clob userQuery, String queryType) throws SQLException, CDKException {
+    static List<IAtomContainer> translateUserQueryClob(Clob userQuery, String queryType,
+                                                       String tautomers) throws Exception {
 
-        List<IAtomContainer> userQueries=null;
+        List<IAtomContainer> userQueries = null;
         int clobLen = new Long(userQuery.length()).intValue();
         String query = (userQuery.getSubString(1, clobLen));
+
+        debug("# tautomers arg Y/N =  " + tautomers);
 
         if (queryType.equals(Utils.QUERY_TYPE_MOL)) {
 
@@ -103,35 +109,44 @@ public class SubstructureSearch {
                 //continue, gues MDL molfile
                 e.printStackTrace();
             }
-            if (format != null &&
-                format.getClass().equals(RGroupQueryFormat.class)) {
+            if (format != null && format.getClass().equals(RGroupQueryFormat.class)) {
                 RGroupQueryReader reader = new RGroupQueryReader(ins);
-                RGroupQuery rGroupQuery =(RGroupQuery)reader.read(new RGroupQuery());
+                RGroupQuery rGroupQuery = reader.read(new RGroupQuery());
                 List<IAtomContainer> allConfigurations = rGroupQuery.getAllConfigurations();
                 userQueries = new ArrayList<IAtomContainer>();
                 // Detect aromaticity etc on RGroup Query configurations
                 for (IAtomContainer atc : allConfigurations) {
                     IAtomContainer nnMolecule = null;
-                    nnMolecule =new NNMolecule(atc);
+                    nnMolecule = new NNMolecule(atc);
                     if (nnMolecule != null && nnMolecule.getAtomCount() != 0) {
                         AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
                         CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
                         userQueries.add(nnMolecule);
                     }
                 }
-
             } else {
-                MDLV2000Reader mdlReader = new MDLV2000Reader();
-                userQueries = new ArrayList<IAtomContainer>();
-                userQueries.add(MoleculeCreator.getNNMolecule(mdlReader,query,false));
+                if (tautomers.equals("N")) {
+                    MDLV2000Reader mdlReader = new MDLV2000Reader();
+                    userQueries = new ArrayList<IAtomContainer>();
+                    userQueries.add(MoleculeCreator.getNNMolecule(mdlReader, query, false));
+                } else {
+                    userQueries = TautomerUtility.getTautomersFromMolfile(query);
+                }
             }
 
+
         } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
-            SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-            IAtomContainer atc = sp.parseSmiles(query);
-            userQueries = new ArrayList<IAtomContainer>();
-            userQueries.add(atc);
+            if (tautomers.equals("N")) {
+                SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+                IAtomContainer atc = sp.parseSmiles(query);
+                userQueries = new ArrayList<IAtomContainer>();
+                userQueries.add(atc);
+            }
+            else {
+                userQueries = TautomerUtility.getTautomersFromSmiles(query);
+            }
         }
+        debug("# queries " + userQueries.size());
         return userQueries;
     }
 
@@ -139,9 +154,9 @@ public class SubstructureSearch {
     /**
      * Builds a string to be used as an SQL "WHERE" clause for queries
      * that filter possible candidates in an OrChem substructure search. <BR>
-     * 
+     *
      * The WHERE clause will look like "and bit7='1' and bit56='1' and bit108='1' and bit143='1'",
-     * depending on the user query - the more elaborate the query, the more bits 
+     * depending on the user query - the more elaborate the query, the more bits
      * are likely to be set. <BR>
      * The WHERE clause refers to columns in table ORCHEM_FINGPRINT_SUBSEARCH.<P>
      *
@@ -152,7 +167,8 @@ public class SubstructureSearch {
      * @return content for an SQL WHERE clause on ORCHEM_FINGPRINT_SUBSEARCH
      * @throws CDKException
      */
-     static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN, String exactYN, int atomCount) throws CDKException {
+    static String whereClauseFromFingerPrint(IAtomContainer atc, String debugYN, String exactYN,
+                                             int atomCount) throws CDKException {
 
         BitSet fingerprint = FingerPrinterAgent.FP.getFingerPrinter().getFingerprint(atc);
 
@@ -165,7 +181,7 @@ public class SubstructureSearch {
             }
         }
         if (exactYN.equals("Y")) {
-            builtCondition.append(" and nonh_atom_count="+atomCount);
+            builtCondition.append(" and nonh_atom_count=" + atomCount);
         }
         whereCondition += builtCondition.toString();
         whereCondition = whereCondition.trim();
@@ -188,27 +204,28 @@ public class SubstructureSearch {
      * @throws SQLException
      */
 
-    public static String getWhereClause(Integer queryKey, Integer qIndex,String debugYN, String exactYN ) throws CDKException,SQLException {
+    public static String getWhereClause(Integer queryKey, Integer qIndex, String debugYN,
+                                        String exactYN) throws CDKException, SQLException {
         IAtomContainer queryAtc = queries.get(queryKey).get(qIndex).mol;
         int atomCount = queries.get(queryKey).get(qIndex).atomCount;
-        return whereClauseFromFingerPrint(queryAtc, debugYN, exactYN,atomCount);
+        return whereClauseFromFingerPrint(queryAtc, debugYN, exactYN, atomCount);
     }
 
 
     /**
-     * Puts a CDK atomcontainter in a Map, from where it can be retrieved by 
+     * Puts CDK atomcontainer(s) in a Map, from where it can be retrieved by
      * other methods later on during the substructure search.
-     * 
+     *
      * @param queryKey key value for the Java Map
      * @param queryMolecules
      * @param debugYN
      */
-     static void stash(Integer queryKey, List<IAtomContainer> queryMolecules,String debugYN){
+    static void stash(Integer queryKey, List<IAtomContainer> queryMolecules, String debugYN) {
         List<UserQueryMolecule> uqmList = new ArrayList<UserQueryMolecule>();
-        for (IAtomContainer queryMolecule : queryMolecules)  {
+        for (IAtomContainer queryMolecule : queryMolecules) {
 
             MoleculeCreator.backupExplicitHcount(queryMolecule);
-            queryMolecule=AtomContainerManipulator.removeHydrogens(queryMolecule);
+            queryMolecule = AtomContainerManipulator.removeHydrogens(queryMolecule);
             IAtom[] sortedAtoms = (IsomorphismSort.atomsByFrequency(queryMolecule));
             queryMolecule.setAtoms(sortedAtoms);
             int[] explHydrogenCountBackup = MoleculeCreator.createExplHydrogenArray(queryMolecule);
@@ -217,40 +234,44 @@ public class SubstructureSearch {
             UserQueryMolecule uqm = new UserQueryMolecule();
             uqm.mol = queryMolecule;
             uqm.atomsAndBonds = atomAndBondCounts;
-            uqm.explicitHydrogenCountBackup=explHydrogenCountBackup;
-            uqm.atomCount=queryMolecule.getAtomCount();
+            uqm.explicitHydrogenCountBackup = explHydrogenCountBackup;
+            uqm.atomCount = queryMolecule.getAtomCount();
             uqmList.add(uqm);
         }
-        queries.put(queryKey, uqmList);        
+        debug("stashed # queries = " + uqmList.size(), debugYN);
+        queries.put(queryKey, uqmList);
     }
 
     /**
-     * Calls {@link #stash}
+     * Calls {@link #stash}, to stash query atomcontainer(s) in a map to be used later on.
+     * There can be more than one query atom container coming from the userQuery CLOB, for
+     * example when it's a RGroup query (a type of CTFile) or when tautomers are to be included.
      * <BR>
      * Method scope=public -> used as Oracle Java stored procedure
-     * @param queryKey
+     * @param queryKey key for the queries map
      * @param userQuery a Smiles string, or Mol..
-     * @param queryType 
+     * @param queryType smiles or mol
+     * @param tautomers
      * @param debugYN
      * @throws Exception
      */
-    public static Integer stashQueriesInMap(Integer queryKey, Clob userQuery, String queryType, String debugYN) throws SQLException, CDKException {
-
-        List<IAtomContainer> queryMolecules = translateUserQueryClob(userQuery, queryType);
-        stash (queryKey, queryMolecules,debugYN);
+    public static Integer stashQueriesInMap(Integer queryKey, Clob userQuery, String queryType, String tautomers,
+                                            String debugYN) throws Exception {
+        List<IAtomContainer> queryMolecules = translateUserQueryClob(userQuery, queryType, tautomers);
+        stash(queryKey, queryMolecules, debugYN);
         return queryMolecules.size();
     }
 
 
     /**
-     * Method to get a quickly see if a candidate compound can be a 
-     * a superstructure of the user's query. This is done using various simple 
+     * Method to get a quickly see if a candidate compound can be a
+     * a superstructure of the user's query. This is done using various simple
      * counts.<BR>
      * For example, if the candidate has two Sulphur atoms and the query
      * has three, the candidate can be ruled out immediately.
-     * 
+     *
      * Double/aromatic/single counts are problematic - not taken into account.
-     * 
+     *
      * @param queryKey map key to queries
      * @param qIdx index for contaner list in queries
      * @param compoundId the database id for the database compound
@@ -266,8 +287,7 @@ public class SubstructureSearch {
      * @param debugYN
      */
     public static String isPossibleCandidate(Integer queryKey, Integer qIdx, String compoundId,
-                                             Integer tripleBondCount,
-                                             Integer sCount, Integer oCount, Integer nCount,
+                                             Integer tripleBondCount, Integer sCount, Integer oCount, Integer nCount,
                                              Integer fCount, Integer clCount, Integer brCount, Integer iCount,
                                              Integer cCount, String debugYN) {
         String retVal = "Y";
@@ -306,13 +326,12 @@ public class SubstructureSearch {
      * @param strictStereoIsomorphismYN
      * @return Y or N to indicate is-substructure
      */
-    public static String isomorphismCheck
-    (Integer queryKey, Integer qIdx, String compoundId, Clob atoms, Clob bonds, 
-     String debugYN, String strictStereoIsomorphismYN, String swapYN) {
+    public static String isomorphismCheck(Integer queryKey, Integer qIdx, String compoundId, Clob atoms, Clob bonds,
+                                          String debugYN, String strictStereoIsomorphismYN, String swapYN) {
 
         String retVal = null;
         try {
-            debug("isomorphism check for "+compoundId,debugYN);
+            debug("isomorphism check for " + compoundId, debugYN);
             // Get user query structure
             UserQueryMolecule qc = queries.get(queryKey).get(qIdx);
             IAtomContainer queryMolecule = qc.mol;
@@ -325,14 +344,16 @@ public class SubstructureSearch {
             IAtomContainer databaseMolecule = OrchemMoleculeBuilder.getBasicAtomContainer(atString, bondString);
 
             //Invoke the CDK implementation of the VF2 algorithm
-            SubgraphIsomorphism s =null;
+            SubgraphIsomorphism s = null;
             if (swapYN.equals("N"))
-                s=new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN, qc.explicitHydrogenCountBackup);
+                s =
+   new SubgraphIsomorphism(databaseMolecule, queryMolecule, strictStereoIsomorphismYN, qc.explicitHydrogenCountBackup);
             else
-                s=new SubgraphIsomorphism(queryMolecule, databaseMolecule, strictStereoIsomorphismYN, new int[queryMolecule.getAtomCount()] );
+                s =
+   new SubgraphIsomorphism(queryMolecule, databaseMolecule, strictStereoIsomorphismYN, new int[queryMolecule.getAtomCount()]);
 
             if (s.matchSingle()) {
-                    retVal = compoundId;
+                retVal = compoundId;
             }
         } catch (Exception e) {
             debug("CDK Error - " + compoundId + ": " + e.getMessage(), debugYN);
@@ -358,8 +379,9 @@ public class SubstructureSearch {
             System.out.println(new java.util.Date() + " debug: " + debugMessage);
         }
     }
+
     public static void debug(String debugMessage) {
-        debug(debugMessage,"Y");
+        debug(debugMessage, "Y");
     }
 
     /**

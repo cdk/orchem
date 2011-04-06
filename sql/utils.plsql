@@ -19,7 +19,7 @@ AS
      ,debug_yn            varchar2(1)
      ,strict_stereo_yn    varchar2(1)
      ,exact_yn            varchar2(1)
-
+     ,tautomers_yn        varchar2(1)
    );
    
    FUNCTION verify_orchem (p_primary_key varchar2) RETURN CLOB;

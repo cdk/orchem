@@ -90,10 +90,11 @@ public class SubstructureSearchParallel extends SubstructureSearch {
     /**
      * Using a query key (primary key value) selects a user query structure from the database.
      * @param queryKey
+     * @param tautomersYN
      * @return user queries (as CDK IAtomContainer(s) )
      * @throws SQLException
      */
-    private static List<IAtomContainer> retrieveQueriesFromDB (Integer queryKey) throws Exception {
+    private static List<IAtomContainer> retrieveQueriesFromDB (Integer queryKey,String tautomersYN) throws Exception {
         List<IAtomContainer> queries = new ArrayList<IAtomContainer>();
 
         OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
@@ -104,7 +105,7 @@ public class SubstructureSearchParallel extends SubstructureSearch {
         ResultSet res = psFindUserQuery.executeQuery();
 
         if (res.next())  {
-            queries = translateUserQueryClob(res.getClob("query"), res.getString("query_type"));
+            queries = translateUserQueryClob(res.getClob("query"), res.getString("query_type"), tautomersYN); 
         }
         else {
             throw new RuntimeException("Orchem parallel query issue! Could not find query with key "+queryKey);
@@ -117,13 +118,14 @@ public class SubstructureSearchParallel extends SubstructureSearch {
     /**
      * Run by each thread, verifies the user query is available in the queries map.
      * @param queryKey
+     * @param tautomersYN
      * @return the number of queries in the map (1..n)
      * @throws SQLException
      */
-    public static int setUpEnvironment (Integer queryKey) throws Exception {
+    public static int setUpEnvironment (Integer queryKey,String tautomersYN) throws Exception {
 
         if (!queries.containsKey(queryKey))  {
-            List<IAtomContainer> queries = retrieveQueriesFromDB(queryKey);
+            List<IAtomContainer> queries = retrieveQueriesFromDB(queryKey,tautomersYN);
             stash(queryKey,queries,"N");
             return queries.size();
         }

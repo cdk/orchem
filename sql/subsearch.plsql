@@ -23,6 +23,7 @@ AS
                   , strict_stereo_yn VARCHAR2:='N'      -- consider stereo chemistry (primitive implementation)
                   , exact_yn VARCHAR2:='N'              -- only find exact matches (uses atom count)
                   , extra_where_clause VARCHAR2 := NULL -- add an extra SQL where clause that is valid for your base table (like ' some_column > 10 ')
+                  , tautomers_yn VARCHAR2:='N'          -- also look for tautomers Y/N (needs InChI generator to be set up!)
                   )
    RETURN   orchem_compound_list
    PIPELINED
@@ -36,6 +37,7 @@ AS
                   , strict_stereo_yn VARCHAR2:='N'
                   , exact_yn VARCHAR2:='N'
                   , extra_where_clause VARCHAR2 := NULL 
+                  , tautomers_yn VARCHAR2:='N'
                   )
    RETURN   orchem_compound_list
    PIPELINED
@@ -56,10 +58,10 @@ AS
    Puts user query (atom container) in a map, where it can be looked up by the
    subgraph isomorphism method when needed.
    ___________________________________________________________________________*/
-   FUNCTIOn stash_queries_in_map (query_key number, userQuery Clob, input_type varchar2, debugYN varchar2)
+   FUNCTIOn stash_queries_in_map (query_key number, userQuery Clob, input_type varchar2, tautomersYN varchar2, debugYN varchar2)
    RETURN number
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.search.SubstructureSearch.stashQueriesInMap(java.lang.Integer,java.sql.Clob,java.lang.String,java.lang.String) return java.lang.Integer';
+   'uk.ac.ebi.orchem.search.SubstructureSearch.stashQueriesInMap(java.lang.Integer,java.sql.Clob,java.lang.String,java.lang.String,java.lang.String) return java.lang.Integer';
 
 
   /*___________________________________________________________________________
@@ -214,7 +216,7 @@ AS
    (2)  Read user's environment from ORCHEM_PARAMETERS
    (3)  Pull a (cycled) sequence integer value to get a key to store user's 
         query structure in a map
-   (4)  Stash the user query structure in the map
+   (4)  Stash the user query structure(s) in the map
    (5)  Have a WHERE clause generated to prefilter possible candidates
    (6)  Set up the prefilter query (dynamic SQL)
    (7)  Set up a lookup query to select details of superstructure compounds
@@ -228,10 +230,15 @@ AS
    
 
    ___________________________________________________________________________*/
-   FUNCTION search (userQuery Clob, input_type varchar2, topN integer :=null , 
-                    debug_YN varchar2 := 'N',return_ids_only_YN VARCHAR2:='N',
-                    strict_stereo_yn VARCHAR2:='N',exact_yn VARCHAR2:='N', 
-                    extra_where_clause VARCHAR2 := NULL)
+   FUNCTION search ( userQuery Clob
+                   , input_type varchar2
+                   , topN integer :=null 
+                   , debug_YN varchar2 := 'N'
+                   , return_ids_only_YN VARCHAR2:='N'
+                   , strict_stereo_yn VARCHAR2:='N'
+                   , exact_yn VARCHAR2:='N'
+                   , extra_where_clause VARCHAR2 := NULL
+                   , tautomers_yn VARCHAR2:='N')
    RETURN  orchem_compound_list
    PIPELINED
    AS
@@ -270,7 +277,7 @@ AS
        FROM   dual;
        
        --(4)
-       numOfQueries := stash_queries_in_map (query_key, userQuery, input_type, debug_YN);
+       numOfQueries := stash_queries_in_map (query_key, userQuery, input_type, tautomers_yn, debug_YN);
 
        << queryLoop >>
        FOR qIdx in 0..(numOfQueries-1) LOOP
@@ -298,6 +305,7 @@ AS
            ' ,'''||debug_YN||''''                  ||  
            ' ,'''||strict_stereo_yn||''''          ||  
            ' ,'''||exact_yn||''''                  ||  
+           ' ,'''||tautomers_yn||''''              ||  
            '  from  orchem_fingprint_subsearch s ';
 
            if (extra_where_clause IS NOT NULL) then
@@ -400,6 +408,7 @@ AS
                   , return_ids_only_YN VARCHAR2:='N'
                   , strict_stereo_yn VARCHAR2:='N',exact_yn VARCHAR2:='N'
                   , extra_where_clause VARCHAR2 := NULL 
+                  , tautomers_yn VARCHAR2:='N'
                   )
    RETURN   orchem_compound_list
    PIPELINED
@@ -436,7 +445,7 @@ AS
        INTO   query_key
        FROM   dual;
 
-       numOfQueries := stash_queries_in_map (query_key, userQuery, input_type, debug_YN);
+       numOfQueries := stash_queries_in_map (query_key, userQuery, input_type, tautomers_yn, debug_YN);
 
        << queryLoop >>
        FOR qIdx in 0..(numOfQueries-1) LOOP 
@@ -461,6 +470,7 @@ AS
            ' ,'''||debug_YN||''''                  ||
            ' ,'''||strict_stereo_yn||''''          ||  
            ' ,'''||exact_yn||''''                  ||  
+           ' ,'''||tautomers_yn||''''              ||  
            '  from  orchem_fingprint_subsearch s ' ;
 
            if ( extra_where_clause IS NOT NULL) then

@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 
-import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
@@ -45,6 +44,7 @@ import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
+import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.db.OrChemParameters;
 
 
@@ -64,46 +64,51 @@ public class MoleculeCreator {
      */
     public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString,
                                            boolean removeHydrogens) throws CDKException {
-        NNMolecule molecule = new NNMolecule();
-        mdlReader.setReader(new StringReader(mdlString));
- 
         try {
-            molecule = mdlReader.read(molecule);
-        } catch (NullPointerException e) {
-            /* Fix for NullPointer due to occurence of D or T (Deuterium or Tritium) with massNumber null
+            NNMolecule molecule = new NNMolecule();
+            mdlReader.setReader(new StringReader(mdlString));
+
+            try {
+                molecule = mdlReader.read(molecule);
+            } catch (NullPointerException e) {
+                /* Fix for NullPointer due to occurence of D or T (Deuterium or Tritium) with massNumber null
              * as happens now and then in Starlite (Chembl)
              * Regex fix to replace D or T with a H (Hydrogen) symbol as replacement.
              */
-            Pattern p = Pattern.compile("[D|T](\\s+\\d){6}");
-            Matcher m = p.matcher(mdlString);
-            StringBuilder sb = new StringBuilder(mdlString);
-            while (m.find()) {
-                sb.replace(m.start(), m.start() + 1, "H");
+                Pattern p = Pattern.compile("[D|T](\\s+\\d){6}");
+                Matcher m = p.matcher(mdlString);
+                StringBuilder sb = new StringBuilder(mdlString);
+                while (m.find()) {
+                    sb.replace(m.start(), m.start() + 1, "H");
+                }
+                //retry, hopefully NullPointer fixed...
+                mdlString = sb.toString();
+                mdlReader.setReader(new StringReader(mdlString));
+                molecule = new NNMolecule();
+                molecule = mdlReader.read(molecule);
             }
-            //retry, hopefully NullPointer fixed...
-            mdlString = sb.toString();
-            mdlReader.setReader(new StringReader(mdlString));
-            molecule = new NNMolecule();
-            molecule = mdlReader.read(molecule);
+            //TODO
+            //catch classcast exception -> replace query bond lines and try again...
 
-        }
-
-        NNMolecule nnMolecule = null;
-        if (removeHydrogens) {
-            try {
-                nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
-            } catch (NullPointerException e) {
-                throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+            NNMolecule nnMolecule = null;
+            if (removeHydrogens) {
+                try {
+                    nnMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(molecule));
+                } catch (NullPointerException e) {
+                    throw new CDKException("Error - nullpointer exception on removeHydrogens()");
+                }
+                if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
+                    throw new CDKException("Error - Molfile is empty or atom count after hydrogen stripping is zero. ");
+            } else {
+                nnMolecule = molecule;
             }
-            if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
-                throw new CDKException("Error - Molfile is empty or atom count after hydrogen stripping is zero. ");
-        } else {
-            nnMolecule = molecule;
-        }
 
-        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
-        CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
-        return nnMolecule;
+            AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(nnMolecule);
+            CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
+            return nnMolecule;
+        } catch (Exception err) {
+            throw new CDKException("Unexpected error creating molecule from molfile \n"+err.getClass()+"\n"+Utils.getErrorString(err));        
+        }
     }
 
     /**

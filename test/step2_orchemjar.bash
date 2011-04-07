@@ -40,3 +40,4 @@ jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/load/*.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/convert/ConvertMolecule.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/qsar/*.class
 jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/calc/*.class
+jar -uvf /tmp/orchem.jar $CLASSDIR/uk/ac/ebi/orchem/tautomers/*.class

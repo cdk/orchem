@@ -79,7 +79,7 @@ public class TestRgroupQuery extends AbstractOrchemTest {
      * @throws Exception
      */
     public void testRgroupQuery2() throws Exception {
-        performQuery(RGROUP_QUERY_2, "N", 68);
+        performQuery(RGROUP_QUERY_2, "N", 67);
     }
 
     /**

@@ -41,5 +41,6 @@ jar -uvf c:\orchem.jar uk/ac/ebi/orchem/load/*.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/convert/ConvertMolecule.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/qsar/*.class
 jar -uvf c:\orchem.jar uk/ac/ebi/orchem/calc/*.class
+jar -uvf c:\orchem.jar uk/ac/ebi/orchem/tautomers/*.class
 
 

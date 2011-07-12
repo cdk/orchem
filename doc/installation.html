@@ -192,9 +192,9 @@ creating : class javax/vecmath/Color3f
                     </li>
                    </ul>
 <div style="border:1px solid gray;padding:10">
-<b>A note on INVALID CLASSES</B><br>
+<b>A note on <span style="color:red">INVALID CLASSES</span></B><br>
 If you would query the database and look for the status of the Java classes just loaded, you'd see many classes with status INVALID.
-This is normal: not all the classes loaded into the database are necessarily needed by OrChem, and their invalid status has no direct effect. 
+This is expected: not all the classes loaded into the database are necessarily needed by OrChem, and their invalid status has no direct effect. 
 It would be possible to resolve the invalid statuses, but that would require loading in more third-party Java archives (.jar files), which in turn may
 require further jar files. Instead, the status INVALID is accepted for classes not required by OrChem.
 </div>

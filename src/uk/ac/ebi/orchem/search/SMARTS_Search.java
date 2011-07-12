@@ -152,8 +152,7 @@ public class SMARTS_Search extends SubstructureSearch {
                 databaseMolecule = sp.parseSmiles(dbMol);
             }
             else {
-                MDLV2000Reader mdlReader = new MDLV2000Reader();
-                databaseMolecule = MoleculeCreator.getNNMolecule(mdlReader, dbMol, false);
+                databaseMolecule = MoleculeCreator.getMoleculeFromMolfile(dbMol, false);
             }
 
             //databaseMolecule = new NNMolecule(AtomContainerManipulator.removeHydrogens(databaseMolecule));

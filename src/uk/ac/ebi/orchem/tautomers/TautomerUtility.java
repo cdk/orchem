@@ -106,7 +106,7 @@ public class TautomerUtility {
             resFp = pstmtInchi.executeQuery();
             resFp.next();
             String outputDir = resFp.getString(1);
-            inchi = ConvertMolecule.molfileToInchi(mdl, fileNum, outputDir, "INCHI");
+            inchi = ConvertMolecule.molfileToInchi(mdl, fileNum, outputDir, "INCHI", null);
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw (ex);

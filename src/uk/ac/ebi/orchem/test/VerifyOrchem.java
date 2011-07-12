@@ -36,10 +36,8 @@ import oracle.jdbc.OracleDriver;
 
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.fingerprint.IFingerprinter;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesGenerator;
-
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
@@ -65,7 +63,6 @@ public class VerifyOrchem {
         try {
             OracleConnection conn = (OracleConnection)new OracleDriver().defaultConnection();
 
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
             IFingerprinter fingerPrinter = FingerPrinterAgent.FP.getFingerPrinter();
             BitSet fpBitset;
 
@@ -95,7 +92,7 @@ public class VerifyOrchem {
                 out.append("\nDEBUG: molfile is \n"+molfile);
 
                 if (molfile != null) {
-                    NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                    NNMolecule molecule = MoleculeCreator.getMoleculeFromMolfile(molfile);
                     out.append("\nOKAY: CDK molecule created");
                     fpBitset = fingerPrinter.getFingerprint(molecule);
                     out.append("\nOKAY: Fingerprint made");

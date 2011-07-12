@@ -48,11 +48,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.nonotify.NNMolecule;
+import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
 import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
@@ -68,6 +67,7 @@ import org.openscience.jchempaint.renderer.generators.RingGenerator;
 import org.openscience.jchempaint.renderer.generators.SelectAtomGenerator;
 import org.openscience.jchempaint.renderer.generators.SelectBondGenerator;
 import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
+
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 
@@ -189,8 +189,6 @@ public class OrchemBlobServlet extends HttpServlet {
             String id = request.getParameter("id");
             if (id != null && !id.equals("")) {
 
-                MDLV2000Reader mdlReader = new MDLV2000Reader();
-
                 String query = "select molfile from orchem_compound_sample where id=?";
 
                 Connection conn = null;
@@ -207,7 +205,7 @@ public class OrchemBlobServlet extends HttpServlet {
                 if (rs.next()) {
                     String molfile = rs.getString(1);
 
-                    NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                    NNMolecule molecule = MoleculeCreator.getMoleculeFromMolfile(molfile);
                     for(IAtom atom : molecule.atoms()) {
                         atom.setValency(null); // otherwise ugly picture
                     }

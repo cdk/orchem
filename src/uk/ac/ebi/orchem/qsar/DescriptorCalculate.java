@@ -21,15 +21,21 @@
  */
 
 package uk.ac.ebi.orchem.qsar;
+
 import oracle.sql.CLOB;
 import oracle.sql.NUMBER;
 
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.qsar.IMolecularDescriptor;
-import org.openscience.cdk.qsar.result.*;
+import org.openscience.cdk.qsar.result.DoubleArrayResult;
+import org.openscience.cdk.qsar.result.DoubleResult;
+import org.openscience.cdk.qsar.result.IDescriptorResult;
+import org.openscience.cdk.qsar.result.IntegerArrayResult;
+import org.openscience.cdk.qsar.result.IntegerResult;
+
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
+
 
 public class DescriptorCalculate {
 
@@ -44,10 +50,9 @@ public class DescriptorCalculate {
         IDescriptorResult resultArray;
         try {
             IMolecularDescriptor descriptor = (IMolecularDescriptor) Class.forName("org.openscience.cdk.qsar.descriptors.molecular."+className).newInstance();
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
             String molfile = Utils.ClobToString(Molfile);
             if (molfile != null) {
-                NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                NNMolecule molecule = MoleculeCreator.getMoleculeFromMolfile(molfile);
                 resultArray = descriptor.calculate(molecule).getValue();
             } else {
                 resultArray = null;

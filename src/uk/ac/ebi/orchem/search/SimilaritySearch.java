@@ -399,8 +399,7 @@ public class SimilaritySearch {
      * @throws Exception 
      */
     private static oracle.sql.ARRAY  molSearch(String molfile, Float cutOff, Integer topN,String debugYN, String idsOnlyYN, String extraWhereClause) throws Exception {
-        MDLV2000Reader mdlReader = new MDLV2000Reader();
-        Molecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+        Molecule molecule = MoleculeCreator.getMoleculeFromMolfile(molfile);
         BitSet fp = FingerPrinterAgent.FP.getExtendedFingerPrinter().getFingerprint(molecule);
         return search(fp, cutOff, topN, debugYN,idsOnlyYN,extraWhereClause);
     }
@@ -483,8 +482,7 @@ public class SimilaritySearch {
             String query = (userQuery.getSubString(1, clobLen));
             IAtomContainer molecule = null;
             if (queryType.equals(Utils.QUERY_TYPE_MOL)) {
-                MDLV2000Reader mdlReader = new MDLV2000Reader();
-                molecule = MoleculeCreator.getNNMolecule(mdlReader, query);
+                molecule = MoleculeCreator.getMoleculeFromMolfile(query);
             } else if (queryType.equals(Utils.QUERY_TYPE_SMILES)) {
                 SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
                 molecule = sp.parseSmiles(query);

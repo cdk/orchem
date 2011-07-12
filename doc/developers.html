@@ -7,23 +7,127 @@
   <body>
     <br>
     <img src="logo.small.jpg"></img>
-    <h1>Development </h1> 
-
+    <h1><img height="50px" src="hammer.png"/>&nbsp;&nbsp;&nbsp; Development</h1>
     <div class="main">
       <a href="index.html">Back to main page</a>
       <table width="70%" border="0" cellspacing="10" cellpadding="10">
         <tr>
           <td>
             <h3>Introduction</h3>
-            This page contains pointers for people developing OrChem
+            This page contains (some detailed) pointers for people doing development on OrChem.<br><br>
+            Broadly speaking, the main development for OrChem is done in Java. The CDK is used as a core library around which OrChem Java classes are wrapped to be used as Java stored procedures,
+            having a public static entry point. The functions can be invoked through a required PL/SQL wrapper around them.<br><br>
+            To see how that works, take a look at the query<br> 
+            &nbsp;&nbsp;<span style="color:gray;font-family:LucidaTypewriter, Lucida Console, Monospace, Courier, System">select orchem_calculate.charge('[O-]C([N+])C([N+])C','SMILES')  C from dual</span><br><br>
+            This is a SQL statement that calls a Pl/SQL function called 'charge' in package 'orchem_calculate'. When you look inside that package, you see this:<br>
+            <span style="color:gray;font-family:LucidaTypewriter, Lucida Console, Monospace, Courier, System">
+            &nbsp;&nbsp;FUNCTION charge(molecule clob,input_type varchar2)<br>
+            &nbsp;&nbsp;RETURN   number<br>
+            &nbsp;&nbsp;IS LANGUAGE JAVA NAME<br> 
+            &nbsp;&nbsp;'uk.ac.ebi.orchem.calc.ChemicalProperties.calculateCharge(oracle.sql.CLOB , java.lang.String) return oracle.sql.NUMBER';<br>
+            </span>   
+            <br>
+            So, the PL/SQL wraps a function in a Java class called ChemicalProperties. That class has a public static method 'calculateCharge', which in the 
+            end makes a call to the CDK, in this case 'AtomContainerManipulator.getTotalFormalCharge(mol)'.
+            <br><br>This is generally the way things are (and should stay) structured in OrChem. The Pl/SQL tends to be a thin layer, the OrChem Java classes do database specific
+            things and any chemical functionality should be coming from the CDK, not OrChem directly.<br><br><br><br>
           </td>
         </tr>
+
+        <tr>
+          <td>
+            <h3>Requirements and software</h3>
+		Developing OrChem requires you have knowlegde of Java, Pl/SQL, SQL and JDBC.
+		Oracle 11G runs Java version 5, so any Java development (and compilation) needs to be Java 5 compliant.
+		<br><br><b>Requirements for development environment</b><br>
+		<ul>
+		<li>CVS client software, to access the Sourceforge repository</li>
+		<li>Java (version 5 (!) because Oracle 11G internal JVM is on release 5)</li>
+		<li>An Oracle client installation (for binaries like loadjava, dropjava, sqlplus). Oracle client software can be downloaded from OTN. </li>
+		<li>Perl, for unit testing</li>
+		<li>Ant, for building
+		<li>You should have a Oracle 11G schema at your disposal for which you have developer privileges (like Oracle's RESOURCE role), so you can wipe clean and rebuild it for testing.</li>
+		</ul>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <h3>Whats where?</h3>
+The Orchem source folders contain a mix of Java, PL/SQL and SQL. There is also a Web folder containing a web application which allows you to enter a search (drawn or by text) and admire the search results. 
+The web application is not meant as a core deliverable, it's more for use in development.<br><br>
+
+The Orchem folder structure is shown below: <br>
+ 
+<PRE>
+
+build.xml                                 : ant build file                                 
+doc                                       : contains the documentation you are reading now
+orchem.jdev11.jpr/orchem.jdev11.jws       : JDeveloper project definition files
+properties                                : properties you have to override for running the test or web application
+public_html                               : Demo web application to visualize searching
+ ├- WEB-INF                               : 
+      ├- lib                              : any jar file needed by OrChem (to do: put non-web jar files in separate lib folder)
+
+sh                                        : Unix shell script(s)
+sql                                       : DDL for building OrChem objects 
+ ├- calculate.plsql                       :   Pl/Sql for chemical calculation packages
+ ├- convert.plsql                         :   Pl/Sql for file format conversion
+ ├- createfingerprints.plsql              :   Pl/Sql for fingerprint creation
+ ├- ....                                  :   etc ... 
+ ├- tables.sql                            :   Tables
+ ├- types.sql                             :   Types 
+ ├- ....                                  :   etc ...
+
+src                                       : Java source folder
+  uk/ac/ebi/orchem                        :
+              ├- bean                     :  Beans
+              ├- calc                     :  Calculation of chemical properties
+              ├- codegen                  :  Generator for QSAR descriptor classes
+              ├- convert                  :  Conversion between chemical file formats
+              ├- fingerprint              :  Fingerprinting of compounds
+              ├- isomorphism              :  Isomorphism/Vf2 used for substructure searching
+              ├- load                     :  Persisting fingerprints
+              ├- qsar                     :  Qsar calculations
+              ├- search                   :  Search algorithms
+              ├- shared                   :  Utility classes
+              ├- tautomers                :  Tautomer generation 
+              ├- test                     :  JUnit test classes
+              ├- web                      :  Struts action classes for demo web app
+
+test                                      : Unit testing
+ ├- main.pl                               : Main test API, little interactive Perl program 
+ ├- step1_compoundload.bash               : Linux bash script to load a test set of compounds into the test schema  
+ ├- step1_compoundload.bat                : Windows equivalent
+ ├- ...                                   : etc ..
+
+</PRE>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <h3>Building</h3>
+		The build file has the following options/targets:
+		<ul>
+		<li> clean : delete all build directories, as well as /build files</li>
+		<li>compile : compile core classes</li>
+		<li>war : clean, compile, and create WAR file (tested Tomcat6)</li>
+		<li>dist : make a tar.gz for OrChem releases</li>
+		</ul>
+		The build process is mostly useful to make a release. Only the core DDL, jar files and classes that are necessary to install and run OrChem are assembled
+		into an archive and zipped up. Make sure you use Java 5.
+
+          </td>
+        </tr>
+
         <tr>
           <td>
             <h3>Unit testing</h3>
             OrChem consists of Oracle and Java components;  both need to
             be part of the unit test process.<br></br>
-            A framework has been set up to 
+            A test suite has been set up to 
             test everything from setting up a new OrChem schema to similarity and 
             substructure searching. You can run the test suite from the command line. 
             Both Linux and Windows are supported by the framework.<br>
@@ -41,13 +145,13 @@
             <li>
             Create a blank Oracle schema in a
             test database. The schema is to be for testing only, we'll populate it
-            later on with disposable data.
+            later on with test data.
             </li>
             <li>
             Navigate to directory OrChem/properties. Copy file "unittest.properties" into 
             subdirectory "my_local_copies". Navigate to "my_local_copies".
             The unit test framework will use this particular file
-            for its database connections. Do NOT add this copy to CVS. Just modify the
+            for its database connections. Do not add this copy to CVS. Just modify the
             file by providing the correct database details.
             </li>
             <li>
@@ -140,21 +244,55 @@ Enter menu option :
             </li>
             </ul>
 	   </td>
-        </tr>
+    </tr>
 
 	<tr>
           <td>
-            <h3>Creating an InChi jar file</h3>
-	    The InChi jar file contains on big Java class created by NestedVM. 
-	    The InChi IUPAC software is written in C, and NestedVM is capable of compiling it into a Java class.
-	    What follows are the steps necessary to create the jar file from the C source code.
+            <h3>Creating a CDK jar file that loads into Oracle</h3>
+	    The CDK jar file loaded into Oracle is built with one or two hacks, steps of which are described below.
+	    The steps are necessary because Aurora doesn't really get the various "@Test.." annotations used throughout the CDK,
+	    so these source code lines must be stripped out. Any Java 6 or 7 feature must be stripped out, really.
+        Below is a way to do this on Linux (using a shell script).
+	    <UL>
+	        <LI>Locate the script file sh/noAnn.sh in the OrChem source directory, open it and make sure step1 is uncommented and step2 is commented.</LI>
+	    	<LI>Git clone git://cdk.git.sourceforge.net/gitroot/cdk/cdk </LI>
+	    	<LI>Navigate to the CDK's src/main folder</LI>
+	    	<LI>Call noAnn.sh from within src/main</LI>
+	    	<LI>Let the script run.</LI>
+		<LI>Once finished, you have stripped out the "@Test" annotations</LI>
+	    	<LI>Set your Java environment to Java 5 (release >5 is not supported in Oracle 11G's JVM)</LI>
+	    	<LI>Navigate to the CDK top folder where file "build.xml" can be found</LI>
+	    	<LI>Modify the CDK build file so that javac 1.5 is OK: relevant lines to change "1.6" -> "1.5" are in the build file for targets "runDoclet" and "compile-module".</LI>
+	    	<LI>Run 'ant clean dist-all'. If there are minor compiler errors (bad stripping), locate the error and fix the problem (should be easy), then run 'ant dist-all' again (and again..) until compilation OK. </LI>
+	    	<LI>When compiled, move into dist/jar directory</LI>
+	    	<LI>Open file OrChem's noAnn.sh, comment step1 and uncomment step2, save file.</LI>
+	    	<LI>Call noAnn.sh from within the dist/jar folder</LI>
+	    	<LI>Let the script run..</LI>
+		<LI>You now have a cdk.jar file you can load into Oracle</LI>
+		<LI>Side note: the JChempaint ('JCP') jar file loaded into the database (jcp.jar) is even more tricky to make (d.d. July 2011). JCP is used to make pictures in the
+		    convert package.<br>The difficulty is that the CDK in its current releases does not contain the JChempaint classes. However, as soon as JCP is distributed as part of the CDK again 
+		    (packages controller and renderer), the integration should become easy enough again.</LI>
+	    <UL>
+            <br></br>
+            <a href="index.html">Back to main page</a>
+            <br></br>
+	   </td>
+        </tr>
+
+	<tr>
+      <td>
+        <h3>Creating the InChi jar file</h3>
+        <b>Background</b>: the CDK uses <a href="http://jni-inchi.sourceforge.net/">JNI-InChI</a> to generate <a href="http://www.iupac.org/inchi/">InChI</a> descriptors, but this approach
+        does not work for OrChem. The problem is in the dynamic loading of libraries, something that is not allowed with the Oracle JVM.<br><br>
+        Instead, a direct conversion from the InChI C++ source files to a Java class is used. This conversion is done by us with NestedVM, a clever tool capable of compiling C++ into a Java class.<br>
+	    Below follow the steps necessary to create the jar file from the C++ source code.
 	    <UL>
 	    <LI>Download <A href="http://nestedvm.ibex.org/">NestedVm</a> by making a <A href="http://git-scm.com/">Git</A> clone
 	         as decribed on the NestedVM website, or take the snapshot provided (nestedvm-2009-08-09.tgz is used in this example)
 	         For more info on NestedVM, consult this <A href="http://wiki.brianweb.net/NestedVM/QuickStartGuide">Wiki</A> page</LI>
-	    <LI>Install NestedVM on your computer. I installed it on Windows7/Cygwin after the conversion failed with CentOS Linux.
-	        Before installing NestedVM you'll need <A href="http://darcs.net/">darcs</a> set up. Darcs can be built or downloaded as a <a href="http://wiki.darcs.net/Binaries">binary</A>, I did the latter.<br>
-	        So I built things with Windows7+Cywgin, nestedvm-2009-08-09.tgz, darcs 2.5, gcc 4.3.4.<br>
+	    <LI>Install NestedVM on your computer. We installed it on Windows7/Cygwin after the conversion failed with CentOS Linux.
+	        Before installing NestedVM you'll need <A href="http://darcs.net/">darcs</a> set up. Darcs can be built or downloaded as a <a href="http://wiki.darcs.net/Binaries">binary</A>, we did the latter.<br>
+	        So the conversion was done with Windows7+Cywgin, nestedvm-2009-08-09.tgz, darcs 2.5, gcc 4.3.4.<br>
 	        To install NestedVM, run the <b>make</b> command. Then run <b>make upstream/tasks/build_gcc_step2</b> (I had to correct a header file in the source during that make)
 	    <LI>The NestedVM installation should give you binaries in .\upstream\install\bin\, like "mips-unknown-elf-gcc" and "mips-unknown-elf-g++".
 	        Make sure that your O/S path contains the location of the NestedVM binaries.	    
@@ -180,8 +318,8 @@ endif
 
 </PRE>	    
 	    </LI>
-	    <LI>Now run the make command, resulting in a file called inchi-1.mips </LI>
-	    <LI>Run NestedVM  to create a .class file from the .mips file. This is how I ran it: <PRE>
+	    <LI>Run the make command, resulting in a file called inchi-1.mips </LI>
+	    <LI>Run NestedVM  to create a .class file from the .mips file. An example: <PRE>
 java -classpath C:\src\inchi\nestedvm\build\;C:\src\inchi\nestedvm\upstream\build\classgen\build\ org.ibex.nestedvm.Compiler -o 
 lessConstants -outfile org/iupac/StdInchi103.class org.iupac.StdInchi103 C:\src\inchi\INCHI-1-API\INCHI\gcc\inchi-1\inchi-1.mips
 </PRE>	    
@@ -208,47 +346,41 @@ public class Test {
         i.run(args);
     }
 }
-
 </PRE>
 	    </LI>
 	    </UL>	    
 	   </td>
         </tr>
-        
-	<tr>
+
+
+   	   <tr>
           <td>
-            <h3>Creating a CDK jar file that loads into Oracle</h3>
-	    The CDK jar file loaded into Oracle is built with one or two hacks, the steps of which are described below.
-	    The steps are necessary because Aurora doesn't really get the various "@Test.." annotations used throughout the CDK,
-	    so these source code lines must be stripped out.
-            Below is a way to do this on Linux (using a shell script).
-	    <UL>
-	        <LI>Locate the script file sh/noAnn.sh in the OrChem source directory, open it and make sure step1 is uncommented and step2 is commented.</LI>
-	    	<LI>Git clone git://cdk.git.sourceforge.net/gitroot/cdk/cdk </LI>
-	    	<LI>Navigate to the CDK's src/main folder</LI>
-	    	<LI>Call noAnn.sh from within src/main</LI>
-	    	<LI>Let the script run.</LI>
-		<LI>Once finished, you have stripped out the "@Test" annotations</LI>
-	    	<LI>Set your Java environment to Java 5 (release 6 is not supported in Oracle 11G's JVM)</LI>
-	    	<LI>Navigate to the CDK top folder where file "build.xml" can be found</LI>
-	    	<LI>Modify the CDK build file so that javac 1.5 is OK: relevant lines to change "1.6" -> "1.5" are in the build file for targets "runDoclet" and "compile-module".</LI>
-	    	<LI>Run 'ant clean dist-all'. If there are minor compiler errors (bad stripping), locate the error and fix the problem (should be easy), then run 'ant dist-all' over again. </LI>
-	    	<LI>When compiled, move into dist/jar directory</LI>
-	    	<LI>Open file OrChem's noAnn.sh, comment step1 and uncomment step2, save file.</LI>
-	    	<LI>Call noAnn.sh from within the dist/jar folder</LI>
-	    	<LI>Let the script run..</LI>
-		<LI>You now have a cdk.jar file you can load into Oracle</LI>
-	    <UL>
-            <br></br>
-            <a href="index.html">Back to main page</a>
-            <br></br>
-	   </td>
+            <h3>Demo web app </h3>
+            The OrChem folder structure contains a web application for test purposes, see some screenshots below.<br>
+            With the web application you can visualize your searches, rather than doing them from the database command line.
+            To make things work, you first of all need to copy file 'properties/webapp.properties' into folder 'properties/my_local_copies'
+            and edit this file with settings that work for your local test database.
+            <br>
+            We managed to get the demo web application working in JDeveloper, but to set this up was complicated.
+            An easier option is to run the ant task 'war' and deploy the resulting war file to a Tomcat server and run it there.
+            <br>
+            <br>
+            
+            <img src="orchem_webapp1.jpg" height="400" />
+            <br><br>
+            <img src="orchem_webapp2.jpg" height="400" />
+
+          </td>
         </tr>
-	
-	
+
+
+
+
+
+
+
+
       </table>
     </div>
-
-    
   </body>
-ne</html>
+</html>

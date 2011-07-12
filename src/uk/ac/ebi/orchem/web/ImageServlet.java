@@ -32,8 +32,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import java.sql.SQLException;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -47,18 +45,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
-import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.jchempaint.controller.PhantomBondGenerator;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RenderingParameters;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
 import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
-
 import org.openscience.jchempaint.renderer.generators.ExternalHighlightAtomGenerator;
 import org.openscience.jchempaint.renderer.generators.ExternalHighlightBondGenerator;
 import org.openscience.jchempaint.renderer.generators.HighlightAtomGenerator;
@@ -74,7 +69,6 @@ import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
 
 import uk.ac.ebi.orchem.Utils;
 import uk.ac.ebi.orchem.bean.OrChemCompound;
-import uk.ac.ebi.orchem.shared.DatabaseAccess;
 import uk.ac.ebi.orchem.shared.MoleculeCreator;
 
 
@@ -203,8 +197,7 @@ public class ImageServlet extends HttpServlet {
                 molecule = sp.parseSmiles(molecularInput);
             }
             else {
-                MDLV2000Reader mdlReader = new MDLV2000Reader();
-                molecule = MoleculeCreator.getNNMolecule(mdlReader, molecularInput);
+                molecule = MoleculeCreator.getMoleculeFromMolfile(molecularInput);
             }
             for (IAtom atom : molecule.atoms()) {
                 atom.setValency(null); // otherwise ugly picture

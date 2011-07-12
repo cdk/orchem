@@ -30,7 +30,6 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -125,8 +124,7 @@ public class ChemicalProperties {
             mol = sp.parseSmiles(moleculeString);
         }
         else if (inputType.equals("MOL")) {
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
-            mol = MoleculeCreator.getNNMolecule(mdlReader, moleculeString);
+            mol = MoleculeCreator.getMoleculeFromMolfile(moleculeString,false);
         }
         return mol;
     }

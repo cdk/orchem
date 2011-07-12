@@ -160,20 +160,41 @@ RESULT pic:
             The function MOLFILETOINCHI converts a Molfile to an InChi string:
             <ul>
                  <li>MOLFILE (CLOB): a string MDL molfile</li> 
+                 <li>OUTPUT_TYPE (VARCHAR2): defaults to 'INCHI', set it to 'INCHI_KEY' if you want the InChI key (hashed) value returned. </li>
+                 <li>EXTRA_COMMANDLINE_ARGS: defaults to null, set it to valid stdinchi command line argument(s) such as '-FixedH' to further influence the output</li>
                  <span style="font-style:italic"> 
             </ul>     
-            <h5>Example</h5>
-            <hr align="left">
+            <p>
+            <h5>Axemplas</h5>
 <pre>
-select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('CC1CCCC1')) as INCHI from dual
+> select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('OC1=NC=NC2=C1C=NN2'),'INCHI_KEY') as INCHIKEY from dual;
+INCHIKEY
+--------------------------------------------------------------------------------
+InChIKey=OFCNXPDARWKPPY-UHFFFAOYSA-N
 
+
+> select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('OC1=NC=NC2=C1C=NN2')) as INCHI from dual;
 INCHI
 --------------------------------------------------------------------------------
-InChI=1S/C6H12/c1-6-4-2-3-5-6/h6H,2-5H2,1H3
+InChI=1S/C5H4N4O/c10-5-3-1-8-9-4(3)6-2-7-5/h1-2H,(H2,6,7,8,9,10)
+
+
+> select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('OC1=NC=NC2=C1C=NN2'),'INCHI','-FixedH') as INCHI from dual;
+INCHI
+--------------------------------------------------------------------------------
+InChI=1/C5H4N4O/c10-5-3-1-8-9-4(3)6-2-7-5/h1-2H,(H2,6,7,8,9,10)/f/h9-10H
+
+
+> select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('OC1=NC=NC2=C1C=NN2'),'INCHI','-KET -DoNotAddH') as INCHI from dual
+INCHI
+--------------------------------------------------------------------------------
+InChI=1/C5N4O/c10-5-3-1-8-9-4(3)6-2-7-5
 
 </pre>
             <br></br>
             <br></br>
+            <hr align="left">
+
         <a href="index.html">Back to main page</a>
 
           </td>

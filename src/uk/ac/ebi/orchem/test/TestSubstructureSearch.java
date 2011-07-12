@@ -34,7 +34,6 @@ import java.util.List;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.bean.OrChemCompound;
@@ -128,10 +127,7 @@ public class TestSubstructureSearch extends AbstractOrchemTest {
     (List<WrappedAtomContainer> targetMolecules, String strictStereo, List<Integer> idList, String mdl)
     throws SQLException, CDKException, CloneNotSupportedException {
         List<Integer> result = new ArrayList<Integer>();
-
-        MDLV2000Reader mdlReader = new MDLV2000Reader();
-        IAtomContainer queryMolecule = MoleculeCreator.getNNMolecule(mdlReader,mdl,false);
-        
+        IAtomContainer queryMolecule = MoleculeCreator.getMoleculeFromMolfile(mdl,false);
         MoleculeCreator.backupExplicitHcount(queryMolecule);
         queryMolecule=AtomContainerManipulator.removeHydrogens(queryMolecule);
         int[] explHydrogenCountBackup = MoleculeCreator.createExplHydrogenArray(queryMolecule);

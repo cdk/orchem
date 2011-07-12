@@ -43,6 +43,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import javax.imageio.ImageIO;
 
@@ -54,7 +55,6 @@ import org.iupac.StdInchi103;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.listener.PropertiesListener;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -118,10 +118,9 @@ public class ConvertMolecule {
         CLOB psmiles = null;
         String molfile=null;
         try {
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
             molfile = Utils.ClobToString(molfileClob);
             if (molfile != null) {
-                NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                NNMolecule molecule = MoleculeCreator.getMoleculeFromMolfile(molfile,false);
                 SmilesGenerator sg = new SmilesGenerator();
                 //fixCarbonHCount(molecule);
                 String smiles = sg.createSMILES(molecule);
@@ -134,6 +133,7 @@ public class ConvertMolecule {
             psmiles = null;
             System.out.println(Utils.getErrorString(e));
             System.out.println("INPUT WAS\n"+molfile);
+            throw(e);
         }
         return psmiles;
     }
@@ -189,6 +189,7 @@ public class ConvertMolecule {
             cmolfile = null;
             System.out.println(Utils.getErrorString(e));
             System.out.println("INPUT WAS\n"+smiles);
+            throw(e);
         }
         return cmolfile;
     }
@@ -213,10 +214,9 @@ public class ConvertMolecule {
     public static BLOB molfileToJpeg(CLOB Molfile, Integer hsize, Integer vsize) throws Exception {
         BLOB pjpeg = null;
         try {
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
             String molfile = Utils.ClobToString(Molfile);
             if (molfile != null) {
-                NNMolecule molecule = MoleculeCreator.getNNMolecule(mdlReader, molfile);
+                NNMolecule molecule = MoleculeCreator.getMoleculeFromMolfile(molfile,false);
                 //fixCarbonHCount(molecule);
 
                 for (IAtom atom : molecule.atoms()) {
@@ -246,10 +246,16 @@ public class ConvertMolecule {
         } catch (Exception e) {
             pjpeg = null;
             System.out.println(Utils.getErrorString(e));
+            throw(e);
         }
+        
         return pjpeg;
     }
 
+    public static void main(String[] args) throws Exception {
+        molfileToInchi("A", "B", "C", "D", "-asdahdj -ahaha -assahdj");
+        
+    }
 
     /**
      * Converts MolFile to an InChi string.
@@ -263,10 +269,11 @@ public class ConvertMolecule {
      * @param fileNum unique number to make this thing work concurrent
      * @param outputDir output direcory for temp files
      * @param outputType either INCHI or INCHI_KEY
+     * @param extraArgs extra (optional) command line argument for Herr Inchi
      * @return the InChi descriptor
      * @throws Exception
      */
-    public static String molfileToInchi(String molfile, String fileNum, String outputDir, String outputType) throws Exception {
+    public static String molfileToInchi(String molfile, String fileNum, String outputDir, String outputType, String extraArgs) throws Exception {
         // Set up
         String tempMolFile = outputDir + "orchem" + fileNum + ".mol";
         String tempOutFile = outputDir + "orchem" + fileNum + ".out";
@@ -280,16 +287,34 @@ public class ConvertMolecule {
         out.write(molfile);
         out.close();
 
+        int numOfArgs=6;
+        List<String> extraArguments = new ArrayList<String>();
+
+        if (extraArgs!=null ) {
+            StringTokenizer st = new StringTokenizer(extraArgs," ");
+            while (st.hasMoreTokens()) {
+                numOfArgs++;
+                extraArguments.add(st.nextToken());
+            }
+        }
+
         //Prepare an array to shove into the Inchi generator
-        String[] args = new String[6];
+        String[] args = new String[numOfArgs];
+
         args[0] = "";
         args[1] = tempMolFile;
         args[2] = tempOutFile;
         args[3] = tempLogFile;
         args[4] = tempProblemFile;
         args[5] = "-Key";
+         
+        int idx=6; 
+        for (String stdinchiArg : extraArguments) {
+            args[idx] = stdinchiArg;
+            idx++;
+        }
 
-
+ 
         //Call the actual Inchi
         StdInchi103 i = new StdInchi103();
         i.run(args);
@@ -326,8 +351,8 @@ public class ConvertMolecule {
      * Clobbered version of {@link #molfileToInchi(String, String, String, String)}, convenient to be
      * called directly from Oracle database end.
      */
-    public static CLOB molfileToInchi(CLOB molfile, String fileNum, String outputDir, String outputType) throws Exception {
-        return Utils.StringToClob(molfileToInchi(Utils.ClobToString(molfile), fileNum, outputDir,outputType));
+    public static CLOB molfileToInchi(CLOB molfile, String fileNum, String outputDir, String outputType, String extraArgs) throws Exception {
+        return Utils.StringToClob(molfileToInchi(Utils.ClobToString(molfile), fileNum, outputDir,outputType, extraArgs));
     }
 
 

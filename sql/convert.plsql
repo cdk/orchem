@@ -20,7 +20,8 @@ AS
    FUNCTION molfileToJpeg (molfile clob, hsize number, vsize number)
    RETURN BLOB;
 
-   FUNCTION molfileToInchi (molfile clob, output_type VARCHAR2:='INCHI' )
+   FUNCTION molfileToInchi (molfile clob, output_type VARCHAR2:='INCHI', extra_commandline_args VARCHAR2:=NULL ) 
+                                              -- alternative is 'INCHI_KEY'
    RETURN CLOB;
 
 END;
@@ -66,12 +67,13 @@ AS
    This is for the InChi writer to work in as it needs to read/write temporary 
    files. See Orchem documentation for details.
    *************/
-   FUNCTION molfileToInchi_java (molfile clob, file_seq_num varchar2, temp_dir varchar2, output_type varchar2 )
+   FUNCTION molfileToInchi_java (molfile clob, file_seq_num varchar2, temp_dir varchar2, output_type varchar2, extra_commandline_args VARCHAR2  )
    RETURN CLOB
    IS LANGUAGE JAVA NAME 
-   'uk.ac.ebi.orchem.convert.ConvertMolecule.molfileToInchi(oracle.sql.CLOB, java.lang.String, java.lang.String, java.lang.String) return oracle.sql.CLOB  ';
+   'uk.ac.ebi.orchem.convert.ConvertMolecule.molfileToInchi(oracle.sql.CLOB, java.lang.String, java.lang.String, java.lang.String, java.lang.String) return oracle.sql.CLOB  ';
 
-   FUNCTION molfileToInchi (molfile clob, output_type VARCHAR2:='INCHI' ) -- alternative is 'INCHI_KEY'
+   FUNCTION molfileToInchi (molfile clob, output_type VARCHAR2:='INCHI', extra_commandline_args VARCHAR2:=NULL ) 
+                                              -- alternative is 'INCHI_KEY'
    RETURN CLOB
    IS 
       file_seq_num INTEGER;
@@ -93,7 +95,7 @@ AS
          'You must provide a temporary directory name through ORCHEM_PARAMETERS table');
       END IF;
 
-      RETURN molfileToInchi_java (molfile, file_seq_num, temp_dir_name, output_type );
+      RETURN molfileToInchi_java (molfile, file_seq_num, temp_dir_name, output_type, extra_commandline_args);
 
    END;
 

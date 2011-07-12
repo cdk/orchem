@@ -46,11 +46,9 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
-
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import uk.ac.ebi.orchem.Utils;
@@ -103,9 +101,7 @@ public class DatabaseFingerprintPersistence {
             sql.executeUpdate("ALTER SESSION SET COMMIT_WRITE='BATCH' ");
             conn.setAutoCommit(false);
 
-            MDLV2000Reader mdlReader = new MDLV2000Reader();
             SmilesParser sp= new SmilesParser(DefaultChemObjectBuilder.getInstance());
-            
 
             /* The extended fingerprint is used, but for the substructure search we only capture the basic fingerprint */
             IFingerprinter extendedFingerPrinter = FingerPrinterAgent.FP.getExtendedFingerPrinter();
@@ -173,7 +169,7 @@ public class DatabaseFingerprintPersistence {
                         }
                             
                         else // more lines? guess MolFile
-                            molecule = MoleculeCreator.getNNMolecule(mdlReader, molecularInput);
+                            molecule = MoleculeCreator.getMoleculeFromMolfile(molecularInput);
                         
                         for(IAtom atom : molecule.atoms()){
                             try {
@@ -284,7 +280,7 @@ public class DatabaseFingerprintPersistence {
                     }
 
                 } catch (CDKException e) {
-                    System.err.println("Loop error for " + compoundTablePkColumn + ": " + compounds.getString(compoundTablePkColumn) + " ="+ e.getMessage());
+                    System.err.println("Failure for " + compoundTablePkColumn + ": " + compounds.getString(compoundTablePkColumn) + " ="+ e.getMessage());
                     logMsg.append("\n" +
                             System.currentTimeMillis() + " Loop err " + compoundTablePkColumn + ": " + compounds.getString(compoundTablePkColumn) + " " + e.getMessage());
                 }

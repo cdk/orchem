@@ -24,15 +24,24 @@
 package uk.ac.ebi.orchem;
 
 import java.io.Reader;
+import java.io.StringReader;
+
 import java.util.BitSet;
+
+import java.util.StringTokenizer;
 
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
+
 import oracle.sql.BLOB;
 import oracle.sql.CLOB;
+
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+
+import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.nonotify.NNMolecule;
 
 import uk.ac.ebi.orchem.singleton.FingerPrinterAgent;
 
@@ -77,8 +86,8 @@ public class Utils {
         StackTraceElement[] st = throwable.getStackTrace();
         for (int i = 0; i < st.length; i++) {
             StackTraceElement stackTraceElement = st[i];
-            sb.append("\tat " + stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName() + " ( " + stackTraceElement.getFileName() + ":" +
-                      stackTraceElement.getLineNumber() + " )" + "\n");
+            sb.append("\tat " + stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName() + " ( " +
+                      stackTraceElement.getFileName() + ":" + stackTraceElement.getLineNumber() + " )" + "\n");
         }
         if (throwable.getCause() != null) {
             sb.append("\n" +
@@ -94,7 +103,8 @@ public class Utils {
      */
     public static void printContent(IAtomContainer c) {
         for (int i = 0; i < c.getAtomCount(); i++) {
-            System.out.println("Atom " + i + ": " + c.getAtom(i).getSymbol() + "   (hashCode " + c.getAtom(i).hashCode() + ")");
+            System.out.println("Atom " + i + ": " + c.getAtom(i).getSymbol() + "   (hashCode " +
+                               c.getAtom(i).hashCode() + ")");
         }
         for (int i = 0; i < c.getBondCount(); i++) {
             System.out.print("Bond " + i + "  ");
@@ -110,7 +120,8 @@ public class Utils {
                 }
             }
             System.out.print(" from " + from + " to " + to + "; ");
-            System.out.println("order is " + c.getBond(i).getOrder() + " aromatic is=" + c.getBond(i).getFlag(CDKConstants.ISAROMATIC));
+            System.out.println("order is " + c.getBond(i).getOrder() + " aromatic is=" +
+                               c.getBond(i).getFlag(CDKConstants.ISAROMATIC));
         }
     }
 
@@ -164,4 +175,41 @@ public class Utils {
         hblob.close();
         return hblob;
     }
+
+
+    /**
+     * Helper method to circumvent the CDK's lack of ability to deal with 'query bond' types
+     * which are bonds with type > 4 in a molfile. See CTFile documentation on the web.
+     * Well, this is a hack really.
+     *
+     * @param mdl input molfile
+     * @return mdl with 5,6,7,8 bond types replace with 1 (single)
+     */
+    public static String removeSSSQueryBondFromMolfile(String mdl) {
+        mdl=mdl.replace("\n", " \n");
+        mdl=mdl.replaceAll("\n\n", "\n \n");
+        String lineSep = System.getProperty("line.separator");
+        StringTokenizer st = new StringTokenizer(mdl, lineSep);
+        StringBuilder mdlOut = new StringBuilder();
+        while (st.hasMoreTokens()) {
+            String mdlLine = st.nextToken();
+            if (mdlLine == null || mdl.equals("")) {
+                mdlOut.append(".").append(lineSep);
+            }
+            else {
+                if (mdlLine.length() > 9 &&
+                    (mdlLine.substring(0, 3).matches("(\\s){0,2}(\\d){1,3}")) &&
+                    (mdlLine.substring(3, 6).matches("(\\s){0,2}(\\d){1,3}")) &&
+                    (mdlLine.substring(6, 9).matches("(\\s){2}[5678]"))) // SSS query bond types
+                {
+                    mdlLine = mdlLine.replaceAll("[5678]", "1");
+                }
+                mdlOut.append(mdlLine).append(lineSep);
+            }
+        }
+        String returnMDL = mdlOut.toString();
+        returnMDL = returnMDL.substring(0, returnMDL.length()-1);
+        return returnMDL;
+    }
 }
+

@@ -40,7 +40,9 @@ import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.io.DefaultChemObjectReader;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.io.MDLV3000Reader;
 import org.openscience.cdk.nonotify.NNMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
@@ -57,13 +59,18 @@ public class MoleculeCreator {
 
     /**
      * Creates a molecule using an MDL string and an MDL reader
-     * @param mdlReader
      * @param mdlString
      * @return
      * @throws CDKException
      */
-    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString,
-                                           boolean removeHydrogens) throws CDKException {
+    public static NNMolecule getMoleculeFromMolfile(String mdlString,boolean removeHydrogens) throws CDKException {
+        DefaultChemObjectReader mdlReader=null;
+ 
+        if (mdlString.contains("M  V30 BEGIN CTAB"))
+            mdlReader = new MDLV3000Reader();
+        else
+            mdlReader = new MDLV2000Reader();
+
         try {
             NNMolecule molecule = new NNMolecule();
             mdlReader.setReader(new StringReader(mdlString));
@@ -71,7 +78,7 @@ public class MoleculeCreator {
             try {
                 molecule = mdlReader.read(molecule);
             } catch (NullPointerException e) {
-                /* Fix for NullPointer due to occurence of D or T (Deuterium or Tritium) with massNumber null
+            /* Fix for NullPointer due to occurence of D or T (Deuterium or Tritium) with massNumber null
              * as happens now and then in Starlite (Chembl)
              * Regex fix to replace D or T with a H (Hydrogen) symbol as replacement.
              */
@@ -87,8 +94,14 @@ public class MoleculeCreator {
                 molecule = new NNMolecule();
                 molecule = mdlReader.read(molecule);
             }
-            //TODO
-            //catch classcast exception -> replace query bond lines and try again...
+
+            catch (java.lang.ClassCastException ccEx) {
+            /* A hack for query bond types until that works in the CDK. Query bond types get replaced by a single bond. */
+                mdlString = Utils.removeSSSQueryBondFromMolfile(mdlString);
+                mdlReader.setReader(new StringReader(mdlString));
+                molecule = new NNMolecule();
+                molecule = mdlReader.read(molecule);
+            }
 
             NNMolecule nnMolecule = null;
             if (removeHydrogens) {
@@ -98,7 +111,7 @@ public class MoleculeCreator {
                     throw new CDKException("Error - nullpointer exception on removeHydrogens()");
                 }
                 if (nnMolecule == null || nnMolecule.getAtomCount() == 0)
-                    throw new CDKException("Error - Molfile is empty or atom count after hydrogen stripping is zero. ");
+                    throw new CDKException("Warning - Molfile is empty or atom count after hydrogen stripping is zero. ");
             } else {
                 nnMolecule = molecule;
             }
@@ -107,15 +120,15 @@ public class MoleculeCreator {
             CDKHueckelAromaticityDetector.detectAromaticity(nnMolecule);
             return nnMolecule;
         } catch (Exception err) {
-            throw new CDKException("Unexpected error creating molecule from molfile \n"+err.getClass()+"\n"+Utils.getErrorString(err));        
+            throw new CDKException("Failed to create CDK molecule from MDL Molfile \n"+err.getClass()+"\n"+Utils.getErrorString(err));        
         }
     }
 
     /**
-     * Overload for {@link # getNNMolecule(MDLV2000Reader, String, boolean}
+     * Overload for {@link MoleculeCreator#getMoleculeFromMolfile(java.lang.String,boolean)}
      */
-    public static NNMolecule getNNMolecule(MDLV2000Reader mdlReader, String mdlString) throws CDKException {
-        return getNNMolecule(mdlReader, mdlString, true);
+    public static NNMolecule getMoleculeFromMolfile(String mdlString) throws CDKException {
+        return getMoleculeFromMolfile(mdlString, true);
     }
 
     /**
@@ -147,7 +160,7 @@ public class MoleculeCreator {
         }
         res.close();
         psst.close();
-        result = getNNMolecule(new MDLV2000Reader(), molfile, removeHydrogens);
+        result = getMoleculeFromMolfile(molfile, removeHydrogens);
         return result;
     }
 

@@ -44,7 +44,6 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.FormatFactory;
-import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.RGroupQueryReader;
 import org.openscience.cdk.io.formats.IChemFormat;
 import org.openscience.cdk.io.formats.RGroupQueryFormat;
@@ -85,7 +84,7 @@ public class SubstructureSearch {
      *
      * @param userQuery mdl or smiles clob
      * @param queryType  SMILES or MOL
-     * @param Y/N indicating to query for tautomers
+     * @param tautomers Y/N indicating to query for tautomers
      * @return user query represented as CDK atom container
      * @throws Exception
      */
@@ -126,9 +125,8 @@ public class SubstructureSearch {
                 }
             } else {
                 if (tautomers.equals("N")) {
-                    MDLV2000Reader mdlReader = new MDLV2000Reader();
                     userQueries = new ArrayList<IAtomContainer>();
-                    userQueries.add(MoleculeCreator.getNNMolecule(mdlReader, query, false));
+                    userQueries.add(MoleculeCreator.getMoleculeFromMolfile(query, false));
                 } else {
                     userQueries = TautomerUtility.getTautomersFromMolfile(query);
                 }

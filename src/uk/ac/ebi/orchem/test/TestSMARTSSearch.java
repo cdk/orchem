@@ -77,7 +77,7 @@ public class TestSMARTSSearch extends AbstractOrchemTest {
     }
 
     public void testSMARTS_7() throws Exception {
-        smartsQuery("n1ancc1",121);
+        smartsQuery("n1ancc1",122);
     }
 
 }

@@ -204,11 +204,27 @@ require further jar files. Instead, the status INVALID is accepted for classes n
 
                 <li><b>JIT</b>
                 <br></br>
-                After 'loadjava', just-in-time compilation (JIT) is required for better performance. More on that can be found in the
+                After 'loadjava', just-in-time compilation (JIT) can be done for better performance. More on that can be found in the
                 <a href="http://download.oracle.com/docs/cd/B28359_01/java.111/b31225/chnine.htm#BABDCIBH">Oracle® Database Java Developer's Guide</a>. 
                 The chapter on "Oracle Database Java Application Performance" contains useful information regarding Java 
-                performance, so you may want to read this to tweak your own Oracle instance.
+                performance, so you may want to read this to tweak your own Oracle instance.<br><br>
+                
+                
+                                
+                <div style="border:1px solid gray;padding:10px">
+                <b>Known issue Sun Solaris</b><br/>
+                On Sun Solaris 10 (oracle 11.1), a JIT related problem was observed. It led to the InChI generation failing after a number of attempts.<br><br>
+                <span style="color:gray;font-family:LucidaTypewriter, Lucida Console, Monospace, Courier, System">
+                &nbsp;&nbsp;select orchem_convert.molfiletoinchi(orchem_convert.smilestomolfile('CCO’)) from dual;<br>
+                &nbsp;&nbsp;ORA-03113: end-of-file on communication channel<br><br>
+                </span>
+                The problem was gone after disabling Java_jit within Oracle  (set JAVA_JIT_ENABLED to FALSE)                              
+                apparently because of a bug Invoking Portal Procedures within Database JVM (Doc ID 1317956.1). Fixed in oracle 11.2,
+                alternatively you can upgrade to 11.1.0.7 and request a backport for bug 7713193 on top of 11.1.0.7 for a specific platform.
+                </div>
+                
                 <br></br>
+                To use JIT:               
                     <ul>
                     <li>Navigate into the orchem/sql directory.</li>
                     <li>Connect to the database using SQL*Plus with your ORCHEM account</li>
